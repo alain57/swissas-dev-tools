@@ -1,0 +1,39 @@
+plugins {
+    id "org.jetbrains.intellij" version "0.3.12"
+}
+
+group 'com.swissas.tala'
+version '1.4.1'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3' 
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+
+
+}
+
+intellij {
+    version '183.4588.61'
+    intellij.updateSinceUntilBuild false
+    
+}
+patchPluginXml {
+    changeNotes """
+<b>V1.4.1:</b><pre>fix some plugin exceptions (mostly in the traffic light)
+traffic light shows the reason of the color on mouse over</pre>
+<b>V1.4  :</b><pre>Apply menu changes without require a restart (for ex to see coworker findings)
+Add an option to be warned when commit can be done after a non green commit warning
+Fix the histeric blinking lamp</pre>
+<b>V1.3.1:</b><pre>fix an exception for IntelliJ 2017 as an Interface is defined differently in 2018 version</pre>
+<b>V1.3  :</b><pre>Use properties files for urls and i18n<br>Better way to save settings<br>Automatically add this to instance fields<br>Automatically add @override to overriden methods<br>Automatically add @author to classes without it<br>Automatically remove suppress warning if no warning is present</pre><br>
+<b>V1.2  :</b><pre>Check for traffic light before commit, fix some small bugs</pre><br>
+<b>V1.1  :</b><pre>Adapt the gradle build to prevent having a minimum version of IntelliJ</pre><br>
+<b>V1.0  :</b><pre>First release</pre>"""
+}

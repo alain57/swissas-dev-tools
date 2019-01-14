@@ -1,0 +1,34 @@
+<idea-plugin>
+    <id>com.swissas.tala.swissas</id>
+    <name>Swiss-AS IntelliJ pluging</name>
+    <vendor email="tala@swiss-as.com" url="http://www.swiss-as.com">Swiss-AS</vendor>
+
+    <description><![CDATA[
+    Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, jenkins error compliant)
+    ]]></description>
+    <depends>com.intellij.modules.lang</depends>
+    
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.swissas.util.Storage"/>
+        <applicationConfigurable id="SwissAsSettings" displayName="Swiss AS Settings"
+                                 instance="com.swissas.config.SwissAsConfig"/>
+        <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />
+        <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckinFactory"/>
+        <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
+    </extensions>
+
+    <application-components>
+    <component>
+        <implementation-class>com.swissas.actions_on_save.DoOnSave</implementation-class>
+    </component>
+    </application-components>
+    
+    <actions>
+        <action class="com.swissas.action.criticalActionToggle" id="swissas.show_critical_only" icon="/critical.png"/>
+    </actions>
+    <project-components>
+        <component>
+            <implementation-class>com.swissas.widget.SwissAsWidget</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
