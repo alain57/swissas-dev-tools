@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.4.1'
+version '1.4.3'
 
 sourceCompatibility = 1.8
 
@@ -26,6 +26,9 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
+<b>V1.4.3</b><pre>fix the predefined size of the pre commit error message as the editorPane is not capable to calculate it</pre>
+<b>V1.4.2:</b><pre>pre commit message is now a custom dialog where user can see the traffic light message and click on it
+fix dark mode bulb color</pre>
 <b>V1.4.1:</b><pre>fix some plugin exceptions (mostly in the traffic light)
 traffic light shows the reason of the color on mouse over</pre>
 <b>V1.4  :</b><pre>Apply menu changes without require a restart (for ex to see coworker findings)

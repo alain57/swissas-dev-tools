@@ -11,8 +11,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 
+import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.HintHint;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.Html;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,18 +31,16 @@ public class ConfirmationDialog extends DialogWrapper {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     private final Action whenReadyAction;
-
-    private final String trafficLightMessage;
+    private String trafficLightMessage;
 
     ConfirmationDialog(String trafficLightMessage) {
         super(true);
-        this.trafficLightMessage = trafficLightMessage;
+        this.trafficLightMessage = HintUtil.prepareHintText(new Html(trafficLightMessage), new HintHint().setAwtTooltip(true));
         this.whenReadyAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("when.ready"), DialogWrapper.NEXT_USER_EXIT_CODE);
         setTitle(RESOURCE_BUNDLE.getString("commit.title"));
         setOKButtonText(RESOURCE_BUNDLE.getString("yes"));
         setCancelButtonText(RESOURCE_BUNDLE.getString("no"));
         init();
-
     }
 
     @Nullable
@@ -47,18 +49,16 @@ public class ConfirmationDialog extends DialogWrapper {
         JPanel content = new JPanel(new BorderLayout());
         JLabel commitMessage = new JLabel(RESOURCE_BUNDLE.getString("commit.with.trafficlight"));
         JEditorPane trafficMessage = new JEditorPane("text/html", this.trafficLightMessage);
-        JEditorPane dummy = new JEditorPane("text/html", this.trafficLightMessage);
-        dummy.setSize(500, Short.MAX_VALUE);
+
+        trafficMessage.setPreferredSize(new Dimension(550, 65));
         trafficMessage.setEditable(false);
-        trafficMessage.setPreferredSize(new Dimension(400, (int) dummy.getPreferredSize().getHeight()));
-        trafficMessage.setOpaque(false);
         trafficMessage.addHyperlinkListener(event -> {
             if (HyperlinkEvent.EventType.ACTIVATED.equals(event.getEventType())) {
                 BrowserUtil.browse(event.getURL());
             }
         });
         content.add(commitMessage, BorderLayout.NORTH);
-        content.add(trafficMessage, BorderLayout.SOUTH);
+        content.add(new JBScrollPane(trafficMessage), BorderLayout.CENTER);
         return content;
     }
 
@@ -71,6 +71,5 @@ public class ConfirmationDialog extends DialogWrapper {
     private Action getWhenReadyAction() {
         return this.whenReadyAction;
     }
-
 
 }

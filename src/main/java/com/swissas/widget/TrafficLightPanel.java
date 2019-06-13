@@ -1,5 +1,18 @@
 package com.swissas.widget;
 
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -22,18 +35,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
-
-import static com.swissas.util.Constants.*;
+import static com.swissas.util.Constants.BLINKING;
+import static com.swissas.util.Constants.GREEN;
+import static com.swissas.util.Constants.OFF;
+import static com.swissas.util.Constants.ON;
+import static com.swissas.util.Constants.RED;
+import static com.swissas.util.Constants.YELLOW;
 
 /**
  * Traffic light panel 
@@ -221,6 +228,10 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     public void setInformWhenReady(CheckinProjectPanel checkinProjectPanel) {
         this.informWhenReady = true;
         this.checkinProjectPanel = checkinProjectPanel;
+    }
+    
+    public String getTrafficDetails() {
+        return this.trafficDetails;
     }
     
     @Override

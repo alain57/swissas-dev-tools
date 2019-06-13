@@ -1,8 +1,11 @@
 package com.swissas.checkin;
 
 
+import java.util.ResourceBundle;
+
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.changes.CommitExecutor;
@@ -12,8 +15,6 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
-
-import java.util.ResourceBundle;
 
 /**
  * The pre commit checking that will make sure that nobody can commit with an empty message or commit with the traffic light indicator 
@@ -69,16 +70,13 @@ class PreCommitCheckingHandler extends CheckinHandler {
     }
 
     private ReturnResult showTrafficLightDialog() {
-        int messageResult = Messages.showDialog(this.project,
-                WANT_TO_COMMIT,
-                TITLE,
-                new String[]{RESOURCE_BUNDLE.getString("yes"), RESOURCE_BUNDLE.getString("no"), RESOURCE_BUNDLE.getString("when.ready")},
-                1,
-                null);
-        if(messageResult == 2){
+        ConfirmationDialog confirmationDialog = new ConfirmationDialog(this.trafficLightPanel.getTrafficDetails());
+        confirmationDialog.show();
+        int messageResult = confirmationDialog.getExitCode();
+        if(messageResult == DialogWrapper.NEXT_USER_EXIT_CODE){
             this.trafficLightPanel.setInformWhenReady(this.checkinProjectPanel);
         }
-        
-        return messageResult == 0 ? ReturnResult.COMMIT : ReturnResult.CLOSE_WINDOW;
+
+        return messageResult == DialogWrapper.OK_EXIT_CODE ? ReturnResult.COMMIT : ReturnResult.CLOSE_WINDOW;
     }
 }
