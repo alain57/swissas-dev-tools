@@ -1,11 +1,14 @@
 package com.swissas.widget;
 
-import com.intellij.ui.JBColor;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.swing.JPanel;
+
+import com.intellij.ui.JBColor;
 
 /**
  * The traffic light Bulb 
@@ -62,7 +65,7 @@ class Bulb extends JPanel {
 
     @Override
     public void paintComponent(Graphics g){
-        g.setColor(JBColor.BLACK);
+        g.setColor(JBColor.background());
         g.fillRect(0,0,getWidth(),getHeight());
         switch (this.currentState){
             case ON:
