@@ -2,15 +2,13 @@ package com.swissas.toolwindow;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.font.TextAttribute;
-import java.io.IOException;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
+
+import icons.SwissAsIcons;
 
 /**
  * The tree cell renderer for the elements displayed on the content warning content panel
@@ -19,19 +17,9 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  */
 class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
     
-    private ImageIcon warning;
-    private ImageIcon critical;
-    
-    
     
     public WarningContentTreeCellRender(){
         super();
-        try {
-            this.warning = new ImageIcon(ImageIO.read(WarningContentTreeCellRender.class.getResourceAsStream("/warning.png"/*NON-NLS*/)).getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-            this.critical = new ImageIcon(ImageIO.read(WarningContentTreeCellRender.class.getResourceAsStream("/critical.png"/*NON-NLS*/)).getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
     
     @Override
@@ -46,7 +34,7 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         }
         setFont(new Font(attributes));
         if(node.getChildCount() ==0){
-            setIcon(node.isCritical() ? this.critical : this.warning);
+            setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
         }
         return this;
     }

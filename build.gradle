@@ -1,31 +1,40 @@
 plugins {
-    id "org.jetbrains.intellij" version "0.3.12"
+    id 'org.jetbrains.intellij' version '0.4.9'
 }
 
 group 'com.swissas.tala'
-version '1.4.3'
+version '1.5'
 
-sourceCompatibility = 1.8
+apply plugin: 'java'
+sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
 }
 
+
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3' 
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
-
-
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
 }
-
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+apply plugin: 'org.jetbrains.intellij'
 intellij {
-    version '183.4588.61'
+    version '2019.1.3'
+    downloadSources true
     intellij.updateSinceUntilBuild false
-    
+
 }
 patchPluginXml {
     changeNotes """
+<b>V1.5</b><pre>CTRL + mouse over on MULTILANGUE_TXT or MULTILANGUE_TT to display it translation
+add inspection that checks for missing Translation with 3 quickfixes (add NO_EXT / Translate / Translate tooltip)
+add a mouse menu to show author information
+change the way the plugin know the icons and add a plugin icon
+settings saved per project
+various small code changes
+</pre>
 <b>V1.4.3</b><pre>fix the predefined size of the pre commit error message as the editorPane is not capable to calculate it</pre>
 <b>V1.4.2:</b><pre>pre commit message is now a custom dialog where user can see the traffic light message and click on it
 fix dark mode bulb color</pre>

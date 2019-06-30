@@ -1,18 +1,14 @@
 package com.swissas.action;
 
 
+import java.util.ResourceBundle;
+
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import icons.SwissAsIcons;
 import com.swissas.toolwindow.WarningContent;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.util.ResourceBundle;
-
-import static com.swissas.widget.SwissAsWidget.LOGGER;
 
 /**
  * Toggle button that will be available on the SAS Warning panel. 
@@ -26,18 +22,10 @@ public class criticalActionToggle extends AnAction {
 
     private boolean isCriticalOnly = false;
     private WarningContent parent;
-    private ImageIcon warning;
-    private ImageIcon critical;
     
     public criticalActionToggle(){
         super();
-        try {
-            this.warning = new ImageIcon(ImageIO.read(criticalActionToggle.class.getResource("/warning.png"/*NON-NLS*/)).getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-            this.critical = new ImageIcon(ImageIO.read(criticalActionToggle.class.getResource("/critical.png"/*NON-NLS*/)).getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-        }catch (Exception e){
-            LOGGER.error(e.getMessage(), e);
-        }
-        getTemplatePresentation().setIcon(this.critical);
+        getTemplatePresentation().setIcon(SwissAsIcons.CRITICAL);
         getTemplatePresentation().setText(RESOURCE_BUNDLE.getString("sonar.critical.tooltip"));
     }
     
@@ -54,7 +42,7 @@ public class criticalActionToggle extends AnAction {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setIcon(this.isCriticalOnly ? this.warning : this.critical);
+        e.getPresentation().setIcon(this.isCriticalOnly ? SwissAsIcons.WARNING : SwissAsIcons.CRITICAL);
         e.getPresentation().setText(this.isCriticalOnly ? RESOURCE_BUNDLE.getString("sonar.warnings.tooltip") : RESOURCE_BUNDLE.getString("sonar.critical.tooltip"));
         
     }

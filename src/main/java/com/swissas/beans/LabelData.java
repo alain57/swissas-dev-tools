@@ -1,5 +1,9 @@
 package com.swissas.beans;
 
+import javax.swing.Icon;
+
+import icons.SwissAsIcons;
+
 /**
  * The bean structure for the labelData
  *
@@ -10,7 +14,19 @@ public class LabelData {
     public enum WarningType{
         WARNING,
         SONAR,
-        CRITICAL
+        CRITICAL;
+        
+        public Icon getIcon(){
+            switch (this){
+                case SONAR:
+                    return SwissAsIcons.SONAR;
+                case CRITICAL:
+                    return SwissAsIcons.CRITICAL;
+                default:
+                    return SwissAsIcons.WARNING;
+                    
+            }
+        }
     }
     
     private final WarningType warningType;

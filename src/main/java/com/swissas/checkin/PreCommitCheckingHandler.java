@@ -31,17 +31,17 @@ class PreCommitCheckingHandler extends CheckinHandler {
     @NonNls
     private static final String TITLE = RESOURCE_BUNDLE.getString("commit.title");
     @NonNls
-    private static final String WANT_TO_COMMIT = RESOURCE_BUNDLE.getString("commit.with.trafficlight");
-    @NonNls
     private static final String EMPTY_COMMIT_MSG = RESOURCE_BUNDLE.getString("commit.without.message");
-    private final TrafficLightPanel trafficLightPanel;
+    private TrafficLightPanel trafficLightPanel = null;
     
     
     PreCommitCheckingHandler(final CheckinProjectPanel checkinProjectPanel){
         this.project = checkinProjectPanel.getProject();
         this.checkinProjectPanel = checkinProjectPanel;
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
-        this.trafficLightPanel = (TrafficLightPanel)ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
+        if(ideFrame != null) {
+            this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
+        }
         
     }
 
@@ -62,7 +62,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
             return ReturnResult.CANCEL;
         }
         
-        if(this.trafficLightPanel.isRedOrYellowOn()){
+        if(this.trafficLightPanel != null && this.trafficLightPanel.isRedOrYellowOn()){
             return showTrafficLightDialog();
         }else {
             return ReturnResult.COMMIT;

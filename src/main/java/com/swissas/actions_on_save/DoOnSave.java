@@ -1,5 +1,8 @@
 package com.swissas.actions_on_save;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.project.Project;
@@ -9,11 +12,8 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.swissas.actions_on_save.processors.InspectionProcessor;
 import com.swissas.actions_on_save.processors.ProcessorFactory;
-import com.swissas.util.Storage;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.swissas.util.PsiFiles.isPsiFileInProject;
 import static com.swissas.widget.SwissAsWidget.LOGGER;
@@ -115,7 +115,7 @@ public class DoOnSave implements FileDocumentManagerListener {
 
     private List<InspectionProcessor> getSaveActionsProcessors(Project project, PsiFile psiFile) {
         return ProcessorFactory.INSTANCE
-                .getSaveActionsProcessors(project, psiFile, Storage.getStorageFromProject(project));
+                .getSaveActionsProcessors(project, psiFile, SwissAsStorage.getInstance(project));
     }
 
     private void runProcessor(InspectionProcessor processor) {

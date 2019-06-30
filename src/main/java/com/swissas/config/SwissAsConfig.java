@@ -1,35 +1,36 @@
 package com.swissas.config;
 
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataKeys;
-import com.intellij.openapi.components.ServiceManager;
+import java.awt.Dimension;
+import java.util.ResourceBundle;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SpringLayout;
+
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.impl.status.MemoryUsagePanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBList;
 import com.swissas.beans.LabelData;
 import com.swissas.toolwindow.WarningContent;
 import com.swissas.ui.MyListCellRenderer;
 import com.swissas.util.SpringUtilities;
-import com.swissas.util.Storage;
+import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Objects;
-import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
-import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
 
 
 /**
@@ -40,7 +41,7 @@ import static com.intellij.openapi.actionSystem.Anchor.BEFORE;
 
 public class SwissAsConfig implements Configurable {
     
-    private final Storage storage;
+    private SwissAsStorage swissAsStorage;
     private JPanel root;
     private JTextField fourLetterCode;
     private JComboBox<String> orientation;
@@ -52,13 +53,19 @@ public class SwissAsConfig implements Configurable {
     
     private JCheckBox chkShowIgnoreLists;
     private JList<String> lstIgnoreValues;
+    private Project project;
 
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
     
-    public SwissAsConfig(){
-        this.storage = ServiceManager.getService(Storage.class);
-        initComponent();
-        updateUIState();
+    public SwissAsConfig(Project project){
+        try {
+            this.project = project;
+            this.swissAsStorage = SwissAsStorage.getInstance(project);
+            initComponent();
+            updateUIState();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
     
     
@@ -136,12 +143,12 @@ public class SwissAsConfig implements Configurable {
     }
     
     private void updateUIState(){
-        this.fourLetterCode.setText(this.storage.getFourLetterCode());
-        this.orientation.setSelectedIndex(this.storage.isHorizontalOrientation() ? 0 : 1);
-        this.chxFixThis.setSelected(this.storage.isFixMissingThis());
-        this.chkFixAuthor.setSelected(this.storage.isFixMissingAuthor());
-        this.chkFixOverride.setSelected(this.storage.isFixMissingOverride());
-        this.chkFixUnused.setSelected(this.storage.isFixMissingThis());
+        this.fourLetterCode.setText(this.swissAsStorage.getFourLetterCode());
+        this.orientation.setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
+        this.chxFixThis.setSelected(this.swissAsStorage.isFixMissingThis());
+        this.chkFixAuthor.setSelected(this.swissAsStorage.isFixMissingAuthor());
+        this.chkFixOverride.setSelected(this.swissAsStorage.isFixMissingOverride());
+        this.chkFixUnused.setSelected(this.swissAsStorage.isFixMissingThis());
     }
     
     
@@ -149,7 +156,7 @@ public class SwissAsConfig implements Configurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return RESOURCE_BUNDLE.getString("setting.title");
+        return ResourceBundle.getBundle("texts").getString("setting.title");
     }
 
     @Nullable
@@ -160,44 +167,35 @@ public class SwissAsConfig implements Configurable {
 
     @Override
     public boolean isModified() {
-        return !this.storage.getFourLetterCode().equals(this.fourLetterCode.getText().toUpperCase().trim()) ||
-                this.storage.isHorizontalOrientation() == (this.orientation.getSelectedIndex() == 1) ||
-                this.storage.isFixMissingThis() != this.chxFixThis.isSelected() ||
-                this.storage.isFixMissingAuthor() != this.chkFixAuthor.isSelected() ||
-                this.storage.isFixMissingOverride() != this.chkFixOverride.isSelected() ||
-                this.storage.isFixUnusedSuppressWarning() != this.chkFixUnused.isSelected();/* ||
+        return !this.swissAsStorage.getFourLetterCode().equals(this.fourLetterCode.getText().toUpperCase().trim()) ||
+                this.swissAsStorage.isHorizontalOrientation() == (this.orientation.getSelectedIndex() == 1) ||
+                this.swissAsStorage.isFixMissingThis() != this.chxFixThis.isSelected() ||
+                this.swissAsStorage.isFixMissingAuthor() != this.chkFixAuthor.isSelected() ||
+                this.swissAsStorage.isFixMissingOverride() != this.chkFixOverride.isSelected() ||
+                this.swissAsStorage.isFixUnusedSuppressWarning() != this.chkFixUnused.isSelected();/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
 
     @Override
     public void apply() {
-        this.storage.setFourLetterCode(this.fourLetterCode.getText().toUpperCase().trim());
-        this.storage.setHorizontalOrientation(this.orientation.getSelectedIndex() == 0);
-        this.storage.setFixMissingThis(this.chxFixThis.isSelected());
-        this.storage.setFixMissingOverride(this.chkFixOverride.isSelected());
-        this.storage.setFixUnusedSuppressWarning(this.chkFixUnused.isSelected());
-        this.storage.setFixMissingAuthor(this.chkFixAuthor.isSelected());
+        this.swissAsStorage.setFourLetterCode(this.fourLetterCode.getText().toUpperCase().trim());
+        this.swissAsStorage.setHorizontalOrientation(this.orientation.getSelectedIndex() == 0);
+        this.swissAsStorage.setFixMissingThis(this.chxFixThis.isSelected());
+        this.swissAsStorage.setFixMissingOverride(this.chkFixOverride.isSelected());
+        this.swissAsStorage.setFixUnusedSuppressWarning(this.chkFixUnused.isSelected());
+        this.swissAsStorage.setFixMissingAuthor(this.chkFixAuthor.isSelected());
         refreshWarningContent();
 
     }
 
     private void refreshWarningContent() {
-        try {
-            DataContext context = DataManager.getInstance().getDataContextFromFocusAsync().blockingGet(2000);
-            Project project = Objects.requireNonNull(context).getData(DataKeys.PROJECT);
-            if (project != null){
-                IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(project);
-                TrafficLightPanel trafficLightPanel = (TrafficLightPanel)ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
-                if(trafficLightPanel != null) {
-                    trafficLightPanel.setOrientation();
-                    ideFrame.getStatusBar().updateWidget(TrafficLightPanel.WIDGET_ID);
-                }
-                WarningContent warningContent = (WarningContent) ToolWindowManager.getInstance(project).getToolWindow(WarningContent.ID).getContentManager().getContent(0).getComponent();
-                warningContent.refresh();
-
-            }
-        }catch (ExecutionException | TimeoutException e) {
-            e.printStackTrace();
+        IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
+        TrafficLightPanel trafficLightPanel = (TrafficLightPanel)ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
+        if(trafficLightPanel != null) {
+            trafficLightPanel.setOrientation();
+            ideFrame.getStatusBar().updateWidget(TrafficLightPanel.WIDGET_ID);
         }
+        WarningContent warningContent = (WarningContent) ToolWindowManager.getInstance(this.project).getToolWindow(WarningContent.ID).getContentManager().getContent(0).getComponent();
+        warningContent.refresh();
     }
 }

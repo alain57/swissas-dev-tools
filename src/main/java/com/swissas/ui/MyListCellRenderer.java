@@ -1,13 +1,13 @@
 package com.swissas.ui;
 
 import com.swissas.beans.LabelData;
+import icons.SwissAsIcons;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static com.swissas.ui.LabelWithIcon.REMOVE_ICON;
 
 /**
  * A List cell renderer that will simulate an action if the user press the zone defined for the delete icon
@@ -16,7 +16,7 @@ import static com.swissas.ui.LabelWithIcon.REMOVE_ICON;
  */
 
 public class MyListCellRenderer extends DefaultListCellRenderer {
-    private LabelWithIcon labelWithIcon;
+    private final LabelWithIcon labelWithIcon;
     
     public MyListCellRenderer(final JList list){
         super();
@@ -31,8 +31,8 @@ public class MyListCellRenderer extends DefaultListCellRenderer {
                     {
                         Rectangle rect = list.getCellBounds ( index, index );
                         Point pointWithinCell = new Point ( e.getX () - rect.x, e.getY () - rect.y );
-                        Rectangle crossRect = new Rectangle ( rect.width - 9 - 5 - REMOVE_ICON.getIconWidth () / 2,
-                                rect.height / 2 - REMOVE_ICON.getIconHeight () / 2, REMOVE_ICON.getIconWidth (), REMOVE_ICON.getIconHeight () );
+                        Rectangle crossRect = new Rectangle ( rect.width - 9 - 5 - SwissAsIcons.DELETE.getIconWidth () / 2,
+                                rect.height / 2 - SwissAsIcons.DELETE.getIconHeight () / 2, SwissAsIcons.DELETE.getIconWidth (), SwissAsIcons.DELETE.getIconHeight () );
                         if ( crossRect.contains ( pointWithinCell ) )
                         {
                             DefaultListModel model = ( DefaultListModel ) list.getModel ();

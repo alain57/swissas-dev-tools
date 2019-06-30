@@ -1,16 +1,5 @@
 package com.swissas.checkin;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ResourceBundle;
-
-import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.event.HyperlinkEvent;
-
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -19,6 +8,11 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.Html;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import java.awt.*;
+import java.util.ResourceBundle;
 
 /**
  * The Confirmation Dialog for the pre commit check.
@@ -31,7 +25,7 @@ public class ConfirmationDialog extends DialogWrapper {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     private final Action whenReadyAction;
-    private String trafficLightMessage;
+    private final String trafficLightMessage;
 
     ConfirmationDialog(String trafficLightMessage) {
         super(true);

@@ -2,19 +2,21 @@
     <id>com.swissas.tala.swissas</id>
     <name>Swiss-AS IntelliJ pluging</name>
     <vendor email="tala@swiss-as.com" url="http://www.swiss-as.com">Swiss-AS</vendor>
-
     <description><![CDATA[
     Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, jenkins error compliant)
     ]]></description>
     <depends>com.intellij.modules.lang</depends>
     
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.swissas.util.Storage"/>
-        <applicationConfigurable id="SwissAsSettings" displayName="Swiss AS Settings"
-                                 instance="com.swissas.config.SwissAsConfig"/>
+        <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
+        <customizableActionGroupProvider implementation="com.swissas.menu.TranslateActionGroupProvider" order="first" />
+        <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
+                                 instance="com.swissas.config.SwissAsConfig" />
         <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckinFactory"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
+        <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
+        <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
     </extensions>
 
     <application-components>
@@ -24,8 +26,16 @@
     </application-components>
     
     <actions>
-        <action class="com.swissas.action.criticalActionToggle" id="swissas.show_critical_only" icon="/critical.png"/>
+        <action class="com.swissas.action.criticalActionToggle" id="swissas.show_critical_only" icon="SwissAsIcons.CRITICAL"/>
+        <group id="translation.menu" text="Swiss-As"
+               popup="true"
+               icon="SwissAsIcons.AMOS">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorToggleColumnMode"/>
+            <action class="com.swissas.action.ShowClassOwnerAction" text="Owner" id="com.swissas.action.ShowClassOwnerAction"/>
+
+        </group>
     </actions>
+    
     <project-components>
         <component>
             <implementation-class>com.swissas.widget.SwissAsWidget</implementation-class>

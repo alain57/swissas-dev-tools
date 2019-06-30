@@ -1,5 +1,27 @@
 package com.swissas.toolwindow;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
+import javax.swing.tree.TreeSelectionModel;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -18,25 +40,10 @@ import com.swissas.beans.File;
 import com.swissas.beans.Message;
 import com.swissas.beans.Module;
 import com.swissas.beans.Type;
-import com.swissas.util.Storage;
+import com.swissas.util.SwissAsStorage;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.TreeSelectionModel;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Timer;
-import java.util.*;
 
 
 /**
@@ -74,7 +81,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
     private List<Type> types = new ArrayList<>();
     
     private final criticalActionToggle criticalActionToggle;
-    private Storage storage;
+    private SwissAsStorage swissAsStorage;
     
     public WarningContent(){
         super();
@@ -85,7 +92,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         ((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
-        this.storage = Storage.getStorageFromProject(project);
+        this.swissAsStorage = SwissAsStorage.getInstance(project);
         
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(this, "", false);
@@ -115,9 +122,9 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
     }
     
     private void readURL() throws IOException, XMLStreamException {
-        if(!this.storage.getFourLetterCode().isEmpty()){
+        if(!this.swissAsStorage.getFourLetterCode().isEmpty()){
             HttpClient client = new HttpClient();
-            GetMethod get = new GetMethod(MESSAGE_URL + this.storage.getFourLetterCode());
+            GetMethod get = new GetMethod(MESSAGE_URL + this.swissAsStorage.getFourLetterCode());
             client.executeMethod(get);
             this.body = get.getResponseBodyAsStream();
             this.types = parseXml();

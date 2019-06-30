@@ -29,7 +29,7 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.swissas.config.SwissAsConfig;
-import com.swissas.util.Storage;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,16 +72,16 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     private boolean informWhenReady;
     private CheckinProjectPanel checkinProjectPanel;
-    private Project project;
-    private Bulb green;
-    private Bulb yellow;
-    private Bulb red;
-    private JPanel lamps;
+    private final Project project;
+    private final Bulb green;
+    private final Bulb yellow;
+    private final Bulb red;
+    private final JPanel lamps;
     private boolean isRedOrYellowOn = false;
     private String trafficDetails;
 
     private final Map<String, String> status = new HashMap<>();
-    private final Storage storage;
+    private final SwissAsStorage swissAsStorage;
     private final String url;
     private final String clickUrl;
 
@@ -89,7 +89,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     TrafficLightPanel(Project project) {
         this.project = project;
-        this.storage = Storage.getStorageFromProject(project);
+        this.swissAsStorage = SwissAsStorage.getInstance(project);
         this.url = URL_BUNDLE.getString("url.trafficlight");
         this.clickUrl = URL_BUNDLE.getString("url.trafficlight.click");
         this.lamps = new JPanel();
@@ -111,8 +111,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(TrafficLightPanel.this.storage.getFourLetterCode().isEmpty()){
-                    ShowSettingsUtil.getInstance().showSettingsDialog(null, SwissAsConfig.class);
+                if(TrafficLightPanel.this.swissAsStorage.getFourLetterCode().isEmpty()){
+                    ShowSettingsUtil.getInstance().showSettingsDialog(TrafficLightPanel.this.project, SwissAsConfig.class);
                 }
             }
         });
@@ -146,16 +146,16 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     }
 
     public void setOrientation() {
-        int radius =  this.storage.isHorizontalOrientation() ? RADIUS_HORIZONTAL : RADIUS_VERTICAL;
-        int border = this.storage.isHorizontalOrientation() ? BORDER_HORIZONTAL : BORDER_VERTICAL;
+        int radius =  this.swissAsStorage.isHorizontalOrientation() ? RADIUS_HORIZONTAL : RADIUS_VERTICAL;
+        int border = this.swissAsStorage.isHorizontalOrientation() ? BORDER_HORIZONTAL : BORDER_VERTICAL;
         this.green.setRadiusAndBorder(radius, border);
         this.yellow.setRadiusAndBorder(radius, border);
         this.red.setRadiusAndBorder(radius, border);
-        this.lamps.setLayout(this.storage.isHorizontalOrientation() ? new GridLayout(1,3) : new GridLayout(3,1));
+        this.lamps.setLayout(this.swissAsStorage.isHorizontalOrientation() ? new GridLayout(1,3) : new GridLayout(3,1));
     }
 
     void refreshContent(){
-        if(this.storage.getFourLetterCode().isEmpty()){
+        if(this.swissAsStorage.getFourLetterCode().isEmpty()){
             
             JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(RESOURCE_BUNDLE.getString("4lc.not.configured"), 
                     MessageType.ERROR, null).createBalloon().
@@ -201,7 +201,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     
     private void readTrafficValues() {
         try {
-            String trafficLight = Jsoup.connect(this.url + this.storage.getFourLetterCode()).get().select("body").html();
+            String trafficLight = Jsoup.connect(this.url + this.swissAsStorage.getFourLetterCode()).get().select("body").html();
 
 
             String[] parts = trafficLight.toLowerCase().split(",\\s?"/*NON-NLS*/);
@@ -210,7 +210,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
                 this.status.put(s[0], s[1].trim());
             }
             if(!State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW))) {
-                this.trafficDetails = Jsoup.connect(this.clickUrl + this.storage.getFourLetterCode()).get().html();
+                this.trafficDetails = Jsoup.connect(this.clickUrl + this.swissAsStorage.getFourLetterCode()).get().html();
             }else {
                 this.trafficDetails = null;
             }

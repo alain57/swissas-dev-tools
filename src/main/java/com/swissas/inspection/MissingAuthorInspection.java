@@ -24,7 +24,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.swissas.util.Storage;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +42,10 @@ public class MissingAuthorInspection extends LocalInspectionTool{
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
     private static final String AUTHOR = " * @author ";
 
+    @Override
+    public boolean isEnabledByDefault() {
+        return true;
+    }
 
     @Override
     @NotNull
@@ -59,7 +63,7 @@ public class MissingAuthorInspection extends LocalInspectionTool{
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         Project project = holder.getProject();
-        Storage storage = Storage.getStorageFromProject(project);
+        SwissAsStorage swissAsStorage = SwissAsStorage.getInstance(project);
         
         return new JavaElementVisitor() {
 
@@ -83,18 +87,18 @@ public class MissingAuthorInspection extends LocalInspectionTool{
                             PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText("/**\n" +
                                     " * TODO: write you class description here\n" +
                                     " *\n" +
-                                    AUTHOR + storage.getFourLetterCode() + "\n" +
+                                    AUTHOR + swissAsStorage.getFourLetterCode() + "\n" +
                                     " */");
                             addedTag = file.addBefore(docComment, startElement);
                         }else if(startElement instanceof PsiDocComment) {
                             List<String> lines = Stream.of(startElement.getText().split("\n")).collect(Collectors.toList());
-                            lines.add(lines.size()-1,  AUTHOR + storage.getFourLetterCode());
+                            lines.add(lines.size()-1,  AUTHOR + swissAsStorage.getFourLetterCode());
                             PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText(StringUtil.join(lines, "\n"));
                             startElement.replace(docComment);
                         }else {
                             PsiDocComment docComment = PsiTreeUtil.getParentOfType(startElement, PsiDocComment.class);
                             if (docComment != null) {
-                                PsiDocTag tag = JavaPsiFacade.getInstance(project).getElementFactory().createDocTagFromText(AUTHOR + storage.getFourLetterCode() +"\n");
+                                PsiDocTag tag = JavaPsiFacade.getInstance(project).getElementFactory().createDocTagFromText(AUTHOR + swissAsStorage.getFourLetterCode() +"\n");
                                 addedTag = docComment.addBefore(tag, startElement);
                             }
                         }
