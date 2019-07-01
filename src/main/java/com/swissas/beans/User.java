@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author TALA
  */
 
-public class User implements Serializable {
+class User implements Serializable {
 
 	private static final int HTML_FULL_NAME_POSITION = 0;
 	private static final int HTML_JOB_POSITION = 2;

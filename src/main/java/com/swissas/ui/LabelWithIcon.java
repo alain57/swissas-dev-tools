@@ -17,7 +17,7 @@ import java.awt.geom.RoundRectangle2D;
  * @author Tavan Alain
  */
 
-public class LabelWithIcon extends JLabel {
+class LabelWithIcon extends JLabel {
     private static final Color SELECTION_COLOR = new Color(82, 158, 202);
     private static final int SIZE = 36;
     private static final int MARGIN = 5;

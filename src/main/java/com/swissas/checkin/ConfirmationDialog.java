@@ -21,7 +21,7 @@ import java.util.ResourceBundle;
  * @author Tavan Alain
  */
 
-public class ConfirmationDialog extends DialogWrapper {
+class ConfirmationDialog extends DialogWrapper {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     private final Action whenReadyAction;

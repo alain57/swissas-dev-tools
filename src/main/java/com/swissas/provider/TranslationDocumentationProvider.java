@@ -22,23 +22,23 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Documentation provider to handle some specific Swiss AS stuff
- * For example translations
+ * Documentation provider to handle translations
  *
  * @author Tavan Alain
  */
 
-public class TranslationDocumentationProvider extends JavaDocumentationProvider {
+class TranslationDocumentationProvider extends JavaDocumentationProvider {
 	private static final List<String> MULTILANG_CLASSES = Arrays.asList("MultiLangText", "MultiLangToolTip");
 	private String translationToSearch = null;
-	Project activeProject = null;
-	String mainPropertiesContent = null;
+	private Project activeProject = null;
+	private String mainPropertiesContent = null;
 	
 	
 	
 	@Override
 	@Nullable
 	public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+		
 		getNeededVariables();
 		if(isSasMultiLang(element)) {
 			PsiFile currentTranslationFile = element.getContainingFile().getContainingDirectory().findFile("Standard.properties");

@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5'
+version '1.5.1'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -28,6 +28,10 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
+<b>V1.5.1</b><pre>Generated translation always tries to use the amos/share/multiLanguage/Standards known key words
+Translation will auto correct common mistakes (for ex work order instead of Workorder)
+fix small bugs
+</pre>
 <b>V1.5</b><pre>CTRL + mouse over on MULTILANGUE_TXT or MULTILANGUE_TT to display it translation
 add inspection that checks for missing Translation with 3 quickfixes (add NO_EXT / Translate / Translate tooltip)
 add a mouse menu to show author information

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
  * The provider for the missing author inspection
  * @author Tavan Alain
  */
-public class MissingAuthorInspectionProvider implements InspectionToolProvider {
+class MissingAuthorInspectionProvider implements InspectionToolProvider {
 
     @NotNull
     @Override

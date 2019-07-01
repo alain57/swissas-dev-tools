@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Tavan Alain
  */
 
-public class MissingTranslationInspectionProvider implements InspectionToolProvider {
+class MissingTranslationInspectionProvider implements InspectionToolProvider {
 
 	@NotNull
 	@Override

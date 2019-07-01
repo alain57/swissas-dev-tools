@@ -9,7 +9,6 @@
     
     <extensions defaultExtensionNs="com.intellij">
         <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
-        <customizableActionGroupProvider implementation="com.swissas.menu.TranslateActionGroupProvider" order="first" />
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
                                  instance="com.swissas.config.SwissAsConfig" />
         <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />

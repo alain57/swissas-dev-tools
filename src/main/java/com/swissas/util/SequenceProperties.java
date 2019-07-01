@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class SequenceProperties extends Properties {
 
-	private Set<Object> keySet = new LinkedHashSet<>(100);
+	private final Set<Object> keySet = new LinkedHashSet<>(100);
 
 	@Override
 	public Enumeration<Object> keys() {
@@ -50,7 +50,7 @@ public class SequenceProperties extends Properties {
 	@Override
 	public synchronized Set<Map.Entry<Object, Object>> entrySet() {
 		return Collections.synchronizedSet(
-				this.keySet.stream().map(k -> new MyEntry<Object, Object>(k, get(k))).collect(Collectors.toCollection(LinkedHashSet::new))
+				this.keySet.stream().map(k -> new MyEntry<>(k, get(k))).collect(Collectors.toCollection(LinkedHashSet::new))
 		);
 	}
 	

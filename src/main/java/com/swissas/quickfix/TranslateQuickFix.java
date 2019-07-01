@@ -3,10 +3,15 @@ package com.swissas.quickfix;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
+import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SequenceProperties;
 import groovy.json.StringEscapeUtils;
@@ -35,7 +40,7 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     private static final String MESSAGE_CLASS = "_Messages.java";
 
-    private SmartPsiElementPointer<PsiFile> smartPsiElementPointer;
+    private final SmartPsiElementPointer<PsiFile> smartPsiElementPointer;
     private String currentPropertiesPath;
     String ending;
     String className;
@@ -47,7 +52,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
 
     @NonNls
-    protected static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
+    static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -104,7 +109,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         element.replace(expressionFromText);
     }
 
-    protected PsiFile getOrCreateMessageFile(){
+    private PsiFile getOrCreateMessageFile(){
         PsiDirectory containingDirectory = this.smartPsiElementPointer.getElement().getContainingDirectory();
         PsiFile messageFile = containingDirectory.findFile(MESSAGE_CLASS);
         if(messageFile == null){
@@ -124,6 +129,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                     "}";
             messageFile = PsiFileFactory.getInstance(this.smartPsiElementPointer.getProject()).createFileFromText(MESSAGE_CLASS, JavaLanguage.INSTANCE, classContent);
             containingDirectory.add(messageFile);
+            messageFile = containingDirectory.findFile(MESSAGE_CLASS);
         }
         return messageFile;
     }
@@ -132,13 +138,22 @@ public class TranslateQuickFix implements LocalQuickFix {
         Properties prop = new SequenceProperties();
         try {
             this.currentPropertiesPath = this.smartPsiElementPointer.getElement().getContainingDirectory().getVirtualFile().findOrCreateChildData(this, "Standard.properties").getPath();
-            FileInputStream in = new FileInputStream(this.currentPropertiesPath);
-            prop.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        readInProperties(prop, this.currentPropertiesPath);
+        return prop;
+    }
+    
+    
+    private void readInProperties(Properties properties, String path){
+        try {
+            FileInputStream in = new FileInputStream(path);
+            properties.load(in);
             in.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return prop;
     }
 
     private void saveProperties(Properties properties){
@@ -154,12 +169,24 @@ public class TranslateQuickFix implements LocalQuickFix {
     private String getPropertyValue(PsiElement element){
         String result;
         if(element instanceof PsiPolyadicExpression){
-            result = PsiTreeUtil.collectElementsOfType(element, PsiLiteralExpressionImpl.class).stream().map(e ->
-                    e.getLiteralElementType().equals(JavaTokenType.STRING_LITERAL)  ? e.getInnerText() : ""
-            ).collect(Collectors.joining("%s"));
+            StringBuilder stringBuilder = new StringBuilder();
+            PsiElement[] psiElements = PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpressionImpl || e instanceof PsiMethodCallExpressionImpl);
+            for (PsiElement psiElement : psiElements) {
+                if(psiElement instanceof PsiLiteralExpressionImpl){
+                    PsiLiteralExpressionImpl psiLiteralExpression = (PsiLiteralExpressionImpl)psiElement;
+                    if(JavaTokenType.STRING_LITERAL.equals(psiLiteralExpression.getLiteralElementType())){
+                        stringBuilder.append(psiLiteralExpression.getInnerText());
+                        continue;
+                    }
+                }
+                stringBuilder.append("%s");
+            }
+            result = stringBuilder.toString();
         }else {
             result = ((PsiLiteralExpressionImpl) element).getInnerText();
         }
+        result = autoCorrectCommonMisstakes(result);
+        result = replaceWithKnownKeys(result);
         return StringEscapeUtils.unescapeJava(result);
     }
 
@@ -173,5 +200,37 @@ public class TranslateQuickFix implements LocalQuickFix {
             capitalizeFully = capitalizeFully.substring(0, 36);
         }
         return capitalizeFully;
+    }
+
+
+    private String autoCorrectCommonMisstakes(String sentence){
+        return sentence.replaceAll("[wW]ork[ -]?[oO]rder", "@WORKORDER@")
+        .replaceAll("\\bWO\\b", "@WO@")
+        .replaceAll("aircraft", "@AIRCRAFT@")
+        .replaceAll("\\bAC\\b", "@AC@")
+        .replaceAll("[pP]art[ -]?[nN]umber", "@PART_NUMBER@")
+        .replaceAll("\\bPN\\b", "P/N")
+        .replaceAll("[sS]erial[ -]?[nN]umber", "@SERIAL_NUMBER@")
+        .replaceAll("\\bSN\\b", "@SN@")
+        .replaceAll("Amos", "@AMOS@")
+        .replaceAll("[wW]ork[ -]?[pP]ackage", "@WORKPACKAGE@")
+        .replaceAll("\\bWP\\b", "@WP@")
+        .replaceAll("([aA])nalyze", "$1nalyse")
+        .replaceAll("Center","Centre");
+    }
+    
+    private String replaceWithKnownKeys(String sentence){
+        Module shared = Stream.of(ModuleManager.getInstance(this.smartPsiElementPointer.getProject()).getModules()).filter(e -> e.getName().contains("shared")).findFirst().orElse(null);
+        VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
+        VirtualFile propertieFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
+        Properties prop = new Properties();
+        readInProperties(prop, propertieFile.getPath());
+        String result = sentence;
+        for (Map.Entry<Object, Object> objectObjectEntry : prop.entrySet()) {
+            String key = "@" + objectObjectEntry.getKey().toString() + "@";
+            String value = objectObjectEntry.getValue().toString();
+            result = result.replaceAll(value, key);
+        }
+        return result;
     }
 }

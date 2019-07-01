@@ -22,6 +22,7 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         super();
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);

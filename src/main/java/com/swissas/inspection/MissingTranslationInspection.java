@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Tavan Alain
  */
 
-public class MissingTranslationInspection extends LocalInspectionTool {
+class MissingTranslationInspection extends LocalInspectionTool {
 
 	@NonNls
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");

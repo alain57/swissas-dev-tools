@@ -1,6 +1,7 @@
 package com.swissas.action;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.JEditorPane;
 
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Tavan Alain
  */
 
-public class ShowClassOwnerAction extends EditorAction {
+class ShowClassOwnerAction extends EditorAction {
 
 	protected ShowClassOwnerAction() {
 		super(null);
@@ -49,16 +50,16 @@ public class ShowClassOwnerAction extends EditorAction {
 	}
 	
 	private void executeWriteAction(Editor editor, @Nullable Caret caret, DataContext dataContext){
-		PsiFile file = PsiManager.getInstance(editor.getProject()).findFile(((EditorEx)editor).getVirtualFile());
-		PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+		PsiFile file = PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(((EditorEx)editor).getVirtualFile());
+		PsiElement element = Objects.requireNonNull(file).findElementAt(editor.getCaretModel().getOffset());
 		String authorTxt = null;
 		String errorText = null;
-		String psiText = null;
+		String authorString = null;
 		if(element instanceof PsiDocToken){
 			String text = element.getText();
 			if(!text.contains(" ") && text.length() >= 3 && text.length() <= 4){
 				//seems to be a lc
-				psiText = text;
+				authorString = text;
 			}else {
 				errorText = "The plugin can't decode \"" + text + "\" as Letter code.";
 				//warn that the plugin can't decode the string as letter code
@@ -68,18 +69,19 @@ public class ShowClassOwnerAction extends EditorAction {
 			PsiDocTag author = PsiTreeUtil.collectElementsOfType(file, PsiDocTag.class).stream()
 					.filter(e -> e.getName().equalsIgnoreCase("author")).findFirst().orElse(null);
 			if(author != null){
-				psiText = author.getFirstChild().getNextSibling().getNextSibling().getText(); //author is the entire line, the author tag is the first child, the next is a blank and the next is the lettercode
+				authorString = author.getFirstChild().getNextSibling().getNextSibling().getText(); //author is the entire line, the author tag is the first child, the next is a blank and the next is the lettercode
 			}else {
 				errorText = "The plugin was not able to find the class author code";
 			}
 		}
 		
-		if(psiText != null){
+		if(authorString != null){
+			authorString = authorString.toUpperCase();
 			Map<String, String> userMap = SwissAsStorage.getInstance(editor.getProject()).getUserMap();
-			if(userMap.containsKey(psiText)){
-				authorTxt = userMap.get(psiText).toString();
+			if(userMap.containsKey(authorString)){
+				authorTxt = userMap.get(authorString).toString();
 			}else{
-				errorText = "Could not find \"" + psiText + "\" in the internal phone book";
+				errorText = "Could not find \"" + authorString + "\" in the internal phone book";
 			}
 		}
 		JEditorPane pane = new JEditorPane("text/html", authorTxt == null ? errorText : authorTxt);

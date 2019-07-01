@@ -1,6 +1,7 @@
 package com.swissas.config;
 
 import java.awt.Dimension;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.swing.Box;
@@ -46,13 +47,14 @@ public class SwissAsConfig implements Configurable {
     private JTextField fourLetterCode;
     private JComboBox<String> orientation;
     
+    private JCheckBox chkEnablePlugin;
     private JCheckBox chkFixAuthor;
     private JCheckBox chxFixThis;
     private JCheckBox chkFixOverride;
     private JCheckBox chkFixUnused;
     
     private JCheckBox chkShowIgnoreLists;
-    private JList<String> lstIgnoreValues;
+    private JList<LabelData> lstIgnoreValues;
     private Project project;
 
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
@@ -122,7 +124,7 @@ public class SwissAsConfig implements Configurable {
         warningPanel.setLayout(new BoxLayout(warningPanel, BoxLayout.PAGE_AXIS));
         this.chkShowIgnoreLists = new JCheckBox(RESOURCE_BUNDLE.getString("show.ignored.warnings.in.red.striked.format"));
         warningPanel.add(this.chkShowIgnoreLists);
-        DefaultListModel model = new DefaultListModel ();
+        DefaultListModel<LabelData> model = new DefaultListModel ();
         model.addElement ( new LabelData( LabelData.WarningType.CRITICAL, 1, "long text to see" ) );
         model.addElement ( new LabelData ( LabelData.WarningType.WARNING, 0, "text2" ) );
         model.addElement ( new LabelData ( LabelData.WarningType.SONAR, 555, "text3" ) );
@@ -195,7 +197,9 @@ public class SwissAsConfig implements Configurable {
             trafficLightPanel.setOrientation();
             ideFrame.getStatusBar().updateWidget(TrafficLightPanel.WIDGET_ID);
         }
-        WarningContent warningContent = (WarningContent) ToolWindowManager.getInstance(this.project).getToolWindow(WarningContent.ID).getContentManager().getContent(0).getComponent();
-        warningContent.refresh();
+        WarningContent warningContent = (WarningContent) Objects.requireNonNull(ToolWindowManager.getInstance(this.project).getToolWindow(WarningContent.ID).getContentManager().getContent(0)).getComponent();
+        if(warningContent != null) {
+            warningContent.refresh();
+        }
     }
 }
