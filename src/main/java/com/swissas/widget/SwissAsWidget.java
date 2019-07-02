@@ -47,8 +47,6 @@ public class SwissAsWidget implements ProjectComponent {
     private static final String STAFF_URL = URL_BUNDLE.getString("url.staff");
     private static final String USER_TIMER = "UserTimer";
     private final SwissAsStorage swissAsStorage;
-    
-    
 
     public SwissAsWidget(Project project) {
         this.project = project;
@@ -66,12 +64,10 @@ public class SwissAsWidget implements ProjectComponent {
 
     @Override
     public void initComponent() {
-        //register the 
         MessageBus bus = ApplicationManager.getApplication().getMessageBus();
         MessageBusConnection connection = bus.connect();
-        connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC,  new DoOnSave());
+        connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new DoOnSave());
     }
-    
     
     private void refreshData() {
         Map<String, String> userMap = new HashMap<>();
@@ -88,10 +84,7 @@ public class SwissAsWidget implements ProjectComponent {
             e.printStackTrace();
         }
         this.swissAsStorage.setUserMap(userMap);
-    }    
-    
-   
-    
+    }
 
     @Override
     @NotNull
@@ -114,7 +107,6 @@ public class SwissAsWidget implements ProjectComponent {
         Disposer.dispose(this.trafficLightPanel);
     }
     
-    
     private void addWidgetToFrame(){
         this.ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
         final StatusBar statusBar = this.ideFrame.getStatusBar();
@@ -128,5 +120,4 @@ public class SwissAsWidget implements ProjectComponent {
         Timer timer = new Timer(TRAFFIC_LIGHT_CHECKER);
         timer.schedule(timerTask, 30, 30_000);
     }
-
 }

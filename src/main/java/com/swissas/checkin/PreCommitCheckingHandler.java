@@ -13,6 +13,7 @@ import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
+import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
 
@@ -33,13 +34,13 @@ class PreCommitCheckingHandler extends CheckinHandler {
     @NonNls
     private static final String EMPTY_COMMIT_MSG = RESOURCE_BUNDLE.getString("commit.without.message");
     private TrafficLightPanel trafficLightPanel = null;
-    
+
     
     PreCommitCheckingHandler(final CheckinProjectPanel checkinProjectPanel){
         this.project = checkinProjectPanel.getProject();
         this.checkinProjectPanel = checkinProjectPanel;
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
-        if(ideFrame != null) {
+        if (ideFrame != null) {
             this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
         }
         

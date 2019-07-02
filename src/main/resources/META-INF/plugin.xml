@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.swissas.tala.swissas</id>
-    <name>Swiss-AS IntelliJ pluging</name>
+    <name>Swiss-AS Dev-Tools</name>
     <vendor email="tala@swiss-as.com" url="http://www.swiss-as.com">Swiss-AS</vendor>
     <description><![CDATA[
     Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, jenkins error compliant)

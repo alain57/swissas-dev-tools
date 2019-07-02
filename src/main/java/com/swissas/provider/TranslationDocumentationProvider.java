@@ -32,17 +32,17 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 	private String translationToSearch = null;
 	private Project activeProject = null;
 	private String mainPropertiesContent = null;
-	
-	
-	
+	private PsiFile currentTranslationFile;
+
+
 	@Override
 	@Nullable
 	public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
 		
 		getNeededVariables();
+		this.currentTranslationFile = element.getContainingFile().getContainingDirectory().findFile("Standard.properties");
 		if(isSasMultiLang(element)) {
-			PsiFile currentTranslationFile = element.getContainingFile().getContainingDirectory().findFile("Standard.properties");
-			String translation = getTranslationFromContent(currentTranslationFile.getText(), this.translationToSearch);
+			String translation = getTranslationFromContent(this.currentTranslationFile.getText(), this.translationToSearch);
 			return replaceReferences(translation);
 		}else{
 			return super.getQuickNavigateInfo(element, originalElement);

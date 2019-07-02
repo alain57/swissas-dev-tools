@@ -25,24 +25,20 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
     private String fourLetterCode = "";
     private boolean horizontalOrientation = true;
+    private String minWarningSize = "5";
     private boolean fixMissingOverride = true;
     private boolean fixMissingThis = true;
     private boolean fixUnusedSuppressWarning = false;
     private boolean fixMissingAuthor = true;
-    private boolean showIgnoredValues;
+    
+    private boolean showIgnoredValues = false;
     private List<String> ignoredValues = new ArrayList<>();
     private Map<String, String> userMap = new HashMap<>();
     
     
     
     public static SwissAsStorage getInstance(Project project){
-        SwissAsStorage myStorage = null;
-        try{
-            myStorage = ServiceManager.getService(project, SwissAsStorage.class);
-        }catch (Exception e){
-            myStorage = new SwissAsStorage();
-        }
-        return myStorage;
+        return ServiceManager.getService(project, SwissAsStorage.class);
     }
     
     @Nullable
@@ -132,4 +128,11 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
         this.ignoredValues = ignoredValues;
     }
 
+    public String getMinWarningSize() {
+        return this.minWarningSize;
+    }
+
+    public void setMinWarningSize(String minWarningSize) {
+        this.minWarningSize = minWarningSize;
+    }
 }

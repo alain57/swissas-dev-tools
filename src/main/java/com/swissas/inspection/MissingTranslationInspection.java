@@ -8,15 +8,17 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.quickfix.TranslateMakAsIgnoreQuickFix;
 import com.swissas.quickfix.TranslateQuickFix;
 import com.swissas.quickfix.TranslateTooltipQuickFix;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The inspesction and quickfixes for missing translation
+ * The inspection  for missing translation
  *
  * @author Tavan Alain
  */
@@ -69,23 +71,33 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		Collection<PsiElement> stringExpression = PsiTreeUtil.collectElementsOfType(file, PsiLiteralExpression.class).
 				stream().filter(e -> ((PsiJavaToken)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL))
 				.collect(Collectors.toList());
+		int minWarningSize = Integer.valueOf(SwissAsStorage.getInstance(file.getProject()).getMinWarningSize());
 		for (PsiElement currentElement : stringExpression) {
-		
+			
 			//first check if the string is in the range already handled
 			if(result.stream().noneMatch(r -> r.getTextRange().contains(currentElement.getTextRange()))){
-				PsiElement potentialParent = PsiTreeUtil.getParentOfType(currentElement, PsiPolyadicExpression.class);
-				if(potentialParent != null){
-					if(isNotSql(potentialParent) && isNotException(potentialParent) && isNotIgnored(potentialParent)){
-						result.add(potentialParent);
-					}
-				}else {
-					if(isNotSql(currentElement) && isNotException(currentElement) && isNotIgnored(currentElement)){
-						result.add(currentElement);
+				int currentSize = (currentElement instanceof PsiLiteralExpressionImpl) && ((PsiLiteralExpressionImpl)currentElement).getInnerText() != null ? ((PsiLiteralExpressionImpl)currentElement).getInnerText().length() : currentElement.getTextLength();
+				PsiElement expression = PsiTreeUtil.getParentOfType(currentElement, PsiPolyadicExpression.class);
+				if(currentSize >= minWarningSize) {
+					if (expression != null) {
+						if (isValid(expression)) {
+							result.add(expression);
+						}
+					} else {
+						if (isValid(currentElement)) {
+							result.add(currentElement);
+						}
 					}
 				}
 			}
 		}
 		return result;
+	}
+
+	private boolean isValid(PsiElement currentElement) {
+		return isNotTestFile(currentElement)  
+				&& isNotSql(currentElement) && isNotTemplateFileName(currentElement) &&
+				isNotExceptionOrLogger(currentElement) && isNotIgnored(currentElement);
 	}
 
 	private boolean isNotSql(PsiElement element){
@@ -94,14 +106,26 @@ class MissingTranslationInspection extends LocalInspectionTool {
 				!value.contains("UPDATE") && !value.contains("SELECT");
 	}
 	
-	private boolean isNotIgnored(PsiElement element) {
-		PsiElement parent = element.getParent();
-		List<PsiComment> comments = PsiTreeUtil.getChildrenOfTypeAsList(parent, PsiComment.class);
-		return comments.isEmpty() || comments.stream().noneMatch(e -> e.getText().contains("NO_EXT"));
+	private boolean isNotIgnored(PsiElement element) {//TODO: test with AbstractAmosPaneLineHeader and see why this does not work
+		PsiComment comment = PsiTreeUtil.getNextSiblingOfType(element, PsiComment.class);
+		return comment == null || !comment.getText().contains("NO_EXT");
 	}
 	
-	private boolean isNotException(PsiElement element){
+	private boolean isNotExceptionOrLogger(PsiElement element){
 		PsiExpressionList expressionList = PsiTreeUtil.getParentOfType(element, PsiExpressionList.class);
-		return expressionList == null || !expressionList.getPrevSibling().getText().contains("Exception");
+		if(expressionList == null){
+			return true;
+		}
+		String methodCallExpression = expressionList.getPrevSibling().getText();
+		return !methodCallExpression.contains("Exception") && !methodCallExpression.contains("getLogger()") &&
+				!methodCallExpression.contains("assertEquals") && !methodCallExpression.endsWith("WithHistory");
+	}
+	
+	private boolean isNotTestFile(PsiElement element){
+		return !element.getContainingFile().getName().endsWith("Test.java");
+	}
+	
+	private boolean isNotTemplateFileName(PsiElement element){
+		return !element.getText().endsWith(".tpl");
 	}
 }

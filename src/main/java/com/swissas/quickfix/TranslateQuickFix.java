@@ -11,7 +11,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
-import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SequenceProperties;
 import groovy.json.StringEscapeUtils;
@@ -23,10 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +70,8 @@ public class TranslateQuickFix implements LocalQuickFix {
         Properties properties = getOrCreateProperties();
         PsiFile currentTranslationJavaFile = getOrCreateMessageFile();
         PsiElement element = descriptor.getPsiElement();
+        PsiClass currentClass = PsiTreeUtil.getChildOfType(element.getContainingFile(), PsiClass.class);
+        PsiClass messageClass = PsiTreeUtil.getChildOfType(currentTranslationJavaFile.getContainingFile(), PsiClass.class);
         String propertyValue = getPropertyValue(element);
         String fullKey;
         if(properties.values().contains(propertyValue)){
@@ -107,8 +106,21 @@ public class TranslateQuickFix implements LocalQuickFix {
         }
         PsiExpression expressionFromText = JavaPsiFacade.getElementFactory(this.smartPsiElementPointer.getProject()).createExpressionFromText(replacement.toString(), null);
         element.replace(expressionFromText);
+        addImport(currentClass, messageClass, fullKey);
+    }
+    
+    
+    private void addImport(PsiClass javaClass, PsiClass messageClass, String memberName){
+        PsiFile file = javaClass.getContainingFile();
+        Collection<PsiImportStaticStatement> psiImportStatements = PsiTreeUtil.collectElementsOfType(file, PsiImportStaticStatement.class);
+        PsiImportStaticStatement latestImport = psiImportStatements.stream().reduce((a, b) -> b).orElse(null);
+        if(psiImportStatements.stream().noneMatch(e -> e.getText().contains("._Messages.*"))){
+            PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(javaClass.getProject()).createImportStaticStatement(messageClass, memberName);
+            file.addAfter(importStaticStatement, latestImport == null ? file.getFirstChild() : latestImport);
+        }
     }
 
+    @NonNls
     private PsiFile getOrCreateMessageFile(){
         PsiDirectory containingDirectory = this.smartPsiElementPointer.getElement().getContainingDirectory();
         PsiFile messageFile = containingDirectory.findFile(MESSAGE_CLASS);
@@ -170,7 +182,10 @@ public class TranslateQuickFix implements LocalQuickFix {
         String result;
         if(element instanceof PsiPolyadicExpression){
             StringBuilder stringBuilder = new StringBuilder();
-            PsiElement[] psiElements = PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpressionImpl || e instanceof PsiMethodCallExpressionImpl);
+            //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One that contains the full stuff, and one only the ending. We don't need the last one so we filter it out
+            Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
+            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression || e instanceof PsiMethodCallExpression)).
+                    filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
             for (PsiElement psiElement : psiElements) {
                 if(psiElement instanceof PsiLiteralExpressionImpl){
                     PsiLiteralExpressionImpl psiLiteralExpression = (PsiLiteralExpressionImpl)psiElement;
@@ -185,15 +200,16 @@ public class TranslateQuickFix implements LocalQuickFix {
         }else {
             result = ((PsiLiteralExpressionImpl) element).getInnerText();
         }
+        result = StringEscapeUtils.unescapeJava(result);
         result = autoCorrectCommonMisstakes(result);
-        result = replaceWithKnownKeys(result);
-        return StringEscapeUtils.unescapeJava(result);
+        return replaceWithKnownKeys(result);
+        
     }
 
     private String getPropertyKey(PsiElement element){
         PsiLiteralExpressionImpl stringElement = PsiTreeUtil.collectElementsOfType(element, PsiLiteralExpressionImpl.class).stream()
                 .filter(e -> ((PsiJavaTokenImpl)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL)).findFirst().get();
-        String capitalizeFully = StringEscapeUtils.unescapeJava(stringElement.getRawString()).toUpperCase().replaceAll("\"", "").replaceAll(" ", "_");
+        String capitalizeFully = StringEscapeUtils.unescapeJava(stringElement.getRawString()).toUpperCase().replaceAll("[^A-Z0-9 ]", "").replaceAll(" ", "_");
         capitalizeFully = StringUtils.removeEnd(capitalizeFully, "_");
 
         if(capitalizeFully.length() > 36){
@@ -202,7 +218,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         return capitalizeFully;
     }
 
-
+    @NonNls
     private String autoCorrectCommonMisstakes(String sentence){
         return sentence.replaceAll("[wW]ork[ -]?[oO]rder", "@WORKORDER@")
         .replaceAll("\\bWO\\b", "@WO@")
@@ -218,7 +234,8 @@ public class TranslateQuickFix implements LocalQuickFix {
         .replaceAll("([aA])nalyze", "$1nalyse")
         .replaceAll("Center","Centre");
     }
-    
+
+    @NonNls
     private String replaceWithKnownKeys(String sentence){
         Module shared = Stream.of(ModuleManager.getInstance(this.smartPsiElementPointer.getProject()).getModules()).filter(e -> e.getName().contains("shared")).findFirst().orElse(null);
         VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
