@@ -1,4 +1,4 @@
-# Swiss-AS IntelliJ Plugin
+# Swiss-AS Dev-Tools
 An IntelliJ Plugin used for developers at Swiss-AS.
 
 Please note that this plugin will NOT work outside of the company as it uses integration tools and specific internal URLS.
