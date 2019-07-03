@@ -69,16 +69,16 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	private List<PsiElement> getElementsToTranslate(PsiJavaFile file){
 		List<PsiElement> result = new ArrayList<>();
 		Collection<PsiElement> stringExpression = PsiTreeUtil.collectElementsOfType(file, PsiLiteralExpression.class).
-				stream().filter(e -> ((PsiJavaToken)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL))
+				parallelStream().filter(e -> ((PsiJavaToken)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL))
 				.collect(Collectors.toList());
 		int minWarningSize = Integer.valueOf(SwissAsStorage.getInstance(file.getProject()).getMinWarningSize());
 		for (PsiElement currentElement : stringExpression) {
 			
 			//first check if the string is in the range already handled
 			if(result.stream().noneMatch(r -> r.getTextRange().contains(currentElement.getTextRange()))){
-				int currentSize = (currentElement instanceof PsiLiteralExpressionImpl) && ((PsiLiteralExpressionImpl)currentElement).getInnerText() != null ? ((PsiLiteralExpressionImpl)currentElement).getInnerText().length() : currentElement.getTextLength();
-				PsiElement expression = PsiTreeUtil.getParentOfType(currentElement, PsiPolyadicExpression.class);
+				int currentSize = ((PsiLiteralExpressionImpl)currentElement).getInnerText() != null ? ((PsiLiteralExpressionImpl)currentElement).getInnerText().length() : currentElement.getTextLength();
 				if(currentSize >= minWarningSize) {
+					PsiElement expression = PsiTreeUtil.getParentOfType(currentElement, PsiPolyadicExpression.class);
 					if (expression != null) {
 						if (isValid(expression)) {
 							result.add(expression);
@@ -95,9 +95,9 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	}
 
 	private boolean isValid(PsiElement currentElement) {
-		return isNotTestFile(currentElement)  
+		return isNotTestFile(currentElement)  &&  isNotIgnored(currentElement)
 				&& isNotSql(currentElement) && isNotTemplateFileName(currentElement) &&
-				isNotExceptionOrLogger(currentElement) && isNotIgnored(currentElement);
+				isNotExceptionLoggerAsserOrHistory(currentElement);
 	}
 
 	private boolean isNotSql(PsiElement element){
@@ -111,14 +111,13 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		return comment == null || !comment.getText().contains("NO_EXT");
 	}
 	
-	private boolean isNotExceptionOrLogger(PsiElement element){
+	private boolean isNotExceptionLoggerAsserOrHistory(PsiElement element){
 		PsiExpressionList expressionList = PsiTreeUtil.getParentOfType(element, PsiExpressionList.class);
 		if(expressionList == null){
 			return true;
 		}
 		String methodCallExpression = expressionList.getPrevSibling().getText();
-		return !methodCallExpression.contains("Exception") && !methodCallExpression.contains("getLogger()") &&
-				!methodCallExpression.contains("assertEquals") && !methodCallExpression.endsWith("WithHistory");
+		return !methodCallExpression.matches(".*(Exception|getLogger\\(\\)|assertEquals).*|WithHistory$");
 	}
 	
 	private boolean isNotTestFile(PsiElement element){

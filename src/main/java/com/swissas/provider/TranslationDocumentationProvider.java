@@ -32,7 +32,6 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 	private String translationToSearch = null;
 	private Project activeProject = null;
 	private String mainPropertiesContent = null;
-	private PsiFile currentTranslationFile;
 
 
 	@Override
@@ -40,10 +39,14 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 	public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
 		
 		getNeededVariables();
-		this.currentTranslationFile = element.getContainingFile().getContainingDirectory().findFile("Standard.properties");
+		PsiFile currentPropertiesFile = element.getContainingFile().getContainingDirectory().findFile("Standard.properties");
 		if(isSasMultiLang(element)) {
-			String translation = getTranslationFromContent(this.currentTranslationFile.getText(), this.translationToSearch);
-			return replaceReferences(translation);
+			if(currentPropertiesFile != null) {
+				String translation = getTranslationFromContent(currentPropertiesFile.getText(), this.translationToSearch);
+				return replaceReferences(translation);
+			}else {
+				return "No Standard.properties defined in current working directory. Are you on older AMOS ? ";
+			}
 		}else{
 			return super.getQuickNavigateInfo(element, originalElement);
 		}
@@ -84,7 +87,7 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 			if (index2 == -1) {
 				break;
 			}
-			String repl = null;
+			String repl;
 			String link = phrase.substring(index + 1, index2).trim();
 			int sepId = link.indexOf('.');
 			if (sepId == -1) {

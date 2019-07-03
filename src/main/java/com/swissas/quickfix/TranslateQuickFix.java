@@ -86,7 +86,7 @@ public class TranslateQuickFix implements LocalQuickFix {
             }
             properties.put(fullKey, getPropertyValue(element));
             saveProperties(properties);
-            PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);", null);
+            PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);\n", null);
             PsiField latestField = PsiTreeUtil.collectElementsOfType(currentTranslationJavaFile, PsiField.class).stream().reduce((a, b) -> b).get();
             latestField.getParent().addAfter(javaTranslation, latestField);
         }
@@ -220,19 +220,19 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     @NonNls
     private String autoCorrectCommonMisstakes(String sentence){
-        return sentence.replaceAll("[wW]ork[ -]?[oO]rder", "@WORKORDER@")
+        return sentence.replaceAll("\\b[wW]ork[ -]?[oO]rder\\b", "@WORKORDER@")
         .replaceAll("\\bWO\\b", "@WO@")
-        .replaceAll("aircraft", "@AIRCRAFT@")
+        .replaceAll("\\baircraft\\b", "@AIRCRAFT@")
         .replaceAll("\\bAC\\b", "@AC@")
-        .replaceAll("[pP]art[ -]?[nN]umber", "@PART_NUMBER@")
+        .replaceAll("\\b[pP]art[ -]?[nN]umber\\b", "@PART_NUMBER@")
         .replaceAll("\\bPN\\b", "P/N")
-        .replaceAll("[sS]erial[ -]?[nN]umber", "@SERIAL_NUMBER@")
+        .replaceAll("\\b[sS]erial[ -]?[nN]umber\\b", "@SERIAL_NUMBER@")
         .replaceAll("\\bSN\\b", "@SN@")
-        .replaceAll("Amos", "@AMOS@")
-        .replaceAll("[wW]ork[ -]?[pP]ackage", "@WORKPACKAGE@")
+        .replaceAll("\\bAmos\\b", "@AMOS@")
+        .replaceAll("[wW]ork[ -]?[pP]ackage\\b", "@WORKPACKAGE@")
         .replaceAll("\\bWP\\b", "@WP@")
-        .replaceAll("([aA])nalyze", "$1nalyse")
-        .replaceAll("Center","Centre");
+        .replaceAll("\\b([aA])nalyze\\b", "$1nalyse")
+        .replaceAll("\\bCenter\\b","Centre");
     }
 
     @NonNls
@@ -245,7 +245,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         String result = sentence;
         for (Map.Entry<Object, Object> objectObjectEntry : prop.entrySet()) {
             String key = "@" + objectObjectEntry.getKey().toString() + "@";
-            String value = objectObjectEntry.getValue().toString();
+            String value = "\\b" + objectObjectEntry.getValue().toString() + "\\b";
             result = result.replaceAll(value, key);
         }
         return result;
