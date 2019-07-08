@@ -43,27 +43,27 @@ class User implements Serializable {
 		setTeam(htmlValues[HTML_TEAM_POSITION].split(":")[1].trim());
 	}
 
-	public void setFullName(String fullName) {
+	private void setFullName(String fullName) {
 		this.fullName = fullName;
 	}
 
-	public void setLc(String lc) {
+	private void setLc(String lc) {
 		this.lc = lc;
 	}
 
-	public void setJob(String job) {
+	private void setJob(String job) {
 		this.job = job;
 	}
 
-	public void setTel(String tel) {
+	private void setTel(String tel) {
 		this.tel = tel;
 	}
 
-	public void setMail(String mail) {
+	private void setMail(String mail) {
 		this.mail = mail;
 	}
 
-	public void setTeam(String team) {
+	private void setTeam(String team) {
 		this.team = team;
 	}
 

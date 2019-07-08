@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -35,10 +36,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private List<String> ignoredValues = new ArrayList<>();
     private Map<String, String> userMap = new HashMap<>();
     
+    private Properties shareProperties; 
+    
     
     
     public static SwissAsStorage getInstance(Project project){
         return ServiceManager.getService(project, SwissAsStorage.class);
+        
     }
     
     @Nullable
@@ -134,5 +138,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
     public void setMinWarningSize(String minWarningSize) {
         this.minWarningSize = minWarningSize;
+    }
+
+    public Properties getShareProperties() {
+        return this.shareProperties;
+    }
+
+    public void setShareProperties(Properties shareProperties) {
+        this.shareProperties = shareProperties;
     }
 }

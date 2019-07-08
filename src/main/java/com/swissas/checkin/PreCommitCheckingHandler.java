@@ -13,7 +13,6 @@ import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
-import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
 

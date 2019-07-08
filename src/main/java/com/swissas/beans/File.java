@@ -2,6 +2,7 @@ package com.swissas.beans;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.nodes.Node;
 
 import java.util.*;
 
@@ -15,15 +16,16 @@ public class File implements Comparable<File>{
     private String path;
     private final Set<Message> messages;
     
-    public File(){
+    public File(Node fileElement){
         this.messages = new TreeSet<>();
+        this.setPath(fileElement.attr("path"));
     }
 
     public String getPath() {
         return this.path;
     }
 
-    public void setPath(String path) {
+    private void setPath(String path) {
         this.path = path;
     }
 

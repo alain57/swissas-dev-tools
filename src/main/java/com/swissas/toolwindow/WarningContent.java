@@ -5,22 +5,17 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeSet;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 import javax.swing.tree.TreeSelectionModel;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -41,9 +36,11 @@ import com.swissas.beans.Message;
 import com.swissas.beans.Module;
 import com.swissas.beans.Type;
 import com.swissas.util.SwissAsStorage;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
 
 
 /**
@@ -54,21 +51,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 
-    private static final String TYPE = "type";
-    private static final String MODULE = "module";
-    private static final String FILE = "file";
-    private static final String MESSAGE = "message";
     private static final String WARNING_CONTENT_TIMER = "WarningContentTimer";
     private static final String CODE_CHECK = "code check";
     private static final String ROOT = "Root";
     
-    private static final String NAME = "name";
-    private static final String PATH = "path";
     private static final String COMPILER = "compiler";
     private static final String SONAR = "sonar";
-    private static final String LINE_WITHOUT_SPACE = "line";
-    private static final String DESCRIPTION = "description";
-    private static final String SEVERITY = "severity";
     private static final String CRITICAL = "critical";
 
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
@@ -77,8 +65,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
     private static final String MESSAGE_URL = URL_BUNDLE.getString("url.warnings");
     public static final String ID = "SAS Warnings";
     
-    private InputStream body;
-    private List<Type> types = new ArrayList<>();
+    private final Set<Type> types = new TreeSet<>();
     
     private final criticalActionToggle criticalActionToggle;
     private SwissAsStorage swissAsStorage;
@@ -116,19 +103,35 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
             if(this.getTabCount() > selectedTab) {
                 this.setSelectedIndex(selectedTab);
             }
-        } catch (IOException | XMLStreamException e) {
+        } catch (IOException  e) {
             e.printStackTrace();
         }
     }
-    
-    private void readURL() throws IOException, XMLStreamException {
+
+    private void readURL() throws IOException {
         if(!this.swissAsStorage.getFourLetterCode().isEmpty()){
-            HttpClient client = new HttpClient();
-            GetMethod get = new GetMethod(MESSAGE_URL + this.swissAsStorage.getFourLetterCode());
-            client.executeMethod(get);
-            this.body = get.getResponseBodyAsStream();
-            this.types = parseXml();
-            get.releaseConnection();
+            this.types.clear();
+            Elements typesDifferentThanCodeCheck = Jsoup.connect(MESSAGE_URL + this.swissAsStorage.getFourLetterCode()).get().select("type[ident~=[^CODE_CHECK]]");
+            for (Element type : typesDifferentThanCodeCheck) {
+                Type currentType = new Type(type);
+                for (Node module : type.childNodes()) {
+                    Module currentModule = new Module(module);
+                    for (Node file : module.childNodes()) {
+                        File currentFile = new File(file);
+                        for (Node message : file.childNodes()) {
+                            Message currentMessage = new Message(message);
+                            if(!this.criticalActionToggle.isCriticalOnly() ||
+                                    (currentType.getName().toLowerCase().equals(COMPILER) ||
+                                            (currentType.getName().toLowerCase().equals(SONAR) && currentMessage.isCritical()))){
+                                currentFile.addMessage(currentMessage);
+                            }
+                        }
+                        currentModule.addFile(currentFile);
+                    }
+                    currentType.addModule(currentModule);
+                }
+                this.types.add(currentType);
+            }
         }
     }
 
@@ -232,55 +235,4 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
         node.getDescription();
     }
 
-
-    private List<Type> parseXml() throws XMLStreamException {
-        File currentFile = null;
-        Module currentModule = null;
-        Type currentType = null;
-
-        List<Type> result = new ArrayList<>();
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        XMLStreamReader reader = factory.createXMLStreamReader(this.body);
-        while (reader.hasNext()) {
-            int event = reader.next();
-            String elementName;
-            switch (event) {
-                case XMLStreamConstants.START_ELEMENT:
-                     elementName = reader.getLocalName();
-                    if (TYPE.equals(elementName)) {
-                        currentType = new Type();
-                        currentType.setName(reader.getAttributeValue(null, NAME));
-                    } else if (MODULE.equals(elementName)) {
-                        currentModule = new Module();
-                        currentModule.setName(reader.getAttributeValue(null, NAME));
-                    } else if (FILE.equals(elementName)) {
-                        currentFile = new File();
-                        currentFile.setPath(reader.getAttributeValue(null, PATH));
-                    } else if (MESSAGE.equals(elementName)) {
-                        if(!this.criticalActionToggle.isCriticalOnly() ||
-                                (this.criticalActionToggle.isCriticalOnly() &&
-                                        (currentType.getName().toLowerCase().equals(COMPILER) ||
-                                                (currentType.getName().toLowerCase().equals(SONAR) && reader.getAttributeValue(null, SEVERITY).toLowerCase().equals(CRITICAL))))){
-                            Message currentMessage = new Message();
-                            currentMessage.setLine(Integer.valueOf(reader.getAttributeValue(null, LINE_WITHOUT_SPACE)));
-                            currentMessage.setDescription(reader.getAttributeValue(null, DESCRIPTION));
-                            currentMessage.setSeverity(reader.getAttributeValue(null, SEVERITY));
-                            currentFile.addMessage(currentMessage);
-                        }
-                    }
-                    break;
-                case XMLStreamConstants.END_ELEMENT:
-                    elementName = reader.getLocalName();
-                    if (FILE.equals(elementName)) {
-                        currentModule.addFile(currentFile);
-                    } else if (MODULE.equals(elementName)) {
-                        currentType.addModule(currentModule);
-                    } else if (TYPE.equals(elementName)) {
-                        result.add(currentType);
-                    }
-                    break;
-            }
-        }
-        return result;
-    }
 }

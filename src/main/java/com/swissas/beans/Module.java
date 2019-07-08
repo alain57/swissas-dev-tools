@@ -2,6 +2,7 @@ package com.swissas.beans;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.nodes.Node;
 
 import java.util.*;
 
@@ -13,15 +14,16 @@ public class Module implements Comparable<Module>{
     private String name;
     private final Set<File> files;
     
-    public Module(){
+    public Module(Node module) {
         this.files = new TreeSet<>();
+        setName(module.attr("name"));
     }
 
     public String getName() {
         return this.name;
     }
 
-    public void setName(String name) {
+    private void setName(String name) {
         this.name = name;
     }
 

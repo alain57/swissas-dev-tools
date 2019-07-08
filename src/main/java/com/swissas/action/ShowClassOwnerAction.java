@@ -79,7 +79,7 @@ class ShowClassOwnerAction extends EditorAction {
 			authorString = authorString.toUpperCase();
 			Map<String, String> userMap = SwissAsStorage.getInstance(editor.getProject()).getUserMap();
 			if(userMap.containsKey(authorString)){
-				authorTxt = userMap.get(authorString).toString();
+				authorTxt = userMap.get(authorString);
 			}else{
 				errorText = "Could not find \"" + authorString + "\" in the internal phone book";
 			}

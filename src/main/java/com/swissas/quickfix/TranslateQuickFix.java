@@ -3,16 +3,13 @@ package com.swissas.quickfix;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SequenceProperties;
+import com.swissas.util.SwissAsStorage;
 import groovy.json.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
@@ -37,15 +34,17 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     private static final String MESSAGE_CLASS = "_Messages.java";
 
-    private final SmartPsiElementPointer<PsiFile> smartPsiElementPointer;
+    private final SmartPsiElementPointer<PsiFile> javaPsiPointer;
+    private final Properties sharedProperties;
     private String currentPropertiesPath;
     String ending;
     String className;
 
     public TranslateQuickFix(PsiFile file){
-        this.smartPsiElementPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
+        this.javaPsiPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
         this.ending = "_TXT";
         this.className = "MultiLangText";
+        this.sharedProperties = SwissAsStorage.getInstance(file.getProject()).getShareProperties();
     }
 
     @NonNls
@@ -70,7 +69,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         Properties properties = getOrCreateProperties();
         PsiFile currentTranslationJavaFile = getOrCreateMessageFile();
         PsiElement element = descriptor.getPsiElement();
-        PsiClass currentClass = PsiTreeUtil.getChildOfType(element.getContainingFile(), PsiClass.class);
+        
         PsiClass messageClass = PsiTreeUtil.getChildOfType(currentTranslationJavaFile.getContainingFile(), PsiClass.class);
         String propertyValue = getPropertyValue(element);
         String fullKey;
@@ -104,25 +103,25 @@ public class TranslateQuickFix implements LocalQuickFix {
             replacement.append(collect);
             replacement.append(")");
         }
-        PsiExpression expressionFromText = JavaPsiFacade.getElementFactory(this.smartPsiElementPointer.getProject()).createExpressionFromText(replacement.toString(), null);
+        PsiExpression expressionFromText = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createExpressionFromText(replacement.toString(), null);
         element.replace(expressionFromText);
-        addImport(currentClass, messageClass, fullKey);
+        addImport(messageClass, fullKey);
     }
     
     
-    private void addImport(PsiClass javaClass, PsiClass messageClass, String memberName){
-        PsiFile file = javaClass.getContainingFile();
+    private void addImport(PsiClass messageClass, String memberName){
+        PsiFile file = this.javaPsiPointer.getElement();
         Collection<PsiImportStaticStatement> psiImportStatements = PsiTreeUtil.collectElementsOfType(file, PsiImportStaticStatement.class);
         PsiImportStaticStatement latestImport = psiImportStatements.stream().reduce((a, b) -> b).orElse(null);
         if(psiImportStatements.stream().noneMatch(e -> e.getText().contains("._Messages.*"))){
-            PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(javaClass.getProject()).createImportStaticStatement(messageClass, memberName);
-            file.addAfter(importStaticStatement, latestImport == null ? file.getFirstChild() : latestImport);
+            PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createImportStaticStatement(messageClass, memberName);
+            file.addAfter(importStaticStatement, latestImport == null ? file.getFirstChild() : latestImport.getParent());
         }
     }
 
     @NonNls
     private PsiFile getOrCreateMessageFile(){
-        PsiDirectory containingDirectory = this.smartPsiElementPointer.getElement().getContainingDirectory();
+        PsiDirectory containingDirectory = this.javaPsiPointer.getElement().getContainingDirectory();
         PsiFile messageFile = containingDirectory.findFile(MESSAGE_CLASS);
         if(messageFile == null){
             String classContent = "import amos.share.multiLanguage." + this.className + ";\n" +
@@ -139,7 +138,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                     "\t\tINSTANCE.init();\n" +
                     "\t}\n" +
                     "}";
-            messageFile = PsiFileFactory.getInstance(this.smartPsiElementPointer.getProject()).createFileFromText(MESSAGE_CLASS, JavaLanguage.INSTANCE, classContent);
+            messageFile = PsiFileFactory.getInstance(this.javaPsiPointer.getProject()).createFileFromText(MESSAGE_CLASS, JavaLanguage.INSTANCE, classContent);
             containingDirectory.add(messageFile);
             messageFile = containingDirectory.findFile(MESSAGE_CLASS);
         }
@@ -149,7 +148,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     private Properties getOrCreateProperties(){
         Properties prop = new SequenceProperties();
         try {
-            this.currentPropertiesPath = this.smartPsiElementPointer.getElement().getContainingDirectory().getVirtualFile().findOrCreateChildData(this, "Standard.properties").getPath();
+            this.currentPropertiesPath = this.javaPsiPointer.getElement().getContainingDirectory().getVirtualFile().findOrCreateChildData(this, "Standard.properties").getPath();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -237,13 +236,8 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     @NonNls
     private String replaceWithKnownKeys(String sentence){
-        Module shared = Stream.of(ModuleManager.getInstance(this.smartPsiElementPointer.getProject()).getModules()).filter(e -> e.getName().contains("shared")).findFirst().orElse(null);
-        VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
-        VirtualFile propertieFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
-        Properties prop = new Properties();
-        readInProperties(prop, propertieFile.getPath());
         String result = sentence;
-        for (Map.Entry<Object, Object> objectObjectEntry : prop.entrySet()) {
+        for (Map.Entry<Object, Object> objectObjectEntry : this.sharedProperties.entrySet()) {
             String key = "@" + objectObjectEntry.getKey().toString() + "@";
             String value = "\\b" + objectObjectEntry.getValue().toString() + "\\b";
             result = result.replaceAll(value, key);

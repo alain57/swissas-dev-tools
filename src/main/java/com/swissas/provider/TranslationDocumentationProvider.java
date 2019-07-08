@@ -3,22 +3,17 @@ package com.swissas.provider;
 import java.awt.Window;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.intellij.lang.java.JavaDocumentationProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.PsiFieldImpl;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -31,7 +26,6 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 	private static final List<String> MULTILANG_CLASSES = Arrays.asList("MultiLangText", "MultiLangToolTip");
 	private String translationToSearch = null;
 	private Project activeProject = null;
-	private String mainPropertiesContent = null;
 
 
 	@Override
@@ -63,10 +57,6 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 				}
 			}
 		}
-		Module shared = Stream.of(ModuleManager.getInstance(this.activeProject).getModules()).filter(e -> e.getName().contains("shared")).findFirst().orElse(null);
-		VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
-		VirtualFile propertieFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
-		this.mainPropertiesContent = PsiManager.getInstance(this.activeProject).findFile(propertieFile).getText();
 	}
 	
 	private String getTranslationFromContent(String content, String key){
@@ -91,7 +81,7 @@ class TranslationDocumentationProvider extends JavaDocumentationProvider {
 			String link = phrase.substring(index + 1, index2).trim();
 			int sepId = link.indexOf('.');
 			if (sepId == -1) {
-				repl = getTranslationFromContent(this.mainPropertiesContent, link);
+				repl = SwissAsStorage.getInstance(this.activeProject).getShareProperties().get(link).toString();
 			}else {
 				//do something else
 				repl = "<i>special case for key: "+ link + "not implemented yet</i>";

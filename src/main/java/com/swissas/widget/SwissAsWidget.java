@@ -1,17 +1,25 @@
 package com.swissas.widget;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Stream;
 
 import com.intellij.AppTopics;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
@@ -46,20 +54,17 @@ public class SwissAsWidget implements ProjectComponent {
     private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
     private static final String STAFF_URL = URL_BUNDLE.getString("url.staff");
     private static final String USER_TIMER = "UserTimer";
-    private final SwissAsStorage swissAsStorage;
+    private SwissAsStorage swissAsStorage;
+    private final Timer retrieveUserDataTimer;
+    private final Timer retrieveTrafficLightTimer;
+    private final Properties properties;
 
     public SwissAsWidget(Project project) {
         this.project = project;
-        this.swissAsStorage = SwissAsStorage.getInstance(project);
         this.trafficLightPanel = new TrafficLightPanel(project);
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                refreshData();
-            }
-        };
-        Timer timer = new Timer(USER_TIMER);
-        timer.schedule(timerTask, 30, 24 * 60 * 60_000);
+        this.properties = new Properties();
+        this.retrieveUserDataTimer = new Timer(USER_TIMER);
+        this.retrieveTrafficLightTimer = new Timer(TRAFFIC_LIGHT_CHECKER);
     }
 
     @Override
@@ -86,6 +91,23 @@ public class SwissAsWidget implements ProjectComponent {
         this.swissAsStorage.setUserMap(userMap);
     }
 
+    private void fillSharedProperties(){
+        Module shared = Stream.of(ModuleManager.getInstance(this.project).getModules()).filter(e -> e.getName().contains("shared")).findFirst().orElse(null);
+        if(shared != null) {
+            VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
+            VirtualFile propertieFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
+            try {
+                FileInputStream in = new FileInputStream(propertieFile.getPath());
+                this.properties.load(in);
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.swissAsStorage.setShareProperties(this.properties);
+    }
+    
+    
     @Override
     @NotNull
     @NonNls
@@ -95,7 +117,19 @@ public class SwissAsWidget implements ProjectComponent {
 
     @Override
     public void projectOpened() {
-        addWidgetToFrame();
+        this.swissAsStorage = SwissAsStorage.getInstance(this.project);
+        fillSharedProperties();
+        //if empty then this is no SAS project, therefore no need to change the UI for other project 
+        if(!this.properties.isEmpty()) {
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    refreshData();
+                }
+            };
+            this.retrieveUserDataTimer.schedule(timerTask, 30, 24 * 60 * 60_000);
+            addWidgetToFrame();
+        }
     }
 
     @Override
@@ -103,6 +137,13 @@ public class SwissAsWidget implements ProjectComponent {
         final StatusBar statusBar = this.ideFrame.getStatusBar();
         if (statusBar != null) {
             statusBar.removeWidget(TrafficLightPanel.WIDGET_ID);
+        }
+        this.retrieveUserDataTimer.cancel();
+        this.retrieveUserDataTimer.purge();
+        //prevent source of error when on other project
+        if(!this.properties.isEmpty()) {
+            this.retrieveTrafficLightTimer.cancel();
+            this.retrieveTrafficLightTimer.purge();
         }
         Disposer.dispose(this.trafficLightPanel);
     }
@@ -117,7 +158,6 @@ public class SwissAsWidget implements ProjectComponent {
                 SwissAsWidget.this.trafficLightPanel.refreshContent();
             }
         };
-        Timer timer = new Timer(TRAFFIC_LIGHT_CHECKER);
-        timer.schedule(timerTask, 30, 30_000);
+        this.retrieveTrafficLightTimer.schedule(timerTask, 60, 30_000);
     }
 }

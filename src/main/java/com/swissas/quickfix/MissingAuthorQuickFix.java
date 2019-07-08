@@ -33,7 +33,7 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
     private final SmartPsiElementPointer<PsiFile> smartPsiElementPointer;
 
     public MissingAuthorQuickFix(PsiFile file) {
-        this.smartPsiElementPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);;
+        this.smartPsiElementPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
         this.swissAsStorage = SwissAsStorage.getInstance(file.getProject());
     }
 
@@ -53,18 +53,18 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
             PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText("/**\n" +
                     " * TODO: write you class description here\n" +
                     " *\n" +
-                    AUTHOR + swissAsStorage.getFourLetterCode() + "\n" +
+                    AUTHOR + this.swissAsStorage.getFourLetterCode() + "\n" +
                     " */");
             addedTag = this.smartPsiElementPointer.getElement().addBefore(docComment, startElement);
         } else if (startElement instanceof PsiDocComment) {
             List<String> lines = Stream.of(startElement.getText().split("\n")).collect(Collectors.toList());
-            lines.add(lines.size() - 1, AUTHOR + swissAsStorage.getFourLetterCode());
+            lines.add(lines.size() - 1, AUTHOR + this.swissAsStorage.getFourLetterCode());
             PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText(StringUtil.join(lines, "\n"));
             startElement.replace(docComment);
         } else {
             PsiDocComment docComment = PsiTreeUtil.getParentOfType(startElement, PsiDocComment.class);
             if (docComment != null) {
-                PsiDocTag tag = JavaPsiFacade.getInstance(project).getElementFactory().createDocTagFromText(AUTHOR + swissAsStorage.getFourLetterCode() + "\n");
+                PsiDocTag tag = JavaPsiFacade.getInstance(project).getElementFactory().createDocTagFromText(AUTHOR + this.swissAsStorage.getFourLetterCode() + "\n");
                 addedTag = docComment.addBefore(tag, startElement);
             }
         }

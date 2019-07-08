@@ -2,6 +2,7 @@ package com.swissas.beans;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.nodes.Node;
 
 
 /**
@@ -14,11 +15,17 @@ public class Message implements Comparable<Message> {
     private String description;
     private String severity;
 
-    public Integer getLine() {
+    public Message(Node message) {
+        setLine(Integer.valueOf(message.attr("line")));
+        setDescription(message.attr("description"));
+        setSeverity(message.attr("severity"));
+    }
+
+	public Integer getLine() {
         return this.line;
     }
 
-    public void setLine(Integer line) {
+    private void setLine(Integer line) {
         this.line = line;
     }
 
@@ -26,7 +33,7 @@ public class Message implements Comparable<Message> {
         return this.description;
     }
 
-    public void setDescription(String description) {
+    private void setDescription(String description) {
         this.description = description;
     }
 
@@ -38,7 +45,7 @@ public class Message implements Comparable<Message> {
         return this.severity;
     }
 
-    public void setSeverity(String severity) {
+    private void setSeverity(String severity) {
         this.severity = severity;
     }
 
