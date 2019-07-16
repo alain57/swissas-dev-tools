@@ -50,6 +50,8 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		LocalQuickFix ignoreFix = new TranslateMakAsIgnoreQuickFix();
 		LocalQuickFix translateFix = new TranslateQuickFix(holder.getFile());
 		LocalQuickFix translateTooltipFix = new TranslateTooltipQuickFix(holder.getFile());
+		
+		LocalQuickFix[] fixes = SwissAsStorage.getInstance(holder.getProject()).isNewTranslation() ?new LocalQuickFix[]{ignoreFix, translateFix, translateTooltipFix} : new LocalQuickFix[]{ignoreFix};
 		int minSize = Integer.valueOf(SwissAsStorage.getInstance(holder.getProject()).getMinWarningSize()) + 2; //psiStringElements are withing double quotes
 		Pattern sqlAndTemplate = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*|\\.tpl$");
 		Pattern isInMethods = Pattern.compile(".*(Exception|getLogger\\(\\)|assertEquals).*|WithHistory$");
@@ -69,17 +71,17 @@ class MissingTranslationInspection extends LocalInspectionTool {
 								map(doc -> !doc.getText().contains("NO_EXT")).orElse(true)
 				) {
 					PsiElement parent = expression.getParent();
-					if (parent instanceof PsiField) {
-						holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, ignoreFix, translateFix, translateTooltipFix);
+					if (parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression) {
+							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 					} else if(parent instanceof PsiExpressionList){
 						PsiElement parentPrevSibling = parent.getPrevSibling();
 						if(!isInMethods.matcher(parentPrevSibling.getText()).matches()){
-							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, ignoreFix, translateFix, translateTooltipFix);
+							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 						}
 					} else if(parent instanceof PsiPolyadicExpression) {
 						PsiElement parentPrevSibling = parent.getPrevSibling();
 						if(!isInMethods.matcher(parentPrevSibling.getText()).matches()){
-							holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, ignoreFix, translateFix, translateTooltipFix);
+							holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 						}
 					}
 				}

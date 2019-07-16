@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.3'
+version '1.5.4'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -24,14 +24,20 @@ intellij {
     version '2019.1.3'
     downloadSources true
     intellij.updateSinceUntilBuild false
+    plugins 'com.intellij.properties:191.5849.33'//don't forget to change the number if plugin uses new intellij version
 
 }
 patchPluginXml {
     changeNotes """
-<b>V1.5.3</b>important performance fix in the translate inspection
+<b>V1.5.4</b><pre>CTRL + click on Translatable will now open the Standard.properties instead of the _Message class
+Save Properties the right way (undo/redo will work)
+Only add the translate and tooltip quickfixes for amos 19.6 and preview (old amos only have the NO_EXT option)
+fixed some small bugs
+</pre>
+<b>V1.5.3</b><pre>important performance fix in the translate inspection
 Fix several small bugs
 Refactor some code to make it a lot more easier to understand
-Separate UI from Configuration
+Separate UI from Configuration</pre>
 <b>V1.5.2</b><pre>Redesign the configuration panel and add an option to limit the translation warning to a specific length (per default 5)
 The Letter code field is now an autocompleted combobox
 Don't show translation warnings for TestClasses, Loggers, assertEquals, withHistory methods and for .tpl file name

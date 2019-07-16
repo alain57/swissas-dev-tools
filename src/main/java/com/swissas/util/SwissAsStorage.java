@@ -37,6 +37,8 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private Map<String, String> userMap = new HashMap<>();
     
     private Properties shareProperties; 
+    private boolean isAmosProject = false;
+    private boolean isNewTranslation = false;
     
     
     
@@ -146,5 +148,21 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
     public void setShareProperties(Properties shareProperties) {
         this.shareProperties = shareProperties;
+    }
+
+    public boolean isAmosProject() {
+        return this.isAmosProject;
+    }
+
+    public void setAmosProject(boolean amosProject) {
+        this.isAmosProject = amosProject;
+    }
+
+    public boolean isNewTranslation() {
+        return this.isNewTranslation;
+    }
+
+    public void setNewTranslation(boolean newTranslation) {
+        this.isNewTranslation = newTranslation;
     }
 }

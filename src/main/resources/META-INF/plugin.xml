@@ -3,9 +3,10 @@
     <name>Swiss-AS Dev-Tools</name>
     <vendor email="tala@swiss-as.com" url="http://www.swiss-as.com">Swiss-AS</vendor>
     <description><![CDATA[
-    Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, jenkins error compliant)
+    Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
     ]]></description>
     <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.properties</depends>
     
     <extensions defaultExtensionNs="com.intellij">
         <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
@@ -15,6 +16,7 @@
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckinFactory"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
+        <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
     </extensions>
 

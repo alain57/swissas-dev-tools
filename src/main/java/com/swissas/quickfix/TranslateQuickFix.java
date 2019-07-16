@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
+import com.intellij.lang.properties.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SequenceProperties;
 import com.swissas.util.SwissAsStorage;
@@ -17,7 +18,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
@@ -83,8 +83,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                 numberInCaseOfDuplicateKey++;
                 fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
             }
-            properties.put(fullKey, getPropertyValue(element));
-            saveProperties(properties);
+            saveProperty(fullKey, getPropertyValue(element));
             PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);\n", null);
             PsiField latestField = PsiTreeUtil.collectElementsOfType(currentTranslationJavaFile, PsiField.class).stream().reduce((a, b) -> b).get();
             latestField.getParent().addAfter(javaTranslation, latestField);
@@ -166,15 +165,11 @@ public class TranslateQuickFix implements LocalQuickFix {
             e.printStackTrace();
         }
     }
-
-    private void saveProperties(Properties properties){
-        try {
-            FileOutputStream out = new FileOutputStream(this.currentPropertiesPath);
-            properties.store(out, null);
-            out.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        
+    private void saveProperty(String key, String value){
+        PsiFile file = this.javaPsiPointer.getElement().getContainingDirectory().findFile("Standard.properties");
+        PropertiesFile propertiesFile = (PropertiesFile)file;
+        propertiesFile.addProperty(key, value);
     }
 
     private String getPropertyValue(PsiElement element){

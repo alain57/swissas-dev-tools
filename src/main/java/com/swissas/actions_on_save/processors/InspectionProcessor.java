@@ -41,7 +41,11 @@ public class InspectionProcessor {
 
     public void run() {
         ApplicationManager.getApplication()
-                .invokeLater(() -> new InspectionWriteQuickFixesAction(this.project).execute());
+                .invokeLater(() -> {
+                    if(!this.project.isDisposed()) {
+                        new InspectionWriteQuickFixesAction(this.project).execute();
+                    }
+                });
     }
 
     @Override
