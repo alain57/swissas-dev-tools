@@ -67,24 +67,29 @@ class MissingTranslationInspection extends LocalInspectionTool {
 				if(expression.getTextLength() > minSize && 
 						(expression.getValue() instanceof String) &&
 						!sqlAndTemplate.matcher((String) expression.getValue()).matches() &&
-						Optional.ofNullable(PsiTreeUtil.getNextSiblingOfType(expression, PsiComment.class)).
-								map(doc -> !doc.getText().contains("NO_EXT")).orElse(true)
+						hasNoNoExtAsNextSibling(expression)
 				) {
 					PsiElement parent = expression.getParent();
-					if (parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression) {
+					if ((parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression) && hasNoNoExtAsNextSibling(parent)) {
 							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
-					} else if(parent instanceof PsiExpressionList){
+					} else if(parent instanceof PsiExpressionList && hasNoNoExtAsNextSibling(parent)){
 						PsiElement parentPrevSibling = parent.getPrevSibling();
 						if(!isInMethods.matcher(parentPrevSibling.getText()).matches()){
 							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 						}
-					} else if(parent instanceof PsiPolyadicExpression) {
+					} else if(parent instanceof PsiPolyadicExpression && hasNoNoExtAsNextSibling(parent)) {
 						PsiElement parentPrevSibling = parent.getPrevSibling();
 						if(!isInMethods.matcher(parentPrevSibling.getText()).matches()){
 							holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 						}
 					}
 				}
+			}
+			
+			@NotNull
+			private Boolean hasNoNoExtAsNextSibling(PsiElement expression) {
+				return Optional.ofNullable(PsiTreeUtil.getNextSiblingOfType(expression, PsiComment.class)).
+						map(doc -> !doc.getText().contains("NO_EXT")).orElse(true);
 			}
 			
 		};
