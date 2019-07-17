@@ -70,7 +70,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 						hasNoNoExtAsNextSibling(expression)
 				) {
 					PsiElement parent = expression.getParent();
-					if ((parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression) && hasNoNoExtAsNextSibling(parent)) {
+					if ((parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression || parent instanceof PsiConditionalExpression) && hasNoNoExtAsNextSibling(parent)) {
 							holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, fixes);
 					} else if(parent instanceof PsiExpressionList && hasNoNoExtAsNextSibling(parent)){
 						PsiElement parentPrevSibling = parent.getPrevSibling();

@@ -70,7 +70,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         PsiFile currentTranslationJavaFile = getOrCreateMessageFile();
         PsiElement element = descriptor.getPsiElement();
         
-        PsiClass messageClass = PsiTreeUtil.getChildOfType(currentTranslationJavaFile.getContainingFile(), PsiClass.class);
+        
         String propertyValue = getPropertyValue(element);
         String fullKey;
         if(properties.values().contains(propertyValue)){
@@ -83,7 +83,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                 numberInCaseOfDuplicateKey++;
                 fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
             }
-            saveProperty(fullKey, getPropertyValue(element));
+            saveProperty(fullKey, propertyValue);
             PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);\n", null);
             PsiField latestField = PsiTreeUtil.collectElementsOfType(currentTranslationJavaFile, PsiField.class).stream().reduce((a, b) -> b).get();
             latestField.getParent().addAfter(javaTranslation, latestField);
@@ -104,6 +104,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         }
         PsiExpression expressionFromText = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createExpressionFromText(replacement.toString(), null);
         element.replace(expressionFromText);
+        PsiClass messageClass = PsiTreeUtil.getChildOfType(currentTranslationJavaFile.getContainingFile(), PsiClass.class);
         addImport(messageClass, fullKey);
     }
     
@@ -111,10 +112,10 @@ public class TranslateQuickFix implements LocalQuickFix {
     private void addImport(PsiClass messageClass, String memberName){
         PsiFile file = this.javaPsiPointer.getElement();
         Collection<PsiImportStaticStatement> psiImportStatements = PsiTreeUtil.collectElementsOfType(file, PsiImportStaticStatement.class);
-        PsiImportStaticStatement latestImport = psiImportStatements.stream().reduce((a, b) -> b).orElse(null);
         if(psiImportStatements.stream().noneMatch(e -> e.getText().contains("._Messages.*"))){
             PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createImportStaticStatement(messageClass, memberName);
-            file.addAfter(importStaticStatement, latestImport == null ? file.getFirstChild() : latestImport.getParent());
+            PsiImportList importList = ((PsiJavaFile) file).getImportList();
+            importList.add(importStaticStatement);
         }
     }
 
@@ -178,7 +179,7 @@ public class TranslateQuickFix implements LocalQuickFix {
             StringBuilder stringBuilder = new StringBuilder();
             //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One that contains the full stuff, and one only the ending. We don't need the last one so we filter it out
             Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
-            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression || e instanceof PsiMethodCallExpression)).
+            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression || e instanceof PsiMethodCallExpression || e instanceof  PsiReferenceExpression)).
                     filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
             for (PsiElement psiElement : psiElements) {
                 if(psiElement instanceof PsiLiteralExpressionImpl){

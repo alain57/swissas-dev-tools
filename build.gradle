@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.4'
+version '1.5.5'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -29,6 +29,9 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
+<b>V1.5.5</b><pre>Auto import was not working correctly when fixing all missing translation
+Constants where not replaced with %s during translation
+Missing translation was missing following case : booleanValue ? "one not translated string" : "another not translated string"</pre>
 <b>V1.5.4</b><pre>CTRL + click on Translatable will now open the Standard.properties instead of the _Message class
 Save Properties the right way (undo/redo will work)
 Only add the translate and tooltip quickfixes for amos 19.6 and preview (old amos only have the NO_EXT option)

@@ -1,5 +1,7 @@
-
+# This is a comment
 .gradle/
 .idea/
 build/
 out/
+gradlew
+gradlew.bat
