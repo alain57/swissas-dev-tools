@@ -1,7 +1,9 @@
-<idea-plugin>
+<idea-plugin url="https://github.com/alain57/swissas-dev-tools">
     <id>com.swissas.tala.swissas</id>
     <name>Swiss-AS Dev-Tools</name>
-    <vendor email="tala@swiss-as.com" url="http://www.swiss-as.com">Swiss-AS</vendor>
+    <vendor email="alain57@gmail.com" url="http://www.linkedin.com/in/alain-tavan">Tavan Alain</vendor>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="191"/>
     <description><![CDATA[
     Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
     ]]></description>
@@ -17,6 +19,7 @@
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
+        <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
     </extensions>
 

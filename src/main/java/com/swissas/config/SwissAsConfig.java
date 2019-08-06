@@ -43,7 +43,7 @@ public class SwissAsConfig implements Configurable {
         this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
         this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
         this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
-        this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixMissingThis());
+        this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
     }
     
     

@@ -78,9 +78,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        ((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
         this.swissAsStorage = SwissAsStorage.getInstance(project);
-        
+
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(this, "", false);
         toolWindow.getContentManager().addContent(content);
@@ -92,6 +91,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
         };
         Timer timer = new Timer(WARNING_CONTENT_TIMER);
         timer.schedule(timerTask, 30, 24 * 60 * 60_000);
+        
+        ((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
     }
     
     
