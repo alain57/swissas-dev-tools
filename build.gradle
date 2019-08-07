@@ -29,8 +29,7 @@ intellij {
 }
 
 publishPlugin {
-    username intellijPublishUsername //variable defined in the gradle.properties file
-    password intellijPublishPassword
+    token intellijPublishToken //variable defined in the gradle.properties file
 }
 
 patchPluginXml {
