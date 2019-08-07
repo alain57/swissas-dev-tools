@@ -53,19 +53,21 @@ public class MissingAuthorInspection extends LocalInspectionTool{
         return new JavaElementVisitor() {
 
             @Override
-            public void visitJavaFile(PsiJavaFile file) {
+            public void visitJavaFile(@NotNull PsiJavaFile file) {
                 super.visitJavaFile(file);
-                PsiClass firstClass = file.getClasses()[0];
-                LocalQuickFix MissingAuthorQuickFix = new MissingAuthorQuickFix(file);
+                PsiClass[] classes = file.getClasses();
+                if(classes.length > 0) {
+                    PsiClass firstClass = classes[0];
+                    LocalQuickFix MissingAuthorQuickFix = new MissingAuthorQuickFix(file);
 
-                if(firstClass.getDocComment() == null) {
-                    holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass, RESOURCE_BUNDLE.getString("class.has.no.javadoc"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
-                }else if(firstClass.getDocComment().getTags().length == 0){
-                    holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass.getDocComment(), RESOURCE_BUNDLE.getString("class.has.no.author"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
-                }else if(Stream.of(firstClass.getDocComment().getTags()).noneMatch(tag -> "author".equals(tag.getName()))){
-                    holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass.getDocComment().getTags()[0], RESOURCE_BUNDLE.getString("class.has.no.author"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
+                    if (firstClass.getDocComment() == null) {
+                        holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass, RESOURCE_BUNDLE.getString("class.has.no.javadoc"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
+                    } else if (firstClass.getDocComment().getTags().length == 0) {
+                        holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass.getDocComment(), RESOURCE_BUNDLE.getString("class.has.no.author"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
+                    } else if (Stream.of(firstClass.getDocComment().getTags()).noneMatch(tag -> "author".equals(tag.getName()))) {
+                        holder.registerProblem(holder.getManager().createProblemDescriptor(firstClass.getDocComment().getTags()[0], RESOURCE_BUNDLE.getString("class.has.no.author"), MissingAuthorQuickFix, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
+                    }
                 }
-                
             }
         };
     }

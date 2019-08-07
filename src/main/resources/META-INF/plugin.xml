@@ -9,6 +9,7 @@
     ]]></description>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.properties</depends>
+    <depends>com.intellij.java</depends>
     
     <extensions defaultExtensionNs="com.intellij">
         <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>

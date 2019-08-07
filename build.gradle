@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.6'
+version '1.5.7'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -27,10 +27,18 @@ intellij {
     plugins 'java', 'properties'
 
 }
+
+publishPlugin {
+    username intellijPublishUsername //variable defined in the gradle.properties file
+    password intellijPublishPassword
+}
+
 patchPluginXml {
     changeNotes """
-<b>V1.5.6</b><pre>
-Implement the find by usage for the Properties file
+<b>V1.5.7</b><pre>Fix a potential NPE
+Add a dependency for validation of jetbrains repository
+</pre>
+<b>V1.5.6</b><pre>Implement the find by usage for the Properties file
 Fixed a small mistake in the configuration storage
 Better warning icons for dark mode
 Adapt gradle built script for 2019.2.
