@@ -44,6 +44,7 @@ public class SwissAsConfig implements Configurable {
         this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
         this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
         this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
+        this.configPanel.getChkTranslateOnlyModifiedLines().setSelected(this.swissAsStorage.isTranslationOnlyCheckChangedLine());
     }
     
     
@@ -68,7 +69,9 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
                 !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
                 this.swissAsStorage.isFixMissingOverride() != this.configPanel.getChkFixOverride().isSelected() ||
-                this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected();/* ||
+                //this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
+                this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected()               
+                ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
 
@@ -81,6 +84,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setFixUnusedSuppressWarning(this.configPanel.getChkFixUnused().isSelected());
         this.swissAsStorage.setFixMissingAuthor(this.configPanel.getChkFixAuthor().isSelected());
         this.swissAsStorage.setMinWarningSize(this.configPanel.getMinTranslationSize().getText());
+        this.swissAsStorage.setTranslationOnlyCheckChangedLine(this.configPanel.getChkTranslateOnlyModifiedLines().isSelected());
         refreshWarningContent();
     }
 

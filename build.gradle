@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.7'
+version '1.5.8'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -34,6 +34,11 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.8</b><pre>Add an option to only check for missing translation on changed line (prevent having file with tons of warnings)
+Fix a false positive missing translation on exeption with concatenation
+Don't warn about missing translation in firePropertyChange
+Disable the unused suppress annotation as it current implementation is not working correctly
+</pre>
 <b>V1.5.7</b><pre>Fix a potential NPE
 Add a dependency for validation of jetbrains repository
 </pre>

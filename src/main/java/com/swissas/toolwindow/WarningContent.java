@@ -186,7 +186,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
                         int line = 0;
                         if (path.length > 3) {
                             String lineAndDesc = path[3].toString();
-                            line = Integer.valueOf(lineAndDesc.substring(5, lineAndDesc.indexOf(" :"))) - 1;
+                            line = Integer.parseInt(lineAndDesc.substring(5, lineAndDesc.indexOf(" :"))) - 1;
                         }
                         String pathAndAmountOfErrors = path[2].toString();
                         String filepath = p.getBasePath() + "/" + pathAndAmountOfErrors.substring(0, pathAndAmountOfErrors.indexOf(" ("));

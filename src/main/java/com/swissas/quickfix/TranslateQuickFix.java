@@ -73,7 +73,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         
         String propertyValue = getPropertyValue(element);
         String fullKey;
-        if(properties.values().contains(propertyValue)){
+        if(properties.containsValue(propertyValue)){
             fullKey = properties.entrySet().stream().filter(entry -> propertyValue.equals(entry.getValue())).findFirst().map(Map.Entry::getKey).get().toString();
         }else {
             String translatedKey = getPropertyKey(element);

@@ -31,6 +31,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private boolean fixMissingThis = true;
     private boolean fixUnusedSuppressWarning = false;
     private boolean fixMissingAuthor = true;
+    private boolean translationOnlyCheckChangedLine = false;
     
     private boolean showIgnoredValues = false;
     private List<String> ignoredValues = new ArrayList<>();
@@ -86,6 +87,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
         this.fixMissingThis = fixMissingThis;
     }
 
+    public boolean isTranslationOnlyCheckChangedLine() {
+        return this.translationOnlyCheckChangedLine;
+    }
+
+    public void setTranslationOnlyCheckChangedLine(boolean translationOnlyCheckChangedLine) {
+        this.translationOnlyCheckChangedLine = translationOnlyCheckChangedLine;
+    }
 
     public boolean isFixUnusedSuppressWarning() {
         return this.fixUnusedSuppressWarning;
@@ -118,7 +126,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     }
 
     public void setFixUnusedSuppressWarning(boolean fixUnusedSuppressWarning) {
-        this.fixUnusedSuppressWarning = fixUnusedSuppressWarning;
+        //this.fixUnusedSuppressWarning = fixUnusedSuppressWarning;
     }
 
     public void setFixMissingAuthor(boolean fixMissingAuthor) {

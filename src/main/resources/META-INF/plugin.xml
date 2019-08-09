@@ -5,11 +5,11 @@
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
     <idea-version since-build="191"/>
     <description><![CDATA[
-    Plugin to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
+    A Personal Plugin built during my free time to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
     ]]></description>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.properties</depends>
-    <depends>com.intellij.java</depends>
+    <depends>com.intellij.modules.java</depends>
     
     <extensions defaultExtensionNs="com.intellij">
         <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>

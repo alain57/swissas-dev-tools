@@ -54,7 +54,7 @@ public class SequenceProperties extends Properties {
 		);
 	}
 	
-	final class MyEntry<K, V> implements Map.Entry<K, V>{
+	static final class MyEntry<K, V> implements Map.Entry<K, V>{
 		private final K key;
 		private V value;
 

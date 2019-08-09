@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Tavan Alain
  */
 
-public class TranslateGoToDeclaration implements GotoDeclarationHandler {
+class TranslateGoToDeclaration implements GotoDeclarationHandler {
 		
 	@Nullable
 	@Override

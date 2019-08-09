@@ -33,6 +33,8 @@ class ConfigPanel {
 	private JPanel jenkinsPanel;
 	private JTextField minTranslationSize;
 	private JPanel warningPanel;
+	private JPanel translationPanel;
+	private JCheckBox chkTranslateOnlyModifiedLines;
 
 	private JCheckBox chkShowIgnoreLists;
 	private JList<LabelData> lstIgnoreValues;
@@ -50,10 +52,6 @@ class ConfigPanel {
 
 	public JTextField getMinTranslationSize() {
 		return this.minTranslationSize;
-	}
-
-	public JPanel getWarningPanel() {
-		return this.warningPanel;
 	}
 
 	public ComboBox<String> getFourLetterCode() {
@@ -79,13 +77,9 @@ class ConfigPanel {
 	public JCheckBox getChkFixUnused() {
 		return this.chkFixUnused;
 	}
-
-	public JPanel getGeneralPanel() {
-		return this.generalPanel;
-	}
-
-	public JPanel getJenkinsPanel() {
-		return this.jenkinsPanel;
+	
+	public JCheckBox getChkTranslateOnlyModifiedLines() {
+		return this.chkTranslateOnlyModifiedLines;
 	}
 
 
