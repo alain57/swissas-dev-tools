@@ -76,6 +76,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 
 		private final Pattern sqlAndTemplate;
 		private final Pattern isInMethods;
+		private final boolean noSvn;
 
 		MyJavaElementVisitor(@NotNull ProblemsHolder holder, @NotNull LocalQuickFix[] fixes) {
 			this.sqlAndTemplate = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*|\\.tpl$");
@@ -86,7 +87,8 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			VirtualFile virtualFile = holder.getFile().getVirtualFile();
 			this.project = holder.getProject();
 			LineStatusTracker lineStatusTracker = LineStatusTrackerManager.getInstance(this.project).getLineStatusTracker(virtualFile);
-			List<Range> ranges = lineStatusTracker == null ? Collections.emptyList() : lineStatusTracker.getRanges();
+			this.noSvn = lineStatusTracker == null;
+			List<Range> ranges = this.noSvn ? Collections.emptyList() : lineStatusTracker.getRanges();
 			this.linesToCheck = ranges == null ? Collections.emptyList() : ranges.stream().filter(e -> e.getType() != Range.DELETED).map(Range::getLine1).collect(Collectors.toList());
 		}
 
@@ -96,34 +98,34 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			int minSize = Integer.parseInt(SwissAsStorage.getInstance(this.project).getMinWarningSize()) + 2; //psiStringElements are withing double quotes
 			int textOffset = expression.getTextOffset();
 			int lineNumber = StringUtil.offsetToLineNumber(expression.getContainingFile().getText(), textOffset);
-			boolean shouldCheckFile = !SwissAsStorage.getInstance(this.project).isTranslationOnlyCheckChangedLine() || this.linesToCheck.contains(lineNumber);
-			if (shouldCheckFile) {
-				if (expression.getTextLength() > minSize &&
+			boolean shouldCheckFile = this.noSvn || !SwissAsStorage.getInstance(this.project).isTranslationOnlyCheckChangedLine() || this.linesToCheck.contains(lineNumber);
+			if (shouldCheckFile && expression.getTextLength() > minSize &&
 						(expression.getValue() instanceof String) &&
 						!this.sqlAndTemplate.matcher((String) expression.getValue()).matches() &&
 						hasNoNoExtAsNextSibling(expression)
 				) {
 					PsiElement parent = expression.getParent();
-					if ((parent instanceof PsiField || parent instanceof PsiLocalVariable || parent instanceof PsiReferenceExpression || parent instanceof PsiConditionalExpression) && hasNoNoExtAsNextSibling(parent)) {
-						this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-					} else if (parent instanceof PsiExpressionList && hasNoNoExtAsNextSibling(parent)) {
-						PsiElement parentPrevSibling = parent.getPrevSibling();
-						if (!this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
-							this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-						}
-					} else if (parent instanceof PsiPolyadicExpression && hasNoNoExtAsNextSibling(parent)) {
-						PsiElement grandParent = parent.getParent();
-						if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
-							this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-						} else {
-							PsiElement beforeGrandParent = parent.getParent().getPrevSibling();
-							if (!this.isInMethods.matcher(beforeGrandParent.getText()).matches()) {
-								this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+					if(hasNoNoExtAsNextSibling(parent)) {
+						if (parent instanceof PsiExpressionList) {
+							PsiElement parentPrevSibling = parent.getPrevSibling();
+							if (!this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
+								this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 							}
+						} else if (parent instanceof PsiPolyadicExpression) {
+							PsiElement grandParent = parent.getParent();
+							if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
+								this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+							} else {
+								PsiElement beforeGrandParent = parent.getParent().getPrevSibling();
+								if (!this.isInMethods.matcher(beforeGrandParent.getText()).matches()) {
+									this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+								}
+							}
+						}else { //don't care about the parent special cases, the issue is on the expression itself
+							this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 						}
 					}
 				}
-			}
 		}
 
 		@NotNull

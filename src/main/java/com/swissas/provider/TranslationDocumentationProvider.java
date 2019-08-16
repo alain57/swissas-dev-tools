@@ -81,7 +81,7 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 	
 	public static boolean isSasMultiLang(PsiElement element){
 		boolean result = false;
-		if(element.getText() != null && element.getText().matches("[A-Z0-9_]+_TX?T")){
+		if(element.getText() != null && element.getText().matches("[A-Z0-9_]+_TX?T(_\\d+)?")){
 			PsiFieldImpl field = null;
 			if(element instanceof PsiIdentifierImpl){
 				element = PsiTreeUtil.getParentOfType(element, PsiReferenceExpression.class);

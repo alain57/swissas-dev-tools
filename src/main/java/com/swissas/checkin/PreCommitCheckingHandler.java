@@ -22,7 +22,8 @@ import org.jetbrains.annotations.NonNls;
  * @author Tavan Alain
  */
 class PreCommitCheckingHandler extends CheckinHandler {
-    
+
+    public static final String FIX_RELEASE_BLOCKER = "fix release blocker";
     private final Project project;
     private final CheckinProjectPanel checkinProjectPanel;
 
@@ -75,6 +76,11 @@ class PreCommitCheckingHandler extends CheckinHandler {
         int messageResult = confirmationDialog.getExitCode();
         if(messageResult == DialogWrapper.NEXT_USER_EXIT_CODE){
             this.trafficLightPanel.setInformWhenReady(this.checkinProjectPanel);
+        }else if(messageResult == ConfirmationDialog.FIX_RELEASE_EXIT_CODE){
+            if (!this.checkinProjectPanel.getCommitMessage().contains(FIX_RELEASE_BLOCKER)) {
+                this.checkinProjectPanel.setCommitMessage(this.checkinProjectPanel.getCommitMessage() + "\n" + FIX_RELEASE_BLOCKER);
+            }
+            messageResult = DialogWrapper.OK_EXIT_CODE;
         }
 
         return messageResult == DialogWrapper.OK_EXIT_CODE ? ReturnResult.COMMIT : ReturnResult.CLOSE_WINDOW;

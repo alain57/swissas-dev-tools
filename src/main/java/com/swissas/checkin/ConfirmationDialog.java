@@ -22,15 +22,19 @@ import java.util.ResourceBundle;
  */
 
 class ConfirmationDialog extends DialogWrapper {
+    public static final int FIX_RELEASE_EXIT_CODE = 3;
+    
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     private final Action whenReadyAction;
+    private final Action fixReleaseAction;
     private final String trafficLightMessage;
 
     ConfirmationDialog(String trafficLightMessage) {
         super(true);
         this.trafficLightMessage = HintUtil.prepareHintText(new Html(trafficLightMessage), new HintHint().setAwtTooltip(true));
         this.whenReadyAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("when.ready"), DialogWrapper.NEXT_USER_EXIT_CODE);
+        this.fixReleaseAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("fix.release"), FIX_RELEASE_EXIT_CODE);
         setTitle(RESOURCE_BUNDLE.getString("commit.title"));
         setOKButtonText(RESOURCE_BUNDLE.getString("yes"));
         setCancelButtonText(RESOURCE_BUNDLE.getString("no"));
@@ -59,11 +63,14 @@ class ConfirmationDialog extends DialogWrapper {
     @NotNull
     @Override
     protected Action[] createActions() {
-        return new Action[]{getOKAction(), getCancelAction(), getWhenReadyAction()};
+        return new Action[]{getOKAction(), getFixReleaseAction(), getCancelAction(), getWhenReadyAction()};
     }
 
     private Action getWhenReadyAction() {
         return this.whenReadyAction;
     }
 
+    private Action getFixReleaseAction(){
+        return this.fixReleaseAction;
+    }
 }
