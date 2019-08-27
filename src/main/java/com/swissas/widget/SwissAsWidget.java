@@ -10,8 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Stream;
 
-import com.intellij.AppTopics;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -24,9 +22,6 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.status.MemoryUsagePanel;
-import com.intellij.util.messages.MessageBus;
-import com.intellij.util.messages.MessageBusConnection;
-import com.swissas.actions_on_save.DoOnSave;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -64,13 +59,6 @@ public class SwissAsWidget implements ProjectComponent {
 		this.properties = new Properties();
 		this.retrieveUserDataTimer = new Timer(USER_TIMER);
 		this.retrieveTrafficLightTimer = new Timer(TRAFFIC_LIGHT_CHECKER);
-	}
-	
-	@Override
-	public void initComponent() {
-		MessageBus bus = ApplicationManager.getApplication().getMessageBus();
-		MessageBusConnection connection = bus.connect();
-		connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new DoOnSave());
 	}
 	
 	private void refreshData() {
@@ -120,7 +108,7 @@ public class SwissAsWidget implements ProjectComponent {
 	
 	@Override
 	public void projectOpened() {
-		this.swissAsStorage = SwissAsStorage.getInstance(this.project);
+		this.swissAsStorage = SwissAsStorage.getInstance();
 		this.ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
 		fillSharedProperties();
 		//if empty then this is no SAS project, therefore no need to change the UI for other project 

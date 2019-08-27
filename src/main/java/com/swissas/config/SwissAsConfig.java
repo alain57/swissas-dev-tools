@@ -31,7 +31,7 @@ public class SwissAsConfig implements Configurable {
     
     public SwissAsConfig(Project project){
         this.project = project;
-        this.swissAsStorage = SwissAsStorage.getInstance(project);
+        this.swissAsStorage = SwissAsStorage.getInstance();
         this.configPanel = new ConfigPanel(this.swissAsStorage);
         updateUIState();
     }
@@ -69,7 +69,7 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
                 !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
                 this.swissAsStorage.isFixMissingOverride() != this.configPanel.getChkFixOverride().isSelected() ||
-                //this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
+                this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
                 this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected()               
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/

@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.9'
+version '1.5.10'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -34,6 +34,12 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.10</b><pre>Prevent exception from happening when the traffic light URL is null (in case of QA Failing tests)
+Prevent exception on CTRL + mouse hover on older stable
+Prevent translating any kind of String containing only a filename with a 3 letter extension
+Use newer save action logic (thanks to 
+Revert back to one setting for all projects (you may need to configure back the settings)
+</pre>
 <b>V1.5.9</b><pre>Add missing translation quickfix in case of array initialization code for ex <code>Charsequence[] array = new Charsequence[]{"one string tro translate"}</code>
 Fix an issue that new files where not checked for missing translation
 Add "fix release blocker" option in the pre commit dialog

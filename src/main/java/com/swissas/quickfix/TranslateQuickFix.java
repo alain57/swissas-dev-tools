@@ -44,7 +44,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         this.javaPsiPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
         this.ending = "_TXT";
         this.className = "MultiLangText";
-        this.sharedProperties = SwissAsStorage.getInstance(file.getProject()).getShareProperties();
+        this.sharedProperties = SwissAsStorage.getInstance().getShareProperties();
     }
 
     @NonNls

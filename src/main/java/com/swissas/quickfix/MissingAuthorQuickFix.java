@@ -34,7 +34,7 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
 
     public MissingAuthorQuickFix(PsiFile file) {
         this.smartPsiElementPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
-        this.swissAsStorage = SwissAsStorage.getInstance(file.getProject());
+        this.swissAsStorage = SwissAsStorage.getInstance();
     }
 
 

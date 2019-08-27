@@ -31,11 +31,13 @@ class TranslateGoToDeclaration implements GotoDeclarationHandler {
 
 		if (language.equals(JavaLanguage.INSTANCE) && elementType.toString().equals("IDENTIFIER") && TranslationDocumentationProvider.isSasMultiLang(sourceElement)) {
 			PsiFile currentPropertiesFile = sourceElement.getContainingFile().getContainingDirectory().findFile("Standard.properties");
-			PropertiesFile propertiesFile = (PropertiesFile) currentPropertiesFile;
-			PsiElement psiElement = Optional.ofNullable(propertiesFile.findPropertyByKey(sourceElement.getText())).map(IProperty::getPsiElement).orElse(null);
-			if (psiElement != null) {
-				Property property = (Property) psiElement;
-				return new PsiElement[]{property.getLastChild()};
+			if(currentPropertiesFile != null) { //when null then we may be on old stable version without properties file
+				PropertiesFile propertiesFile = (PropertiesFile) currentPropertiesFile;
+				PsiElement psiElement = Optional.ofNullable(propertiesFile.findPropertyByKey(sourceElement.getText())).map(IProperty::getPsiElement).orElse(null);
+				if (psiElement != null) {
+					Property property = (Property) psiElement;
+					return new PsiElement[]{property.getLastChild()};
+				}
 			}
 		}
 		return new PsiElement[0];

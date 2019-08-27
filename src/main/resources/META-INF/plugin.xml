@@ -12,7 +12,7 @@
     <depends>com.intellij.modules.java</depends>
     
     <extensions defaultExtensionNs="com.intellij">
-        <projectService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
+        <applicationService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
                                  instance="com.swissas.config.SwissAsConfig" />
         <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />

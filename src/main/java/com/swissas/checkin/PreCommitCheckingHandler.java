@@ -36,7 +36,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
     private TrafficLightPanel trafficLightPanel = null;
 
     
-    PreCommitCheckingHandler(final CheckinProjectPanel checkinProjectPanel){
+    PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel){
         this.project = checkinProjectPanel.getProject();
         this.checkinProjectPanel = checkinProjectPanel;
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
@@ -64,6 +64,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
         }
         
         if(this.trafficLightPanel != null && this.trafficLightPanel.isRedOrYellowOn()){
+            
             return showTrafficLightDialog();
         }else {
             return ReturnResult.COMMIT;
@@ -78,7 +79,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
             this.trafficLightPanel.setInformWhenReady(this.checkinProjectPanel);
         }else if(messageResult == ConfirmationDialog.FIX_RELEASE_EXIT_CODE){
             if (!this.checkinProjectPanel.getCommitMessage().contains(FIX_RELEASE_BLOCKER)) {
-                this.checkinProjectPanel.setCommitMessage(this.checkinProjectPanel.getCommitMessage() + "\n" + FIX_RELEASE_BLOCKER);
+                this.checkinProjectPanel.setCommitMessage(FIX_RELEASE_BLOCKER + " \n\n" + this.checkinProjectPanel.getCommitMessage());
             }
             messageResult = DialogWrapper.OK_EXIT_CODE;
         }

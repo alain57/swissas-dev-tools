@@ -10,7 +10,6 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,22 +28,21 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private String minWarningSize = "5";
     private boolean fixMissingOverride = true;
     private boolean fixMissingThis = true;
-    private boolean fixUnusedSuppressWarning = false;
+    private boolean fixUnusedSuppressWarning = true;
     private boolean fixMissingAuthor = true;
     private boolean translationOnlyCheckChangedLine = false;
     
     private boolean showIgnoredValues = false;
     private List<String> ignoredValues = new ArrayList<>();
     private Map<String, String> userMap = new HashMap<>();
-    
     private Properties shareProperties; 
     private boolean isAmosProject = false;
     private boolean isNewTranslation = false;
     
     
     
-    public static SwissAsStorage getInstance(Project project){
-        return ServiceManager.getService(project, SwissAsStorage.class);
+    public static SwissAsStorage getInstance(){
+        return ServiceManager.getService(SwissAsStorage.class);
         
     }
     
@@ -126,7 +124,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     }
 
     public void setFixUnusedSuppressWarning(boolean fixUnusedSuppressWarning) {
-        //this.fixUnusedSuppressWarning = fixUnusedSuppressWarning;
+        this.fixUnusedSuppressWarning = fixUnusedSuppressWarning;
     }
 
     public void setFixMissingAuthor(boolean fixMissingAuthor) {

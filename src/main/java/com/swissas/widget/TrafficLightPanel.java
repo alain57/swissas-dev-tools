@@ -89,7 +89,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     TrafficLightPanel(Project project) {
         this.project = project;
-        this.swissAsStorage = SwissAsStorage.getInstance(project);
+        this.swissAsStorage = SwissAsStorage.getInstance();
         this.url = URL_BUNDLE.getString("url.trafficlight");
         this.clickUrl = URL_BUNDLE.getString("url.trafficlight.click");
         this.lamps = new JPanel();
@@ -122,10 +122,10 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     private void openTrafficDetailLink(HyperlinkEvent event){
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
             URL url = event.getURL();
-            if (TrafficLightPanel.this.url == null) {
-                BrowserUtil.browse(event.getDescription());
-            } else {
+            if (url != null) {
                 BrowserUtil.browse(url);
+            } else if(!this.swissAsStorage.getFourLetterCode().isEmpty()){
+                BrowserUtil.browse(this.clickUrl + this.swissAsStorage.getFourLetterCode());
             }
         }
     }

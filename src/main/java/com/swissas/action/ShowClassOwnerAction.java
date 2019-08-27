@@ -77,7 +77,7 @@ class ShowClassOwnerAction extends EditorAction {
 		
 		if(authorString != null){
 			authorString = authorString.toUpperCase();
-			Map<String, String> userMap = SwissAsStorage.getInstance(editor.getProject()).getUserMap();
+			Map<String, String> userMap = SwissAsStorage.getInstance().getUserMap();
 			if(userMap.containsKey(authorString)){
 				authorTxt = userMap.get(authorString);
 			}else{

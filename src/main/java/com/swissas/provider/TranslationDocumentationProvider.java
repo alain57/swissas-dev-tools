@@ -67,7 +67,7 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 			String link = phrase.substring(index + 1, index2).trim();
 			int sepId = link.indexOf('.');
 			if (sepId == -1) {
-				repl = SwissAsStorage.getInstance(this.activeProject).getShareProperties().get(link).toString();
+				repl = SwissAsStorage.getInstance().getShareProperties().get(link).toString();
 			}else {
 				//do something else
 				repl = "<i>special case for key: "+ link + "not implemented yet</i>";

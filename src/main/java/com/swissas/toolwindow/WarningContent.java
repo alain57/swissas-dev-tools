@@ -78,7 +78,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        this.swissAsStorage = SwissAsStorage.getInstance(project);
+        this.swissAsStorage = SwissAsStorage.getInstance();
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(this, "", false);
@@ -98,11 +98,13 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
     
     public void refresh() {
         try {
-            int selectedTab = this.getSelectedIndex() == -1 ? 0 : this.getSelectedIndex() ;
-            readURL();
-            fillView();
-            if(this.getTabCount() > selectedTab) {
-                this.setSelectedIndex(selectedTab);
+            if(!"".equals(this.swissAsStorage.getFourLetterCode())) {
+                int selectedTab = this.getSelectedIndex() == -1 ? 0 : this.getSelectedIndex();
+                readURL();
+                fillView();
+                if (this.getTabCount() > selectedTab) {
+                    this.setSelectedIndex(selectedTab);
+                }
             }
         } catch (IOException  e) {
             e.printStackTrace();
