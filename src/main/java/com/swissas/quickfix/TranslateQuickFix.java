@@ -204,7 +204,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     private String getPropertyKey(PsiElement element){
         PsiLiteralExpressionImpl stringElement = PsiTreeUtil.collectElementsOfType(element, PsiLiteralExpressionImpl.class).stream()
                 .filter(e -> ((PsiJavaTokenImpl)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL)).findFirst().get();
-        String capitalizeFully = StringEscapeUtils.unescapeJava(stringElement.getRawString()).toUpperCase().replaceAll("[^A-Z0-9 ]", "").replaceAll(" ", "_");
+        String capitalizeFully = Objects.requireNonNull(StringEscapeUtils.unescapeJava(stringElement.getInnerText())).toUpperCase().replaceAll("[^A-Z0-9 ]", "").replaceAll(" ", "_");
         capitalizeFully = StringUtils.removeEnd(capitalizeFully, "_");
 
         if(capitalizeFully.length() > 36){

@@ -36,7 +36,8 @@
                popup="true"
                icon="SwissAsIcons.AMOS">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorToggleColumnMode"/>
-            <action class="com.swissas.action.ShowClassOwnerAction" text="Owner" id="com.swissas.action.ShowClassOwnerAction"/>
+            <action class="com.swissas.action.ShowClassOwnerAction" text="Information About Class Owner" id="com.swissas.action.ShowClassOwnerAction"/>
+            <action class="com.swissas.action.WhoIsThisAction"  text="Information About a Letter Code" id="com.swissas.action.WhoIsThisAction" />
 
         </group>
     </actions>

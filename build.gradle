@@ -34,6 +34,8 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.11</b><pre>add a new menu entry to get information about a given Letter Code
+fixed incompatibility with Intellij 2019.3 (github issue #2 Thanks Roman for the information)</pre>
 <b>V1.5.10</b><pre>Prevent exception from happening when the traffic light URL is null (in case of QA Failing tests)
 Prevent exception on CTRL + mouse hover on older stable
 Prevent translating any kind of String containing only a filename with a 3 letter extension
