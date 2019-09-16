@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.10'
+version '1.5.11'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
