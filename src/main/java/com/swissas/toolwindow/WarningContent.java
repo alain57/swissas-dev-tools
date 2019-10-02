@@ -216,7 +216,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
                 if(selectedNode.isErrorLine()) {
                     JMenuItem markIgnore = new JMenuItem("ignore all \"" +selectedNode.getDescription() + "\"");
                     markIgnore.addActionListener(event -> markIgnore(selectedNode));
-                    popupMenu.add(markIgnore);
+                    //popupMenu.add(markIgnore); //TODO: add this on 1.6. No need to show not ready menu
                 }
                 popupMenu.show(tree, x, y);
             }

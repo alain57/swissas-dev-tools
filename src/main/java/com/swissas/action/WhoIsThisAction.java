@@ -28,13 +28,13 @@ public class WhoIsThisAction extends LetterCodeAction {
 		PsiFile file = PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(((EditorEx)editor).getVirtualFile());
 		PsiElement element = Objects.requireNonNull(file).findElementAt(editor.getCaretModel().getOffset());
 		String errorText = null;
-		String authorString = null;
+		String authorString;
 		String text = Optional.ofNullable(element).map(PsiElement::getText).orElse("");
 		if(!text.contains(" ") && text.length() >= 3 && text.length() <= 4){
 			//seems to be a lc
 			authorString = text;
 		}else {
-			authorString = Messages.showInputDialog("Please fill a Letter Code", "letter code information", null);
+			authorString = Messages.showInputDialog("Please fill a Letter Code", "Letter Code Information", null);
 		}
 		showLetterCodeInformation(authorString, errorText);
 	}

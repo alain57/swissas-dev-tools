@@ -9,7 +9,6 @@ import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.lang.properties.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.swissas.util.SequenceProperties;
 import com.swissas.util.SwissAsStorage;
 import groovy.json.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -17,9 +16,8 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,24 +64,23 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-        Properties properties = getOrCreateProperties();
+        PropertiesFile properties = getOrCreateProperties();
         PsiFile currentTranslationJavaFile = getOrCreateMessageFile();
         PsiElement element = descriptor.getPsiElement();
         
         
         String propertyValue = getPropertyValue(element);
-        String fullKey;
-        if(properties.containsValue(propertyValue)){
-            fullKey = properties.entrySet().stream().filter(entry -> propertyValue.equals(entry.getValue())).findFirst().map(Map.Entry::getKey).get().toString();
-        }else {
+        List<String> valuesInProperties = new ArrayList<>(properties.getNamesMap().values());
+        String fullKey = properties.getNamesMap().entrySet().stream().filter(e -> e.getValue().equals(propertyValue)).map(Entry::getKey).findFirst().orElse(null);
+        if(fullKey == null){
             String translatedKey = getPropertyKey(element);
             int numberInCaseOfDuplicateKey = 0;
             fullKey = translatedKey + this.ending;
-            while(properties.containsKey(fullKey)) {
+            while(valuesInProperties.contains(fullKey)) {
                 numberInCaseOfDuplicateKey++;
                 fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
             }
-            saveProperty(fullKey, propertyValue);
+            properties.addProperty(fullKey, propertyValue);
             PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);\n", null);
             PsiField latestField = PsiTreeUtil.collectElementsOfType(currentTranslationJavaFile, PsiField.class).stream().reduce((a, b) -> b).get();
             latestField.getParent().addAfter(javaTranslation, latestField);
@@ -115,7 +112,9 @@ public class TranslateQuickFix implements LocalQuickFix {
         if(psiImportStatements.stream().noneMatch(e -> e.getText().contains("._Messages.*"))){
             PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createImportStaticStatement(messageClass, memberName);
             PsiImportList importList = ((PsiJavaFile) file).getImportList();
-            importList.add(importStaticStatement);
+            if(Stream.of(importList.getImportStaticStatements()).map(PsiElement::getText).noneMatch(e -> e.equals(importStaticStatement.getText()))) {
+                importList.add(importStaticStatement);
+            }
         }
     }
 
@@ -145,32 +144,12 @@ public class TranslateQuickFix implements LocalQuickFix {
         return messageFile;
     }
 
-    private Properties getOrCreateProperties(){
-        Properties prop = new SequenceProperties();
-        try {
-            this.currentPropertiesPath = this.javaPsiPointer.getElement().getContainingDirectory().getVirtualFile().findOrCreateChildData(this, "Standard.properties").getPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        readInProperties(prop, this.currentPropertiesPath);
-        return prop;
-    }
-    
-    
-    private void readInProperties(Properties properties, String path){
-        try {
-            FileInputStream in = new FileInputStream(path);
-            properties.load(in);
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-        
-    private void saveProperty(String key, String value){
+    private PropertiesFile getOrCreateProperties(){
         PsiFile file = this.javaPsiPointer.getElement().getContainingDirectory().findFile("Standard.properties");
-        PropertiesFile propertiesFile = (PropertiesFile)file;
-        propertiesFile.addProperty(key, value);
+        if(file == null){
+            file = this.javaPsiPointer.getElement().getContainingDirectory().createFile("Standard.properties");
+        }
+        return (PropertiesFile)file;
     }
 
     private String getPropertyValue(PsiElement element){

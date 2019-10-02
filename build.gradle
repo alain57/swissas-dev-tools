@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.11'
+version '1.5.12'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -21,7 +21,6 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 apply plugin: 'org.jetbrains.intellij'
 intellij {
-    version '2019.2'
     downloadSources true
     intellij.updateSinceUntilBuild false
     plugins 'java', 'properties'
@@ -34,6 +33,10 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.12</b><pre>fix a bug in the Information about a lettercode menu
+Fixed a bug in the "Only check changed lines" logic
+Fixed a bug that added a translated import twice
+Detects NOSOL issue and the quickfix to mark it as NOSOL
 <b>V1.5.11</b><pre>add a new menu entry to get information about a given Letter Code
 fixed incompatibility with Intellij 2019.3 (github issue #2 Thanks Roman for the information)</pre>
 <b>V1.5.10</b><pre>Prevent exception from happening when the traffic light URL is null (in case of QA Failing tests)
