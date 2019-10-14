@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.12'
+version '1.5.13'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -33,6 +33,7 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
 <b>V1.5.12</b><pre>fix a bug in the Information about a lettercode menu
 Fixed a bug in the "Only check changed lines" logic
 Fixed a bug that added a translated import twice

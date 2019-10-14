@@ -68,6 +68,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		return new MyJavaElementVisitor(holder, fixes, noSolFix);
 	}
 	
+	
 	static class MyJavaElementVisitor extends JavaElementVisitor {
 		
 		private final ProblemsHolder holder;
@@ -82,7 +83,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		MyJavaElementVisitor(@NotNull ProblemsHolder holder, @NotNull LocalQuickFix[] fixes, @NotNull LocalQuickFix noSqlFix) {
 			this.SQLPattern = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*", Pattern.CASE_INSENSITIVE);
 			this.filenamePattern = Pattern.compile("^[^.]+\\.\\w{3}$");
-			this.isInMethods = Pattern.compile(".*(Exception|firePropertyChange|assertEquals|MultiLang(Text|ToolTip)|getLogger\\(\\).*|WithHistory)$");
+			this.isInMethods = Pattern.compile(".*(Exception|firePropertyChange|fireIndexedPropertyChange|assertEquals|MultiLang(Text|ToolTip)|getLogger\\(\\).*|WithHistory)$");
 			this.noSqlFix = noSqlFix;
 			this.holder = holder;
 			this.fixes = fixes;
@@ -137,28 +138,29 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			}
 		}
 		
-		private void checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(PsiLiteralExpression expression) {
-			if(hasNoNoExtAsNextSibling(expression)) {
-				PsiElement parent = expression.getParent();
-				if (hasNoNoExtAsNextSibling(parent)) {
-					if (parent instanceof PsiExpressionList) {
-						PsiElement parentPrevSibling = getPrevNotEmptySpaces(parent);
-						if (parentPrevSibling != null && !this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
-							this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-						}
-					} else if (parent instanceof PsiPolyadicExpression) {
-						PsiElement grandParent = parent.getParent();
-						if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
-							this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-						} else {
-							PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
-							if (beforeGrandParent != null && !this.isInMethods.matcher(beforeGrandParent.getText()).matches()) {
-								this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
-							}
-						}
-					} else { //don't care about the parent special cases, the issue is on the expression itself
+		private void checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(@NotNull PsiLiteralExpression expression) {
+			PsiElement parent = expression.getParent();
+			PsiElement grandParent = parent == null ? null : parent.getParent();
+			if(grandParent instanceof PsiAnnotationParameterList){
+				return;
+			}
+			if(hasNoNoExtAsNextSibling(expression) && hasNoNoExtAsNextSibling(parent)) {
+				if (parent instanceof PsiExpressionList) {
+					PsiElement parentPrevSibling = getPrevNotEmptySpaces(parent);
+					if (parentPrevSibling != null && !this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
 						this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 					}
+				} else if (parent instanceof PsiPolyadicExpression) {
+					if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
+						this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+					} else {
+						PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
+						if (beforeGrandParent != null && !this.isInMethods.matcher(beforeGrandParent.getText()).matches()) {
+							this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+						}
+					}
+				} else { //don't care about the parent special cases, the issue is on the expression itself
+					this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 				}
 			}
 		}
@@ -173,19 +175,19 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		
 		@NotNull
 		private Boolean hasNoNoExtAsNextSibling(PsiElement expression) {
-			return hasNoSiblingOfTypeContainsText(expression, "NO_EXT");
+			return hasNoSiblingContainingText(expression, "NO_EXT");
 		}
 		
 		@NotNull
 		private Boolean hasNoNoSqlAsNextSibling(PsiElement expression) {
-			return hasNoSiblingOfTypeContainsText(expression, "NOSQL");
+			return hasNoSiblingContainingText(expression, "NOSQL");
 		}
 		
-		private static boolean hasNoSiblingOfTypeContainsText(@Nullable PsiElement sibling, @NotNull String text) {
+		private static boolean hasNoSiblingContainingText(@Nullable PsiElement sibling, @NotNull String text) {
 			boolean result = true;
 			if (sibling != null) {
-				for (PsiElement child = sibling.getNextSibling(); child != null; child = child.getNextSibling()) {
-					if (child instanceof PsiComment && child.getText().contains(text)) {
+				for (PsiElement nextSibling = sibling.getNextSibling(); nextSibling != null; nextSibling = nextSibling.getNextSibling()) {
+					if (nextSibling instanceof PsiComment && nextSibling.getText().contains(text)) {
 						result = false;
 						break;
 					}
