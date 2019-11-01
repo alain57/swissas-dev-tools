@@ -11,6 +11,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.swissas.util.ShowLetterCodeInformation;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,7 +31,7 @@ class ShowClassOwnerAction extends LetterCodeAction {
 		PsiFile file = PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(((EditorEx)editor).getVirtualFile());
 		String errorText = null;
 		String authorString = null;
-		//user clicked somewhere else, then find the author (ignore co-author
+		//find the author
 		PsiDocTag author = PsiTreeUtil.collectElementsOfType(file, PsiDocTag.class).stream()
 				.filter(e -> e.getName().equalsIgnoreCase("author")).findFirst().orElse(null);
 		if(author != null){
@@ -38,6 +39,6 @@ class ShowClassOwnerAction extends LetterCodeAction {
 		}else {
 			errorText = "The plugin was not able to find the class author code";
 		}
-		showLetterCodeInformation(authorString, errorText);
+		ShowLetterCodeInformation.displayInformation(authorString, errorText);
 	}
 }

@@ -1,4 +1,4 @@
-package com.swissas.checkin;
+package com.swissas.dialog;
 
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.BrowserUtil;
@@ -21,7 +21,7 @@ import java.util.ResourceBundle;
  * @author Tavan Alain
  */
 
-class ConfirmationDialog extends DialogWrapper {
+public class ConfirmationDialog extends DialogWrapper {
     public static final int FIX_RELEASE_EXIT_CODE = 3;
     
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
@@ -30,7 +30,7 @@ class ConfirmationDialog extends DialogWrapper {
     private final Action fixReleaseAction;
     private final String trafficLightMessage;
 
-    ConfirmationDialog(String trafficLightMessage) {
+    public ConfirmationDialog(String trafficLightMessage) {
         super(true);
         this.trafficLightMessage = HintUtil.prepareHintText(new Html(trafficLightMessage), new HintHint().setAwtTooltip(true));
         this.whenReadyAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("when.ready"), DialogWrapper.NEXT_USER_EXIT_CODE);

@@ -13,6 +13,8 @@ import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
+import com.swissas.dialog.ConfirmationDialog;
+import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
 
@@ -53,6 +55,10 @@ class PreCommitCheckingHandler extends CheckinHandler {
                     TITLE);
             return ReturnResult.CANCEL;
         }
+        if(!displayPreCommitChecksIfNeeded()) {
+            return ReturnResult.CANCEL;
+        }
+        
         if(this.checkinProjectPanel.getCommitMessage().trim().isEmpty()){
             Messages.showDialog(this.project,
                     EMPTY_COMMIT_MSG,
@@ -71,6 +77,20 @@ class PreCommitCheckingHandler extends CheckinHandler {
         }
     }
 
+    private boolean displayPreCommitChecksIfNeeded(){
+        boolean result = true;
+        boolean informQA = SwissAsStorage.getInstance().isPreCommitInformQA();
+        boolean reviewNeeded = SwissAsStorage.getInstance().isPreCommitCodeReview();
+        if(informQA || reviewNeeded){
+            ImportantPrecommitsDone dialog = new ImportantPrecommitsDone(this.checkinProjectPanel);
+            dialog.show();
+            int exitCode = dialog.getExitCode();
+            
+        }
+        
+        return result;
+    }
+    
     private ReturnResult showTrafficLightDialog() {
         ConfirmationDialog confirmationDialog = new ConfirmationDialog(this.trafficLightPanel.getTrafficDetails());
         confirmationDialog.show();

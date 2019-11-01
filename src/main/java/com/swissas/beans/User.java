@@ -1,6 +1,12 @@
 package com.swissas.beans;
 
+import java.awt.Image;
 import java.io.Serializable;
+import java.net.URL;
+import java.util.ResourceBundle;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 /**
  * simple bean for users
@@ -8,98 +14,60 @@ import java.io.Serializable;
  * @author TALA
  */
 
-class User implements Serializable {
-
-	private static final int HTML_FULL_NAME_POSITION = 0;
-	private static final int HTML_JOB_POSITION = 2;
-	private static final int HTML_LC_POSITION = 4;
-	private static final int HTML_TEL_POSITION = 5;
-	private static final int HTML_MAIL_POSITION = 7;
-	private static final int HTML_TEAM_POSITION = 8;
+public class User implements Serializable {
 	
+	private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
+	private static final String STAFF_PIC_FOLDER = URL_BUNDLE.getString("url.staff.pics");
 	
-	private String fullName;
 	private String lc;
-	private String job;
-	private String tel;
-	private String mail;
-	private String team;
+	private String infos;
+	
+	private transient ImageIcon picture;
 	
 	public User(){
-		this.fullName ="";
-		this.lc = "";
-		this.job = "";
-		this.tel = "";
-		this.mail = "";
-		this.team = "";
+		
 	}
 	
-	public User(String[] htmlValues){
-		setFullName(htmlValues[HTML_FULL_NAME_POSITION].trim());
-		setJob(htmlValues[HTML_JOB_POSITION].split(":")[1].trim());
-		setLc(htmlValues[HTML_LC_POSITION].split(":")[1].trim());
-		setTel(htmlValues[HTML_TEL_POSITION].split(":")[1].trim());
-		setMail(htmlValues[HTML_MAIL_POSITION].split(":")[1].trim());
-		setTeam(htmlValues[HTML_TEAM_POSITION].split(":")[1].trim());
+	public User(String lc, String infos){
+		setLc(lc);
+		setInfos(infos);
+		readPicture();
 	}
 
-	private void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
-
-	private void setLc(String lc) {
+	public void setLc(String lc) {
 		this.lc = lc;
 	}
-
-	private void setJob(String job) {
-		this.job = job;
+	
+	public void setInfos(String infos) {
+		this.infos = infos;
 	}
 
-	private void setTel(String tel) {
-		this.tel = tel;
+	private void readPicture(){
+		if(this.lc != null && !this.lc.isEmpty()){
+			try {
+				URL url = new URL(STAFF_PIC_FOLDER + this.lc + ".PNG");
+				Image image = ImageIO.read(url);
+				this.picture = new ImageIcon(image);
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+		}
 	}
-
-	private void setMail(String mail) {
-		this.mail = mail;
-	}
-
-	private void setTeam(String team) {
-		this.team = team;
+	
+	public ImageIcon getPicture() {
+		return this.picture;
 	}
 
 	public String getLc() {
 		return this.lc;
 	}
 
-	public String getJob() {
-		return this.job;
+	public String getInfos() {
+		return this.infos;
+	}
+	
+	public boolean hasTextInInfos(String text){
+		return this.infos != null && this.infos.contains(text);
 	}
 
-	public String getTel() {
-		return this.tel;
-	}
-
-	public String getMail() {
-		return this.mail;
-	}
-
-	public String getTeam() {
-		return this.team;
-	}
-
-	public String getFullName() {
-		return this.fullName;
-	}
-
-	@Override
-	public String toString() {
-		return "User{" +
-				"fullName='" + this.fullName + '\'' +
-				", lc='" + this.lc + '\'' +
-				", job='" + this.job + '\'' +
-				", tel='" + this.tel + '\'' +
-				", mail='" + this.mail + '\'' +
-				", team='" + this.team + '\'' +
-				'}';
-	}
 }

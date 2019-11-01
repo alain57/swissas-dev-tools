@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.13'
+version '1.5.14'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -17,6 +17,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
+    compile group: 'javax.mail', name: 'mail', version: '1.4.7'
 }
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 apply plugin: 'org.jetbrains.intellij'
@@ -33,6 +34,14 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.5.14</b><pre>Use combobox for the LetterCode information menu
+Add picture in LetterCode information menu
+Add Who is this in the Annotate menu
+Add new configuration in the settings menu
+Add precommit code review condition (configurable in the settings menu)
+Add Inform QA per mail of Client/Web changes
+Small code cleaning.
+</pre>
 <b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
 <b>V1.5.12</b><pre>fix a bug in the Information about a lettercode menu
 Fixed a bug in the "Only check changed lines" logic

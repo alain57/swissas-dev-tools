@@ -1,17 +1,11 @@
 package com.swissas.action;
 
-import java.util.Objects;
-import java.util.Optional;
-
-
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.swissas.dialog.EditableDialogChooser;
+import com.swissas.util.ShowLetterCodeInformation;
+import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -25,18 +19,12 @@ public class WhoIsThisAction extends LetterCodeAction {
 	
 	@Override
 	protected void executeWriteAction(Editor editor, @Nullable Caret caret, DataContext dataContext){
-		PsiFile file = PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(((EditorEx)editor).getVirtualFile());
-		PsiElement element = Objects.requireNonNull(file).findElementAt(editor.getCaretModel().getOffset());
-		String errorText = null;
-		String authorString;
-		String text = Optional.ofNullable(element).map(PsiElement::getText).orElse("");
-		if(!text.contains(" ") && text.length() >= 3 && text.length() <= 4){
-			//seems to be a lc
-			authorString = text;
-		}else {
-			authorString = Messages.showInputDialog("Please fill a Letter Code", "Letter Code Information", null);
+		String[] choices = SwissAsStorage.getInstance().getUserMap().keySet().stream().sorted().toArray(String[]::new);
+		EditableDialogChooser dialogChooser = new EditableDialogChooser("Select/Type a Letter Code", "Letter Code Information", choices);
+		String authorString = dialogChooser.getInputValue();
+		if(authorString != null) {
+			ShowLetterCodeInformation.displayInformation(authorString, null);
 		}
-		showLetterCodeInformation(authorString, errorText);
 	}
 	
 }

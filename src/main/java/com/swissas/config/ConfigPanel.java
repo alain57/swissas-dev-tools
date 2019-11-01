@@ -1,5 +1,6 @@
 package com.swissas.config;
 
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
 import javax.swing.JCheckBox;
@@ -35,7 +36,11 @@ class ConfigPanel {
 	private JPanel warningPanel;
 	private JPanel translationPanel;
 	private JCheckBox chkTranslateOnlyModifiedLines;
-
+	private JPanel preCommitPanel;
+	private JCheckBox preCommitCodeReviewCheckbox;
+	private JCheckBox preCommitInformQACheckbox;
+	private ComboBox<String> qaLetterBox;
+	
 	private JCheckBox chkShowIgnoreLists;
 	private JList<LabelData> lstIgnoreValues;
 	
@@ -81,15 +86,24 @@ class ConfigPanel {
 	public JCheckBox getChkTranslateOnlyModifiedLines() {
 		return this.chkTranslateOnlyModifiedLines;
 	}
-
-
+	
+	public JCheckBox getPreCommitCodeReviewCheckbox() {
+		return this.preCommitCodeReviewCheckbox;
+	}
+	
+	public JCheckBox getPreCommitInformQACheckbox() {
+		return this.preCommitInformQACheckbox;
+	}
+	
 	private void createUIComponents() {
 		this.minTranslationSize = new JTextField("5");
 		PositiveNumberVerifier verifier = new PositiveNumberVerifier();
 		this.minTranslationSize.setInputVerifier(verifier);
 		this.fourLetterCode = new ComboBox<>();
+		this.qaLetterBox = new ComboBox<>();
 		this.storage.getUserMap().keySet().forEach(this.fourLetterCode::addItem);
 		AutoCompletion.enable(this.fourLetterCode);
+		this.storage.getUserMap().entrySet().stream().filter(e -> e.getValue().hasTextInInfos("Team: QA")).map(Entry::getKey).forEach(this.qaLetterBox::addItem);
+		AutoCompletion.enable(this.qaLetterBox);
 	}
-	
 }

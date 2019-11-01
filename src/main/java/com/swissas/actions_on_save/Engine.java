@@ -1,5 +1,6 @@
 package com.swissas.actions_on_save;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.psi.PsiFile;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 
 
-import static com.swissas.widget.SwissAsWidget.LOGGER;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static com.swissas.actions_on_save.Result.ResultCode;
@@ -20,6 +20,7 @@ import static com.swissas.actions_on_save.Result.ResultCode;
  * @author Tavan Alain
  */
 class Engine {
+	private static final Logger LOGGER = Logger.getInstance("Swiss-as");
 	
 	private final List<Processor> processors;
 	private final Project project;

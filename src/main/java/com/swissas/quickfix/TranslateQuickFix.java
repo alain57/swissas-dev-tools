@@ -175,7 +175,7 @@ public class TranslateQuickFix implements LocalQuickFix {
             result = ((PsiLiteralExpressionImpl) element).getInnerText();
         }
         result = StringEscapeUtils.unescapeJava(result);
-        result = autoCorrectCommonMisstakes(result);
+        result = autoCorrectCommonMistakes(result);
         return replaceWithKnownKeys(result);
         
     }
@@ -193,7 +193,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
 
     @NonNls
-    private String autoCorrectCommonMisstakes(String sentence){
+    private String autoCorrectCommonMistakes(String sentence){
         return sentence.replaceAll("\\b[wW]ork[ -]?[oO]rder\\b", "@WORKORDER@")
         .replaceAll("\\bWO\\b", "@WO@")
         .replaceAll("\\baircraft\\b", "@AIRCRAFT@")

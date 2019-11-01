@@ -63,20 +63,18 @@ class WarningContentTreeNode extends DefaultMutableTreeNode {
     
     boolean isMarked() {
         int children = getChildCount();
-        if(children == 0) {
-            return this.isMarked;
-        }else {
-            
-            boolean loopBreaked = false;
-            for(int i = 0 ; i< children; i++){
-                WarningContentTreeNode currentChild = (WarningContentTreeNode)getChildAt(i);
-                if(!currentChild.isMarked()){
-                    loopBreaked = true;
+        if (children != 0) {
+        
+            boolean loopBreak = false;
+            for (int i = 0; i < children; i++) {
+                WarningContentTreeNode currentChild = (WarningContentTreeNode) getChildAt(i);
+                if (!currentChild.isMarked()) {
+                    loopBreak = true;
                     break;
                 }
             }
-            this.isMarked = !loopBreaked; //this means at least one child is not marked, otherwise all are marked.
-            return this.isMarked;
+            this.isMarked = !loopBreak; //this means at least one child is not marked, otherwise all are marked.
         }
+        return this.isMarked;
     }
 }

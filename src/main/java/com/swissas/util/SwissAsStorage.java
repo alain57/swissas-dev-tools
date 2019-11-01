@@ -11,6 +11,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.swissas.beans.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +32,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private boolean fixUnusedSuppressWarning = true;
     private boolean fixMissingAuthor = true;
     private boolean translationOnlyCheckChangedLine = false;
+    private boolean preCommitInformQA = false;
+    private boolean preCommitCodeReview = false;
     
     private boolean showIgnoredValues = false;
     private List<String> ignoredValues = new ArrayList<>();
-    private Map<String, String> userMap = new HashMap<>();
+    private Map<String, User> userMap = new HashMap<>();
     private Properties shareProperties; 
     private boolean isAmosProject = false;
     private boolean isNewTranslation = false;
@@ -111,11 +114,11 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     }
 
 
-    public Map<String, String> getUserMap() {
+    public Map<String, User> getUserMap() {
         return this.userMap;
     }
     
-    public void setUserMap(Map<String, String> userMap){
+    public void setUserMap(Map<String, User> userMap){
         this.userMap = userMap;
     }
 
@@ -170,5 +173,21 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
     public void setNewTranslation(boolean newTranslation) {
         this.isNewTranslation = newTranslation;
+    }
+    
+    public boolean isPreCommitInformQA() {
+        return this.preCommitInformQA;
+    }
+    
+    public void setPreCommitInformQA(boolean preCommitInformQA) {
+        this.preCommitInformQA = preCommitInformQA;
+    }
+    
+    public boolean isPreCommitCodeReview() {
+        return this.preCommitCodeReview;
+    }
+    
+    public void setPreCommitCodeReview(boolean preCommitCodeReview) {
+        this.preCommitCodeReview = preCommitCodeReview;
     }
 }

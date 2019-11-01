@@ -1,7 +1,6 @@
 package com.swissas.actions_on_save;
 
 
-import com.intellij.execution.ExecutionMode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -26,18 +25,7 @@ import static java.util.Optional.ofNullable;
 
 
 /**
- * <p>
- * Singleton event handler class, instanciated by {@link Component}. All actions are routed here.
- * <p>
- * The main method is {@link #guardedProcessPsiFiles(Project, Set, InspectionAction, ExecutionMode)} and will delegate to
- * {@link Engine#processPsiFilesIfNecessary()}. The method will check if the file needs to be processed and use the
- * processors to apply the modifications.
- * <p>
- * The psi files are ide wide, that means they are shared between projects (and editor windows), so we need to check if
- * the file is physically in that project before reformating, or else the file is formatted twice and intellij will ask
- * to confirm unlocking of non-project file in the other project, see {@link Engine} for more details.
- *
- * (based on the code from the save action plugin)
+ * SaveActionManager based on the code from the save action plugin
  * @author Tavan Alain
  * @see Engine
  */

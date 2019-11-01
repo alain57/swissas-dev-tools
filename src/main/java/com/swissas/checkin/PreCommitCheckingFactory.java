@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * The pre-commit checking factory class
  * @author Tavan Alain
  */
-class PreCommitCheckinFactory extends CheckinHandlerFactory {
+class PreCommitCheckingFactory extends CheckinHandlerFactory {
     @NotNull
     @Override
     public CheckinHandler createHandler(@NotNull CheckinProjectPanel panel, @NotNull CommitContext commitContext) {

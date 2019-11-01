@@ -45,6 +45,8 @@ public class SwissAsConfig implements Configurable {
         this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
         this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
         this.configPanel.getChkTranslateOnlyModifiedLines().setSelected(this.swissAsStorage.isTranslationOnlyCheckChangedLine());
+        this.configPanel.getPreCommitInformQACheckbox().setSelected(this.swissAsStorage.isPreCommitInformQA());
+        this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
     }
     
     
@@ -70,7 +72,9 @@ public class SwissAsConfig implements Configurable {
                 !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
                 this.swissAsStorage.isFixMissingOverride() != this.configPanel.getChkFixOverride().isSelected() ||
                 this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
-                this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected()               
+                this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected() ||
+                this.swissAsStorage.isPreCommitCodeReview() != this.configPanel.getPreCommitCodeReviewCheckbox().isSelected() ||
+                this.swissAsStorage.isPreCommitInformQA() != this.configPanel.getPreCommitInformQACheckbox().isSelected()
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
@@ -85,6 +89,8 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setFixMissingAuthor(this.configPanel.getChkFixAuthor().isSelected());
         this.swissAsStorage.setMinWarningSize(this.configPanel.getMinTranslationSize().getText());
         this.swissAsStorage.setTranslationOnlyCheckChangedLine(this.configPanel.getChkTranslateOnlyModifiedLines().isSelected());
+        this.swissAsStorage.setPreCommitCodeReview(this.configPanel.getPreCommitCodeReviewCheckbox().isSelected());
+        this.swissAsStorage.setPreCommitInformQA(this.configPanel.getPreCommitInformQACheckbox().isSelected());
         refreshWarningContent();
     }
 

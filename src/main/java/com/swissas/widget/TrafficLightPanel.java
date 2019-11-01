@@ -32,7 +32,6 @@ import com.swissas.config.SwissAsConfig;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 
 import static com.swissas.util.Constants.BLINKING;
@@ -245,11 +244,6 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
         return WIDGET_ID;
     }
 
-    @Nullable
-    @Override
-    public WidgetPresentation getPresentation(@NotNull PlatformType type) {
-        return null;
-    }
 
     @Override
     public void install(@NotNull StatusBar statusBar) {
