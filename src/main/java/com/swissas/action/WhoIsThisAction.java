@@ -19,12 +19,12 @@ public class WhoIsThisAction extends LetterCodeAction {
 	
 	@Override
 	protected void executeWriteAction(Editor editor, @Nullable Caret caret, DataContext dataContext){
-		String[] choices = SwissAsStorage.getInstance().getUserMap().keySet().stream().sorted().toArray(String[]::new);
-		EditableDialogChooser dialogChooser = new EditableDialogChooser("Select/Type a Letter Code", "Letter Code Information", choices);
+		EditableDialogChooser dialogChooser = new EditableDialogChooser(editor.getProject(),"Type a Letter Code", 
+				"Letter Code Information", SwissAsStorage.getInstance().getUserMap().keySet());
+		dialogChooser.show();
 		String authorString = dialogChooser.getInputValue();
 		if(authorString != null) {
 			ShowLetterCodeInformation.displayInformation(authorString, null);
 		}
 	}
-	
 }

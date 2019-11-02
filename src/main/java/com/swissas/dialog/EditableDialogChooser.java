@@ -1,34 +1,38 @@
 package com.swissas.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.Collection;
 
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.swissas.util.AutoCompletion;
+import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
+import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * a simple dialog with an auto combobox
+ * a simple dialog with a text field completion
  *
  * @author TALA
  */
 
 public class EditableDialogChooser extends DialogWrapper {
 	private final String message;
-	private final String[] values;
-	private JComboBox<String> comboBox;
+	private final Collection<String> values;
+	private Project project;
+	private TextFieldWithCompletion textFieldWithCompletion;
 	
-	public EditableDialogChooser(String message,
+	public EditableDialogChooser(Project project, String message,
 								 @Nls(capitalization = Nls.Capitalization.Title) String title,
-								 String[] values){
+								 Collection<String> values){
 		super(true);
 		setTitle(title);
+		this.project = project;
 		this.message = message;
 		this.values = values;
 		init();
@@ -39,16 +43,22 @@ public class EditableDialogChooser extends DialogWrapper {
 	protected JComponent createCenterPanel() {
 		JPanel content = new JPanel(new BorderLayout());
 		JLabel label = new JLabel(this.message);
-		this.comboBox = new ComboBox<>(this.values);
-		AutoCompletion.enable(this.comboBox);
+		StringsCompletionProvider provider = new StringsCompletionProvider(this.values, null);
+		this.textFieldWithCompletion = new TextFieldWithCompletion(this.project, provider, "", true, true, false);
+		this.textFieldWithCompletion.setPreferredSize(new Dimension(100, this.textFieldWithCompletion.getPreferredSize().height));
+		
 		content.add(label, BorderLayout.WEST);
-		content.add(this.comboBox, BorderLayout.EAST);
+		content.add(this.textFieldWithCompletion, BorderLayout.EAST);
 		return content;
 	}
 	
 	public String getInputValue(){
-		return showAndGet() &&  this.comboBox.getSelectedItem() != null ? this.comboBox.getSelectedItem().toString() : null;
+		return isOK() ? this.textFieldWithCompletion.getText() : null;
 	}
 	
-
+	@Nullable
+	@Override
+	public JComponent getPreferredFocusedComponent() {
+		return this.textFieldWithCompletion;
+	}
 }

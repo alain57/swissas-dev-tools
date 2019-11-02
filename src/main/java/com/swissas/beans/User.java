@@ -18,6 +18,7 @@ public class User implements Serializable {
 	
 	private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
 	private static final String STAFF_PIC_FOLDER = URL_BUNDLE.getString("url.staff.pics");
+	private static final int NAME_START_INDEX = 12;//html and body tags
 	
 	private String lc;
 	private String infos;
@@ -31,11 +32,11 @@ public class User implements Serializable {
 	public User(String lc, String infos){
 		setLc(lc);
 		setInfos(infos);
-		readPicture();
 	}
 
 	public void setLc(String lc) {
 		this.lc = lc;
+		readPicture();
 	}
 	
 	public void setInfos(String infos) {
@@ -50,6 +51,7 @@ public class User implements Serializable {
 				this.picture = new ImageIcon(image);
 			}catch (Exception e){
 				e.printStackTrace();
+				this.picture = null;
 			}
 		}
 	}
@@ -68,6 +70,10 @@ public class User implements Serializable {
 	
 	public boolean hasTextInInfos(String text){
 		return this.infos != null && this.infos.contains(text);
+	}
+	
+	public String getLCAndName(){
+		return this.lc + " (" + this.infos.substring(NAME_START_INDEX, this.infos.indexOf("<br/>")) + ")";
 	}
 
 }

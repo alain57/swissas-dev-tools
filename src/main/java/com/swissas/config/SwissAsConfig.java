@@ -32,12 +32,12 @@ public class SwissAsConfig implements Configurable {
     public SwissAsConfig(Project project){
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
-        this.configPanel = new ConfigPanel(this.swissAsStorage);
+        this.configPanel = new ConfigPanel(this.project, this.swissAsStorage);
         updateUIState();
     }
     
     private void updateUIState(){
-        this.configPanel.getFourLetterCode().setSelectedItem(this.swissAsStorage.getFourLetterCode());
+        this.configPanel.getFourLetterCode().setText(this.swissAsStorage.getFourLetterCode());
         this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
         this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
         this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
@@ -95,7 +95,7 @@ public class SwissAsConfig implements Configurable {
     }
 
     private String getFourLetterCodeSelectedItem(){
-        return this.configPanel.getFourLetterCode().getSelectedItem() == null ? "" : this.configPanel.getFourLetterCode().getSelectedItem().toString().toUpperCase().trim();
+        return this.configPanel.getFourLetterCode().getText().toUpperCase().trim();
     }
 
     private void refreshWarningContent() {

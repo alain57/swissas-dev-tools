@@ -1,29 +1,30 @@
 package com.swissas.config;
 
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
+import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import com.swissas.beans.LabelData;
-import com.swissas.util.AutoCompletion;
+import com.swissas.beans.User;
 import com.swissas.util.PositiveNumberVerifier;
 import com.swissas.util.SwissAsStorage;
 
 /**
- * TODO: write you class description here
+ * Configuration panel java part
  *
  * @author
  */
 
 class ConfigPanel {
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-	
-	private ComboBox<String> fourLetterCode;
+	private TextFieldWithCompletion fourLetterCode;
 	private ComboBox<String> orientation;
 	private JCheckBox chkFixAuthor;
 	private JCheckBox chxFixThis;
@@ -39,15 +40,17 @@ class ConfigPanel {
 	private JPanel preCommitPanel;
 	private JCheckBox preCommitCodeReviewCheckbox;
 	private JCheckBox preCommitInformQACheckbox;
-	private ComboBox<String> qaLetterBox;
+	private TextFieldWithCompletion qaLetterBox;
 	
 	private JCheckBox chkShowIgnoreLists;
 	private JList<LabelData> lstIgnoreValues;
 	
+	private final Project project;
 	private final SwissAsStorage storage;
-
-
-	public ConfigPanel(SwissAsStorage storage) {
+	
+	
+	public ConfigPanel(Project project, SwissAsStorage storage) {
+		this.project = project;
 		this.storage = storage;
 	}
 
@@ -59,10 +62,14 @@ class ConfigPanel {
 		return this.minTranslationSize;
 	}
 
-	public ComboBox<String> getFourLetterCode() {
+	public TextFieldWithCompletion getFourLetterCode() {
 		return this.fourLetterCode;
 	}
-
+	
+	public TextFieldWithCompletion getQaLetterBox() {
+		return this.qaLetterBox;
+	}
+	
 	public ComboBox<String> getOrientation() {
 		return this.orientation;
 	}
@@ -99,11 +106,12 @@ class ConfigPanel {
 		this.minTranslationSize = new JTextField("5");
 		PositiveNumberVerifier verifier = new PositiveNumberVerifier();
 		this.minTranslationSize.setInputVerifier(verifier);
-		this.fourLetterCode = new ComboBox<>();
-		this.qaLetterBox = new ComboBox<>();
-		this.storage.getUserMap().keySet().forEach(this.fourLetterCode::addItem);
-		AutoCompletion.enable(this.fourLetterCode);
-		this.storage.getUserMap().entrySet().stream().filter(e -> e.getValue().hasTextInInfos("Team: QA")).map(Entry::getKey).forEach(this.qaLetterBox::addItem);
-		AutoCompletion.enable(this.qaLetterBox);
+		Set<String> allQACodes = this.storage.getUserMap().values().stream().filter(user -> user.hasTextInInfos("Team: QA"))
+				.map(User::getLCAndName).collect(Collectors.toSet());
+		StringsCompletionProvider allUserProvider = new StringsCompletionProvider(this.storage.getUserMap().keySet(), null);
+		StringsCompletionProvider qaUserProvider = new StringsCompletionProvider(allQACodes, null);
+		
+		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider,"", true, true, true);
+		this.qaLetterBox = new TextFieldWithCompletion(this.project, qaUserProvider,"", true, true, true);
 	}
 }

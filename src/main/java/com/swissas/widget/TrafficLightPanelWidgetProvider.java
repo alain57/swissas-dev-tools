@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import com.intellij.openapi.module.Module;
@@ -77,7 +78,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 	
 	
 	private void refreshData() {
-		Map<String, User> userMap = new HashMap<>();
+		Map<String, User> userMap = new TreeMap<>();
 		try {
 			Document doc = Jsoup.connect(STAFF_URL).get();
 			Elements select = doc.select("tr.filterrow");
