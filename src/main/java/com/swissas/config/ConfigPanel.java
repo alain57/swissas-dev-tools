@@ -6,7 +6,11 @@ import java.util.stream.Collectors;
 import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.GapContent;
+import javax.swing.text.PlainDocument;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -41,6 +45,7 @@ class ConfigPanel {
 	private JCheckBox preCommitCodeReviewCheckbox;
 	private JCheckBox preCommitInformQACheckbox;
 	private TextFieldWithCompletion qaLetterBox;
+	private JPasswordField accountPassword;
 	
 	private JCheckBox chkShowIgnoreLists;
 	private JList<LabelData> lstIgnoreValues;
@@ -64,6 +69,10 @@ class ConfigPanel {
 
 	public TextFieldWithCompletion getFourLetterCode() {
 		return this.fourLetterCode;
+	}
+	
+	public JPasswordField getAccountPassword() {
+		return this.accountPassword;
 	}
 	
 	public TextFieldWithCompletion getQaLetterBox() {
@@ -104,14 +113,14 @@ class ConfigPanel {
 	
 	private void createUIComponents() {
 		this.minTranslationSize = new JTextField("5");
-		PositiveNumberVerifier verifier = new PositiveNumberVerifier();
-		this.minTranslationSize.setInputVerifier(verifier);
 		Set<String> allQACodes = this.storage.getUserMap().values().stream().filter(user -> user.hasTextInInfos("Team: QA"))
 				.map(User::getLCAndName).collect(Collectors.toSet());
 		StringsCompletionProvider allUserProvider = new StringsCompletionProvider(this.storage.getUserMap().keySet(), null);
 		StringsCompletionProvider qaUserProvider = new StringsCompletionProvider(allQACodes, null);
-		
-		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider,"", true, true, true);
-		this.qaLetterBox = new TextFieldWithCompletion(this.project, qaUserProvider,"", true, true, true);
+		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider, "", false, false, false, false);
+		this.qaLetterBox = new TextFieldWithCompletion(this.project, qaUserProvider, "", false, false, false, false);
+		PositiveNumberVerifier verifier = new PositiveNumberVerifier();
+		this.minTranslationSize.setInputVerifier(verifier);
+		this.accountPassword = new JPasswordField(this.storage.getPassword());
 	}
 }

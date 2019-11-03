@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.intellij.credentialStore.CredentialAttributes;
+import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
+import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
@@ -23,17 +27,19 @@ import org.jetbrains.annotations.Nullable;
 
 @State(name = "SwissAsStorage", storages = @Storage("swissas_settings.xml"))
 public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> {
-
+    
+    public static final String PASSWORD_FOR_MAIL = "passwordForMail";
     private String fourLetterCode = "";
+    private String qaLetterCode = "";
     private boolean horizontalOrientation = true;
     private String minWarningSize = "5";
     private boolean fixMissingOverride = true;
     private boolean fixMissingThis = true;
-    private boolean fixUnusedSuppressWarning = true;
+    private boolean fixUnusedSuppressWarning = false;
     private boolean fixMissingAuthor = true;
     private boolean translationOnlyCheckChangedLine = false;
     private boolean preCommitInformQA = false;
-    private boolean preCommitCodeReview = false;
+    private boolean preCommitCodeReview = true;
     
     private boolean showIgnoredValues = false;
     private List<String> ignoredValues = new ArrayList<>();
@@ -64,8 +70,27 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
         return this.fourLetterCode;
     }
     
+    public String getPassword() {
+        CredentialAttributes credentialAttributes = createCredentialAttributes(PASSWORD_FOR_MAIL);
+        return PasswordSafe.getInstance().getPassword(credentialAttributes);
+    }
+    
+    public String getQaLetterCode() {
+        return this.qaLetterCode;
+    }
+    
     public void setFourLetterCode(String fourLetterCode){
         this.fourLetterCode = fourLetterCode;
+    }
+    
+    public void setPassword(String password) {
+        CredentialAttributes credentialAttributes = createCredentialAttributes(PASSWORD_FOR_MAIL); // see previous sample
+        Credentials credentials = new Credentials(this.fourLetterCode, password);
+        PasswordSafe.getInstance().set(credentialAttributes, credentials);
+    }
+    
+    public void setQaLetterCode(String qaLetterCode) {
+        this.qaLetterCode = qaLetterCode;
     }
 
     public boolean isHorizontalOrientation() {
@@ -189,5 +214,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     
     public void setPreCommitCodeReview(boolean preCommitCodeReview) {
         this.preCommitCodeReview = preCommitCodeReview;
+    }
+    
+    private CredentialAttributes createCredentialAttributes(String key) {
+        return new CredentialAttributes(CredentialAttributesKt.generateServiceName("Swiss-AS-Dev-Tools", key));
     }
 }

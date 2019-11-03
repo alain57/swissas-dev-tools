@@ -1,7 +1,15 @@
 package com.swissas.checkin;
 
 
+import java.util.Properties;
 import java.util.ResourceBundle;
+
+import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -14,6 +22,7 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
 import com.swissas.dialog.ConfirmationDialog;
+import com.swissas.dialog.ImportantPreCommitsDone;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
@@ -55,9 +64,6 @@ class PreCommitCheckingHandler extends CheckinHandler {
                     TITLE);
             return ReturnResult.CANCEL;
         }
-        if(!displayPreCommitChecksIfNeeded()) {
-            return ReturnResult.CANCEL;
-        }
         
         if(this.checkinProjectPanel.getCommitMessage().trim().isEmpty()){
             Messages.showDialog(this.project,
@@ -68,13 +74,18 @@ class PreCommitCheckingHandler extends CheckinHandler {
                     null);
             return ReturnResult.CANCEL;
         }
-        
+        ReturnResult result;
         if(this.trafficLightPanel != null && this.trafficLightPanel.isRedOrYellowOn()){
-            
-            return showTrafficLightDialog();
+            result  = showTrafficLightDialog() ;
         }else {
-            return ReturnResult.COMMIT;
+            result = ReturnResult.COMMIT;
         }
+        
+        if(result == ReturnResult.COMMIT && !displayPreCommitChecksIfNeeded()) {
+            result = ReturnResult.CANCEL;
+        }
+        
+        return result;
     }
 
     private boolean displayPreCommitChecksIfNeeded(){
@@ -82,13 +93,34 @@ class PreCommitCheckingHandler extends CheckinHandler {
         boolean informQA = SwissAsStorage.getInstance().isPreCommitInformQA();
         boolean reviewNeeded = SwissAsStorage.getInstance().isPreCommitCodeReview();
         if(informQA || reviewNeeded){
-            ImportantPrecommitsDone dialog = new ImportantPrecommitsDone(this.checkinProjectPanel);
+            ImportantPreCommitsDone dialog = new ImportantPreCommitsDone(this.checkinProjectPanel);
             dialog.show();
             int exitCode = dialog.getExitCode();
-            
+            if(exitCode == DialogWrapper.NEXT_USER_EXIT_CODE){
+                sendMail();
+            }else if(exitCode == DialogWrapper.CANCEL_EXIT_CODE){
+                result = false;
+            }
         }
         
         return result;
+    }
+    
+    private void sendMail(){
+        Properties properties = System.getProperties();
+        properties.setProperty("mail.smtp.server", "sas-mail.swiss-as.com");
+        properties.put("mail.smtp.auth", "true");
+        Session session = Session.getDefaultInstance(new Properties(), null);
+        try {
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
+            msg.addRecipient(RecipientType.TO, new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
+            msg.setSubject("QA test");
+            msg.setText("my nice text goes here");
+            Transport.send(msg);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
     
     private ReturnResult showTrafficLightDialog() {

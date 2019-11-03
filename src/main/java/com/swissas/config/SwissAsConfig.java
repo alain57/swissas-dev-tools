@@ -4,6 +4,9 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.GapContent;
+import javax.swing.text.PlainDocument;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
@@ -38,6 +41,7 @@ public class SwissAsConfig implements Configurable {
     
     private void updateUIState(){
         this.configPanel.getFourLetterCode().setText(this.swissAsStorage.getFourLetterCode());
+        this.configPanel.getQaLetterBox().setText(this.swissAsStorage.getQaLetterCode()); // TODO : maybe validate ? 
         this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
         this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
         this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
@@ -65,7 +69,9 @@ public class SwissAsConfig implements Configurable {
 
     @Override
     public boolean isModified() {
-        return  !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCodeSelectedItem()) ||
+        return  !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCode()) ||
+                !this.swissAsStorage.getQaLetterCode().equals(getQALetterCode()) ||
+                !this.swissAsStorage.getPassword().equals(getPassword()) ||
                 this.swissAsStorage.isHorizontalOrientation() == (this.configPanel.getOrientation().getSelectedIndex() == 1) ||
                 this.swissAsStorage.isFixMissingThis() != this.configPanel.getChxFixThis().isSelected() ||
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
@@ -81,7 +87,9 @@ public class SwissAsConfig implements Configurable {
 
     @Override
     public void apply() {
-        this.swissAsStorage.setFourLetterCode(getFourLetterCodeSelectedItem());
+        this.swissAsStorage.setFourLetterCode(getFourLetterCode());
+        this.swissAsStorage.setPassword(getPassword());
+        this.swissAsStorage.setQaLetterCode(getQALetterCode());
         this.swissAsStorage.setHorizontalOrientation(this.configPanel.getOrientation().getSelectedIndex() == 0);
         this.swissAsStorage.setFixMissingThis(this.configPanel.getChxFixThis().isSelected());
         this.swissAsStorage.setFixMissingOverride(this.configPanel.getChkFixOverride().isSelected());
@@ -94,8 +102,16 @@ public class SwissAsConfig implements Configurable {
         refreshWarningContent();
     }
 
-    private String getFourLetterCodeSelectedItem(){
-        return this.configPanel.getFourLetterCode().getText().toUpperCase().trim();
+    private String getFourLetterCode(){
+        return this.configPanel.getFourLetterCode().getText().trim();
+    }
+    
+    private String getPassword() {
+        return String.valueOf(this.configPanel.getAccountPassword().getPassword());
+    }
+    
+    private String getQALetterCode() {
+        return this.configPanel.getQaLetterBox().getText().trim();
     }
 
     private void refreshWarningContent() {
