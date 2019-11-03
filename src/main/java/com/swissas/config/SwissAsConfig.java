@@ -6,6 +6,7 @@ import java.util.ResourceBundle;
 import javax.swing.*;
 
 import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -13,6 +14,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.swissas.toolwindow.WarningContent;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +34,6 @@ public class SwissAsConfig implements Configurable {
     public SwissAsConfig(Project project){
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
-        
     }
     
     @Override
@@ -86,7 +87,10 @@ public class SwissAsConfig implements Configurable {
     }
 
     @Override
-    public void apply() {
+    public void apply() throws ConfigurationException{
+        if(this.configPanel.getPreCommitInformQACheckbox().isSelected() && StringUtils.isBlank(String.valueOf(this.configPanel.getAccountPassword().getPassword()))){
+            throw new ConfigurationException("Password is needed for the inform QA option to work.");
+        }
         this.swissAsStorage.setFourLetterCode(getFourLetterCode());
         this.swissAsStorage.setPassword(getPassword());
         this.swissAsStorage.setQaLetterCode(getQALetterCode());
@@ -126,4 +130,5 @@ public class SwissAsConfig implements Configurable {
             warningContent.refresh();
         }
     }
+        
 }

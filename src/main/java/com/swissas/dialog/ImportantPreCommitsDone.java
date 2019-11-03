@@ -28,7 +28,6 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 	private final CheckinProjectPanel checkinProjectPanel;
 	private final boolean informQANeeded;
 	private final boolean reviewSelected;
-	
 	private final Action informQAAction;
 	
 	public ImportantPreCommitsDone(CheckinProjectPanel checkinProjectPanel){
@@ -40,10 +39,7 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 		setTitle("PreCommit Important Tasks");
 		setOKButtonText("Yes");
 		setCancelButtonText("No");
-		
 		init();
-		
-		
 	}
 	
 	private boolean informQANeeded(){

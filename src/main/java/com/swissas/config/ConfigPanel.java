@@ -8,9 +8,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.GapContent;
-import javax.swing.text.PlainDocument;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;

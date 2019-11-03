@@ -37,7 +37,7 @@ patchPluginXml {
 <b>V1.5.14</b><pre>Use combobox for the LetterCode information menu
 Add picture in LetterCode information menu
 Add Who is this in the Annotate menu
-Add new configuration in the settings menu
+Add new configurations in the settings menu
 Add precommit code review condition (configurable in the settings menu)
 Add Inform QA per mail of Client/Web changes
 Small code cleaning.

@@ -4,8 +4,10 @@ package com.swissas.checkin;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
+import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -45,11 +47,12 @@ class PreCommitCheckingHandler extends CheckinHandler {
     @NonNls
     private static final String EMPTY_COMMIT_MSG = RESOURCE_BUNDLE.getString("commit.without.message");
     private TrafficLightPanel trafficLightPanel = null;
-
+    private final SwissAsStorage storage;
     
     PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel){
         this.project = checkinProjectPanel.getProject();
         this.checkinProjectPanel = checkinProjectPanel;
+        this.storage = SwissAsStorage.getInstance();
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
         if (ideFrame != null) {
             this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
@@ -96,9 +99,8 @@ class PreCommitCheckingHandler extends CheckinHandler {
             ImportantPreCommitsDone dialog = new ImportantPreCommitsDone(this.checkinProjectPanel);
             dialog.show();
             int exitCode = dialog.getExitCode();
-            if(exitCode == DialogWrapper.NEXT_USER_EXIT_CODE){
-                sendMail();
-            }else if(exitCode == DialogWrapper.CANCEL_EXIT_CODE){
+            if((exitCode == DialogWrapper.NEXT_USER_EXIT_CODE && !sendMail()) || 
+                    exitCode == DialogWrapper.CANCEL_EXIT_CODE){
                 result = false;
             }
         }
@@ -106,11 +108,19 @@ class PreCommitCheckingHandler extends CheckinHandler {
         return result;
     }
     
-    private void sendMail(){
+    private boolean sendMail(){
         Properties properties = System.getProperties();
-        properties.setProperty("mail.smtp.server", "sas-mail.swiss-as.com");
+        properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
         properties.put("mail.smtp.auth", "true");
-        Session session = Session.getDefaultInstance(new Properties(), null);
+        Session session = Session.getDefaultInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                if(PreCommitCheckingHandler.this.storage.getPassword() != null){
+                    return new PasswordAuthentication(PreCommitCheckingHandler.this.storage.getFourLetterCode(), PreCommitCheckingHandler.this.storage.getPassword());
+                }
+                return null;
+            }
+        });
         try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
@@ -119,8 +129,11 @@ class PreCommitCheckingHandler extends CheckinHandler {
             msg.setText("my nice text goes here");
             Transport.send(msg);
         }catch (Exception e){
+            Messages.showMessageDialog(e.getMessage(),"Mail could not be sent", Messages.getErrorIcon());
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
     
     private ReturnResult showTrafficLightDialog() {

@@ -2,7 +2,6 @@ package com.swissas.widget;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -39,7 +38,6 @@ import org.jsoup.select.Elements;
 public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider {
 	private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
 	private static final String STAFF_URL = URL_BUNDLE.getString("url.staff");
-	private static final String STAFF_PIC_FOLDER = URL_BUNDLE.getString("url.staff.pics");
 	
 	private final Properties properties;
 	private final SwissAsStorage swissAsStorage;
