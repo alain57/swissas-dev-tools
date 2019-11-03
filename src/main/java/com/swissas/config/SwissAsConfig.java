@@ -4,9 +4,6 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.GapContent;
-import javax.swing.text.PlainDocument;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
@@ -29,31 +26,31 @@ import org.jetbrains.annotations.Nullable;
 public class SwissAsConfig implements Configurable {
     private final SwissAsStorage swissAsStorage;
     private final Project project;
-    private final ConfigPanel configPanel;
+    private ConfigPanel configPanel;
 
     
     public SwissAsConfig(Project project){
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
-        this.configPanel = new ConfigPanel(this.project, this.swissAsStorage);
-        updateUIState();
+        
     }
     
-    private void updateUIState(){
-        this.configPanel.getFourLetterCode().setText(this.swissAsStorage.getFourLetterCode());
-        this.configPanel.getQaLetterBox().setText(this.swissAsStorage.getQaLetterCode()); // TODO : maybe validate ? 
-        this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
-        this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
-        this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
-        this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
-        this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
-        this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
-        this.configPanel.getChkTranslateOnlyModifiedLines().setSelected(this.swissAsStorage.isTranslationOnlyCheckChangedLine());
-        this.configPanel.getPreCommitInformQACheckbox().setSelected(this.swissAsStorage.isPreCommitInformQA());
-        this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
+    @Override
+    public void reset() {
+        if(this.configPanel != null) {
+            this.configPanel.getFourLetterCode().setText(this.swissAsStorage.getFourLetterCode());
+            this.configPanel.getQaLetterBox().setText(this.swissAsStorage.getQaLetterCode());
+            this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
+            this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
+            this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
+            this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
+            this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
+            this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
+            this.configPanel.getChkTranslateOnlyModifiedLines().setSelected(this.swissAsStorage.isTranslationOnlyCheckChangedLine());
+            this.configPanel.getPreCommitInformQACheckbox().setSelected(this.swissAsStorage.isPreCommitInformQA());
+            this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
+        }
     }
-    
-    
     
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -64,6 +61,9 @@ public class SwissAsConfig implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
+        if(this.configPanel == null){
+            this.configPanel = new ConfigPanel(this.project, this.swissAsStorage);
+        }
         return this.configPanel.getMainPanel();
     }
 
@@ -71,7 +71,7 @@ public class SwissAsConfig implements Configurable {
     public boolean isModified() {
         return  !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCode()) ||
                 !this.swissAsStorage.getQaLetterCode().equals(getQALetterCode()) ||
-                !this.swissAsStorage.getPassword().equals(getPassword()) ||
+                !getPassword().equals(this.swissAsStorage.getPassword())||
                 this.swissAsStorage.isHorizontalOrientation() == (this.configPanel.getOrientation().getSelectedIndex() == 1) ||
                 this.swissAsStorage.isFixMissingThis() != this.configPanel.getChxFixThis().isSelected() ||
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
