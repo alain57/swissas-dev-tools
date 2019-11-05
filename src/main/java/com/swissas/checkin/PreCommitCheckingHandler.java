@@ -4,10 +4,8 @@ package com.swissas.checkin;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -30,7 +28,8 @@ import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
 
 /**
- * The pre commit checking that will make sure that nobody can commit with an empty message or commit with the traffic light indicator 
+ * The pre commit checking that will prevent committing with empty message, incorrect traffic light indicator
+ * or if the definition of done is not respected.
  * 
  * @author Tavan Alain
  */
@@ -47,12 +46,10 @@ class PreCommitCheckingHandler extends CheckinHandler {
     @NonNls
     private static final String EMPTY_COMMIT_MSG = RESOURCE_BUNDLE.getString("commit.without.message");
     private TrafficLightPanel trafficLightPanel = null;
-    private final SwissAsStorage storage;
     
     PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel){
         this.project = checkinProjectPanel.getProject();
         this.checkinProjectPanel = checkinProjectPanel;
-        this.storage = SwissAsStorage.getInstance();
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
         if (ideFrame != null) {
             this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
@@ -93,9 +90,9 @@ class PreCommitCheckingHandler extends CheckinHandler {
 
     private boolean displayPreCommitChecksIfNeeded(){
         boolean result = true;
-        boolean informQA = SwissAsStorage.getInstance().isPreCommitInformQA();
+        boolean informOther = SwissAsStorage.getInstance().isPreCommitInformOther();
         boolean reviewNeeded = SwissAsStorage.getInstance().isPreCommitCodeReview();
-        if(informQA || reviewNeeded){
+        if(informOther || reviewNeeded){
             ImportantPreCommitsDone dialog = new ImportantPreCommitsDone(this.checkinProjectPanel);
             dialog.show();
             int exitCode = dialog.getExitCode();
@@ -111,25 +108,17 @@ class PreCommitCheckingHandler extends CheckinHandler {
     private boolean sendMail(){
         Properties properties = System.getProperties();
         properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
-        properties.put("mail.smtp.auth", "true");
-        Session session = Session.getDefaultInstance(properties, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                if(PreCommitCheckingHandler.this.storage.getPassword() != null){
-                    return new PasswordAuthentication(PreCommitCheckingHandler.this.storage.getFourLetterCode(), PreCommitCheckingHandler.this.storage.getPassword());
-                }
-                return null;
-            }
-        });
+        Session session = Session.getDefaultInstance(properties, null);
         try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
+            //TODO take the mails out of the selected persons from configuration
             msg.addRecipient(RecipientType.TO, new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
-            msg.setSubject("QA test");
-            msg.setText("my nice text goes here");
+            msg.setSubject("Automatic UI Change EMail");
+            msg.setText("my nice text goes here");//TODO: take out the text of the commit dialog
             Transport.send(msg);
         }catch (Exception e){
-            Messages.showMessageDialog(e.getMessage(),"Mail could not be sent", Messages.getErrorIcon());
+            Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent", Messages.getErrorIcon());
             e.printStackTrace();
             return false;
         }

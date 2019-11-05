@@ -10,7 +10,7 @@ import static com.intellij.AppTopics.FILE_DOCUMENT_SYNC;
 import static com.swissas.actions_on_save.SaveActionManager.LOGGER;
 
 /**
- * The action that will execute the different inspection on save.
+ * The action that will execute the different inspection during save process.
  * (based on the code from the save action plugin)
  *
  * @author Tavan Alain

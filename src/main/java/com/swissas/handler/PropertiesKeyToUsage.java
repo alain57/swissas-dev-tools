@@ -14,7 +14,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * class that find the usage of a Translation key used in a Properties file
+ * It will find usage of a Translation key used in the Properties file
  *
  * @author Tavan Alain
  */
@@ -31,7 +31,7 @@ public class PropertiesKeyToUsage implements GotoDeclarationHandler {
 			PsiField correspondingField = PsiTreeUtil.collectElementsOfType(currentMessageFile, PsiField.class).
 					stream().filter(e -> e.getText().contains(sourceElement.getText())).findFirst().orElse(null);
 			if(correspondingField != null){
-				//TODO: result is somehow ugly... not the same style as the references from _Message file. Need to find out why
+				//TODO: result is somehow ugly... not the same style as the references from _Message file. Need to find out what is going wrong here.
 				return ReferencesSearch.search(correspondingField).findAll().stream().map(PsiReference::getElement).toArray(PsiElement[]::new);
 			}
 		}

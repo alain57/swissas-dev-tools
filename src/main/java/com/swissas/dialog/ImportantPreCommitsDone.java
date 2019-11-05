@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Dialog for the actions that may be mandatory before each commits.
+ * The Dialog for the actions that may be mandatory before each commit.
  *
  * @author Tavan Alain
  */
@@ -35,7 +35,7 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 		this.checkinProjectPanel = checkinProjectPanel;
 		this.informQANeeded = informQANeeded();
 		this.reviewSelected = SwissAsStorage.getInstance().isPreCommitCodeReview();
-		this.informQAAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("precommit.inform_qa"), DialogWrapper.NEXT_USER_EXIT_CODE);
+		this.informQAAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("precommit.send_information_mail"), DialogWrapper.NEXT_USER_EXIT_CODE);
 		setTitle("PreCommit Important Tasks");
 		setOKButtonText("Yes");
 		setCancelButtonText("No");
@@ -43,7 +43,7 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 	}
 	
 	private boolean informQANeeded(){
-		if(SwissAsStorage.getInstance().isPreCommitInformQA()) {
+		if(SwissAsStorage.getInstance().isPreCommitInformOther()) {
 			Predicate<String> isClientOrWebPredicate = path -> path.contains("amos" + File.separator + "client") || path.contains("amos" + File.separator + "web");
 			return this.checkinProjectPanel.getFiles().stream().map(File::getPath).anyMatch(isClientOrWebPredicate);
 		}

@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The inspection  for missing translation
+ * The inspection for missing translation
  *
  * @author Tavan Alain
  */
@@ -102,13 +102,15 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			int textOffset = expression.getTextOffset();
 			int lineNumber = StringUtil.offsetToLineNumber(expression.getContainingFile().getText(), textOffset);
 			boolean shouldCheckFile = this.noSvn || !SwissAsStorage.getInstance().isTranslationOnlyCheckChangedLine() || this.rangesToCheck.stream().anyMatch(r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
-			if (shouldCheckFile && expression.getTextLength() > minSize &&
-					(expression.getValue() instanceof String) &&
-					!this.filenamePattern.matcher((String) expression.getValue()).matches()) {
-				if (this.SQLPattern.matcher((String) expression.getValue()).matches()) {
-					checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
-				} 
-				checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
+			if (shouldCheckFile){
+				Object expressionValue = expression.getValue();
+				if(expressionValue instanceof String && ((String) expressionValue).length() > minSize &&
+					!this.filenamePattern.matcher((String) expressionValue).matches()) {
+					if (this.SQLPattern.matcher((String) expressionValue).matches()) {
+						checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
+					}
+					checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
+				}
 			}
 		}
 		

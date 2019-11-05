@@ -16,7 +16,7 @@ import com.swissas.provider.TranslationDocumentationProvider;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * class that replace the go to declaration for multilang stuff in order to go directly to the correct line of the standard file
+ * Class replacing the go to declaration for Multilang stuff in order to go directly to the correct line of the standard file
  *
  * @author Tavan Alain
  */

@@ -30,7 +30,7 @@ public class ShowLetterCodeInformation {
 				user = userMap.get(authorString);
 				userInfos = user.getInfos();
 			}else{
-				errorText = "<b>Could not find \"" + authorString + "\" in the internal phone book</b><br>Either there is an error with this code or the person does not work at Swiss-AS anymore";
+				errorText = "<b>Could not find \"" + authorString + "\" in the internal phone book</b><br>Either there is an error with this letter-code, or there was a mutual agreement";
 			}
 		}
 		JPanel pane = new JPanel(new BorderLayout());

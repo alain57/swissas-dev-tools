@@ -15,7 +15,7 @@ import com.swissas.util.ShowLetterCodeInformation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Class that displays information about the class owner
+ * Action that will display information about the class owner
  *
  * @author Tavan Alain
  */
@@ -35,7 +35,7 @@ class ShowClassOwnerAction extends LetterCodeAction {
 		PsiDocTag author = PsiTreeUtil.collectElementsOfType(file, PsiDocTag.class).stream()
 				.filter(e -> e.getName().equalsIgnoreCase("author")).findFirst().orElse(null);
 		if(author != null){
-			authorString = author.getFirstChild().getNextSibling().getNextSibling().getText(); //author is the entire line, the author tag is the first child, the next is a blank and the next is the letter code
+			authorString = author.getFirstChild().getNextSibling().getNextSibling().getText(); //author is the entire line, the author tag is the first child, the next is a blank sign followed by the letter code
 		}else {
 			errorText = "The plugin was not able to find the class author code";
 		}

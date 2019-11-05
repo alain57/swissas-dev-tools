@@ -2,12 +2,9 @@ package com.swissas.widget;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import com.intellij.openapi.module.Module;
@@ -19,26 +16,19 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.StatusBarWidgetProvider;
 import com.intellij.openapi.wm.impl.status.MemoryUsagePanel;
-import com.swissas.beans.User;
+import com.swissas.util.NetworkUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 /**
  * The main class of the plugin that installs the traffic light on the bottom of the IDE
- * It also check the traffic light all 30 seconds and the user list every days
+ * It also checks the traffic light all 30 seconds, and the user list every day
  *
  * @author TALA
  */
 
 public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider {
-	private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
-	private static final String STAFF_URL = URL_BUNDLE.getString("url.staff");
-	
 	private final Properties properties;
 	private final SwissAsStorage swissAsStorage;
 	private TrafficLightPanel trafficLightPanel = null;
@@ -55,7 +45,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 			@Override
 			public void run() {
 				if(TrafficLightPanelWidgetProvider.this.swissAsStorage.isAmosProject()) {
-					refreshData();
+					NetworkUtil.getInstance().refreshUserMap();
 				}
 			}
 		};
@@ -74,23 +64,6 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 		retrieveTrafficLightTimer.schedule(refreshTrafficLightTimerTask, 60, 30_000);
 	}
 	
-	
-	private void refreshData() {
-		Map<String, User> userMap = new TreeMap<>();
-		try {
-			Document doc = Jsoup.connect(STAFF_URL).get();
-			Elements select = doc.select("tr.filterrow");
-			for (Element element : select) {
-				String withinTitle = element.attr("title");
-				String lc = withinTitle.split("LC:")[1].split("\n")[0].replaceAll("\t", "").trim();
-				String infos = "<html><body>" + element.attr("title").replaceAll("\n+", "\n").replaceAll("\n", "<br/>") + "</body></html>";
-				userMap.put(lc, new User(lc, infos));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		this.swissAsStorage.setUserMap(userMap);
-	}
 	
 	private void fillSharedProperties(@NotNull Project project) {
 		Module shared = Stream.of(ModuleManager.getInstance(project).getModules()).filter(e -> e.getName().contains("amos_shared")).findFirst().orElse(null);

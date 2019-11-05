@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 /**
- * simple bean for users
+ * A User Bean class
  *
  * @author TALA
  */
@@ -21,6 +21,7 @@ public class User implements Serializable {
 	private static final int NAME_START_INDEX = 12;//html and body tags
 	
 	private String lc;
+	private String team;
 	private String infos;
 	
 	private transient ImageIcon picture;
@@ -29,8 +30,9 @@ public class User implements Serializable {
 		
 	}
 	
-	public User(String lc, String infos){
+	public User(String lc, String team, String infos){
 		setLc(lc);
+		setTeam(team);
 		setInfos(infos);
 	}
 
@@ -41,6 +43,10 @@ public class User implements Serializable {
 	
 	public void setInfos(String infos) {
 		this.infos = infos;
+	}
+	
+	public void setTeam(String team){
+		this.team = team;
 	}
 
 	private void readPicture(){
@@ -63,13 +69,17 @@ public class User implements Serializable {
 	public String getLc() {
 		return this.lc;
 	}
+	
+	public String getTeam() {
+		return this.team;
+	}
 
 	public String getInfos() {
 		return this.infos;
 	}
 	
-	public boolean hasTextInInfos(String text){
-		return this.infos != null && this.infos.contains(text);
+	public boolean isInTeam(String team){
+		return getTeam() != null && getTeam().equals(team);
 	}
 	
 	public String getLCAndName(){

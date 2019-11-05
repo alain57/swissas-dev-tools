@@ -30,7 +30,7 @@ public class AnnotationProvider implements AnnotationGutterActionProvider {
 		private int lineNumber;
 		
 		public WhoIsThisRightClickAction(@NotNull FileAnnotation annotation){
-			super("Who is This", "Display information about the letter code", SwissAsIcons.AMOS);
+			super("Who Is This", "Display information about the letter code", SwissAsIcons.AMOS);
 			
 			this.annotation = annotation;
 		}

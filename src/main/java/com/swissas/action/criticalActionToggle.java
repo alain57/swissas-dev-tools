@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Toggle button that will be available on the SAS Warning panel. 
- * It purpose is to switch from critical to non critical issues.
+ * It purposes is to switch from critical to non-critical issues.
  * @author Tavan Alain
  */
 public class criticalActionToggle extends AnAction {

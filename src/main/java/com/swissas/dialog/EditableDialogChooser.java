@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 public class EditableDialogChooser extends DialogWrapper {
 	private final String message;
 	private final Collection<String> values;
-	private Project project;
+	private final Project project;
 	private TextFieldWithCompletion textFieldWithCompletion;
 	
 	public EditableDialogChooser(Project project, String message,

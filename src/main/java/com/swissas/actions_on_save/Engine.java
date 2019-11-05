@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.toSet;
 import static com.swissas.actions_on_save.Result.ResultCode;
 
 /**
- * Implementation of the save action engine. This class will filter, process and log modifications to the files.
+ * Implementation of the save action engine. It will filter, process and log modifications to the files.
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */

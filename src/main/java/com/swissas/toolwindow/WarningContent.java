@@ -142,7 +142,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
         removeAll();
         if(!this.types.isEmpty()){
             for(Type type : this.types){
-                if(!type.getName().toLowerCase().equals(CODE_CHECK)) { //code check is not used in the eclipse plugin, so don't even show it in IntelliJ !
+                if(!type.getName().toLowerCase().equals(CODE_CHECK)) { //code check has no use in the eclipse plugin, therefore get rid of useless stuff
                     WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
                     for(Module module : type.getModules()){
                         int messageCount = 0;

@@ -3,7 +3,6 @@ package com.swissas.widget;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +28,10 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.swissas.config.SwissAsConfig;
+import com.swissas.util.NetworkUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jsoup.Jsoup;
 
 import static com.swissas.util.Constants.BLINKING;
 import static com.swissas.util.Constants.GREEN;
@@ -81,7 +80,6 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     private final Map<String, String> status = new HashMap<>();
     private final SwissAsStorage swissAsStorage;
-    private final String url;
     private final String clickUrl;
 
 
@@ -89,7 +87,6 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     TrafficLightPanel(Project project) {
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
-        this.url = URL_BUNDLE.getString("url.trafficlight");
         this.clickUrl = URL_BUNDLE.getString("url.trafficlight.click");
         this.lamps = new JPanel();
         this.green =  new Bulb(JBColor.GREEN);
@@ -199,23 +196,12 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     }
     
     private void readTrafficValues() {
-        try {
-            String trafficLight = Jsoup.connect(this.url + this.swissAsStorage.getFourLetterCode()).get().select("body").html();
-
-
-            String[] parts = trafficLight.toLowerCase().split(",\\s?"/*NON-NLS*/);
-            for (String part: parts) {
-                String[] s = part.split(":");
-                this.status.put(s[0], s[1].trim());
-            }
-            if(!State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW))) {
-                this.trafficDetails = Jsoup.connect(this.clickUrl + this.swissAsStorage.getFourLetterCode()).get().html();
-            }else {
-                this.trafficDetails = null;
-            }
-        } catch (IOException e) {
-            //TODO : add a logger
-            e.printStackTrace();
+        this.status.clear();
+        this.status.putAll(NetworkUtil.getInstance().getTrafficLightColors());
+        if(!State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW))) {
+            this.trafficDetails = NetworkUtil.getInstance().getTrafficLightDetails();
+        }else {
+            this.trafficDetails = null;
         }
     }
 

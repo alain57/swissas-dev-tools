@@ -1,7 +1,7 @@
 package com.swissas.util;
 
 /**
- * Some constants. Maybe find something better in future.
+ * Some constants. 
  * 
  * @author Tavan Alain
  */

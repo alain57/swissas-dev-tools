@@ -6,7 +6,6 @@ import java.util.ResourceBundle;
 import javax.swing.*;
 
 import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -14,7 +13,6 @@ import com.intellij.openapi.wm.WindowManager;
 import com.swissas.toolwindow.WarningContent;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +38,9 @@ public class SwissAsConfig implements Configurable {
     public void reset() {
         if(this.configPanel != null) {
             this.configPanel.getFourLetterCode().setText(this.swissAsStorage.getFourLetterCode());
-            this.configPanel.getQaLetterBox().setText(this.swissAsStorage.getQaLetterCode());
+            this.configPanel.getQualityLetterBox().setText(this.swissAsStorage.getQaLetterCode());
+            this.configPanel.getDocumentationLetterBox().setText(this.swissAsStorage.getDocuLetterCode());
+            this.configPanel.getSupportLetterBox().setText(this.swissAsStorage.getSupportLetterCode());
             this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
             this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
             this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
@@ -48,8 +48,9 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
             this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
             this.configPanel.getChkTranslateOnlyModifiedLines().setSelected(this.swissAsStorage.isTranslationOnlyCheckChangedLine());
-            this.configPanel.getPreCommitInformQACheckbox().setSelected(this.swissAsStorage.isPreCommitInformQA());
+            this.configPanel.getPreCommitInformOtherPersonCheckbox().setSelected(this.swissAsStorage.isPreCommitInformOther());
             this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
+            this.configPanel.enableOrDisableOtherPersonFields();
         }
     }
     
@@ -63,7 +64,7 @@ public class SwissAsConfig implements Configurable {
     @Override
     public JComponent createComponent() {
         if(this.configPanel == null){
-            this.configPanel = new ConfigPanel(this.project, this.swissAsStorage);
+            this.configPanel = new ConfigPanel(this.project);
         }
         return this.configPanel.getMainPanel();
     }
@@ -72,7 +73,8 @@ public class SwissAsConfig implements Configurable {
     public boolean isModified() {
         return  !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCode()) ||
                 !this.swissAsStorage.getQaLetterCode().equals(getQALetterCode()) ||
-                !getPassword().equals(this.swissAsStorage.getPassword())||
+                !this.swissAsStorage.getSupportLetterCode().equals(getSupportLetterCode()) ||
+                !this.swissAsStorage.getDocuLetterCode().equals(getDocuLetterCode()) ||
                 this.swissAsStorage.isHorizontalOrientation() == (this.configPanel.getOrientation().getSelectedIndex() == 1) ||
                 this.swissAsStorage.isFixMissingThis() != this.configPanel.getChxFixThis().isSelected() ||
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
@@ -81,19 +83,17 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
                 this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected() ||
                 this.swissAsStorage.isPreCommitCodeReview() != this.configPanel.getPreCommitCodeReviewCheckbox().isSelected() ||
-                this.swissAsStorage.isPreCommitInformQA() != this.configPanel.getPreCommitInformQACheckbox().isSelected()
+                this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected()
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
 
     @Override
-    public void apply() throws ConfigurationException{
-        if(this.configPanel.getPreCommitInformQACheckbox().isSelected() && StringUtils.isBlank(String.valueOf(this.configPanel.getAccountPassword().getPassword()))){
-            throw new ConfigurationException("Password is needed for the inform QA option to work.");
-        }
+    public void apply(){
         this.swissAsStorage.setFourLetterCode(getFourLetterCode());
-        this.swissAsStorage.setPassword(getPassword());
         this.swissAsStorage.setQaLetterCode(getQALetterCode());
+        this.swissAsStorage.setDocuLetterCode(getDocuLetterCode());
+        this.swissAsStorage.setSupportLetterCode(getSupportLetterCode());
         this.swissAsStorage.setHorizontalOrientation(this.configPanel.getOrientation().getSelectedIndex() == 0);
         this.swissAsStorage.setFixMissingThis(this.configPanel.getChxFixThis().isSelected());
         this.swissAsStorage.setFixMissingOverride(this.configPanel.getChkFixOverride().isSelected());
@@ -102,7 +102,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setMinWarningSize(this.configPanel.getMinTranslationSize().getText());
         this.swissAsStorage.setTranslationOnlyCheckChangedLine(this.configPanel.getChkTranslateOnlyModifiedLines().isSelected());
         this.swissAsStorage.setPreCommitCodeReview(this.configPanel.getPreCommitCodeReviewCheckbox().isSelected());
-        this.swissAsStorage.setPreCommitInformQA(this.configPanel.getPreCommitInformQACheckbox().isSelected());
+        this.swissAsStorage.setPreCommitInformOther(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected());
         refreshWarningContent();
     }
 
@@ -110,12 +110,16 @@ public class SwissAsConfig implements Configurable {
         return this.configPanel.getFourLetterCode().getText().trim();
     }
     
-    private String getPassword() {
-        return String.valueOf(this.configPanel.getAccountPassword().getPassword());
+    private String getQALetterCode() {
+        return this.configPanel.getQualityLetterBox().getText().trim();
     }
     
-    private String getQALetterCode() {
-        return this.configPanel.getQaLetterBox().getText().trim();
+    private String getDocuLetterCode() {
+        return this.configPanel.getDocumentationLetterBox().getText().trim();
+    }
+    
+    private String getSupportLetterCode() {
+        return this.configPanel.getSupportLetterBox().getText().trim();
     }
 
     private void refreshWarningContent() {

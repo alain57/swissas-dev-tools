@@ -13,7 +13,7 @@ import static com.swissas.actions_on_save.Result.ResultCode;
 import static com.swissas.actions_on_save.Result.ResultCode.OK;
 
 /**
- * Implements a write action that encapsulates {@link com.intellij.openapi.command.WriteCommandAction} that returns
+ * Implements write action that encapsulates {@link com.intellij.openapi.command.WriteCommandAction} that returns
  *
  * (based on the code from the save action plugin)
  * @author Tavan Alain

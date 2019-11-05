@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The storage class where the plugin settings are saved with getters and setters to access the values within the plugin
+ * The storage class of the plugin.
+ *
  *
  * @author Tavan Alain
  */
@@ -31,6 +32,8 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     public static final String PASSWORD_FOR_MAIL = "passwordForMail";
     private String fourLetterCode = "";
     private String qaLetterCode = "";
+    private String docuLetterCode = "";
+    private String supportLetterCode = "";
     private boolean horizontalOrientation = true;
     private String minWarningSize = "5";
     private boolean fixMissingOverride = true;
@@ -38,21 +41,23 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private boolean fixUnusedSuppressWarning = false;
     private boolean fixMissingAuthor = true;
     private boolean translationOnlyCheckChangedLine = false;
-    private boolean preCommitInformQA = false;
+    private boolean preCommitInformOther = false;
     private boolean preCommitCodeReview = true;
     
     private boolean showIgnoredValues = false;
-    private List<String> ignoredValues = new ArrayList<>();
-    private Map<String, User> userMap = new HashMap<>();
+    private final List<String> ignoredValues;
+    private final Map<String, User> userMap;
     private Properties shareProperties; 
     private boolean isAmosProject = false;
     private boolean isNewTranslation = false;
     
-    
+    public SwissAsStorage() {
+        this.ignoredValues = new ArrayList<>();
+        this.userMap = new HashMap<>();
+    }
     
     public static SwissAsStorage getInstance(){
         return ServiceManager.getService(SwissAsStorage.class);
-        
     }
     
     @Nullable
@@ -70,23 +75,29 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
         return this.fourLetterCode;
     }
     
-    public String getPassword() {
-        CredentialAttributes credentialAttributes = createCredentialAttributes(PASSWORD_FOR_MAIL);
-        return PasswordSafe.getInstance().getPassword(credentialAttributes);
-    }
-    
     public String getQaLetterCode() {
         return this.qaLetterCode;
     }
     
-    public void setFourLetterCode(String fourLetterCode){
-        this.fourLetterCode = fourLetterCode;
+    
+    public String getDocuLetterCode() {
+        return this.docuLetterCode;
     }
     
-    public void setPassword(String password) {
-        CredentialAttributes credentialAttributes = createCredentialAttributes(PASSWORD_FOR_MAIL); // see previous sample
-        Credentials credentials = new Credentials(this.fourLetterCode, password);
-        PasswordSafe.getInstance().set(credentialAttributes, credentials);
+    public void setDocuLetterCode(String docuLetterCode) {
+        this.docuLetterCode = docuLetterCode;
+    }
+    
+    public String getSupportLetterCode() {
+        return this.supportLetterCode;
+    }
+    
+    public void setSupportLetterCode(String supportLetterCode) {
+        this.supportLetterCode = supportLetterCode;
+    }
+    
+    public void setFourLetterCode(String fourLetterCode){
+        this.fourLetterCode = fourLetterCode;
     }
     
     public void setQaLetterCode(String qaLetterCode) {
@@ -144,7 +155,10 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     }
     
     public void setUserMap(Map<String, User> userMap){
-        this.userMap = userMap;
+        if(this.userMap.size() != userMap.size() && !this.userMap.equals(userMap)){
+            this.userMap.clear();
+            this.userMap.putAll(userMap);
+        }
     }
 
     public void setFixMissingOverride(boolean fixMissingOverride) {
@@ -165,7 +179,10 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     }
 
     public void setIgnoredValues(List<String> ignoredValues) {
-        this.ignoredValues = ignoredValues;
+        if(this.ignoredValues.size() != ignoredValues.size() && !this.ignoredValues.equals(ignoredValues)) {
+            this.ignoredValues.clear();
+            this.ignoredValues.addAll(ignoredValues);
+        }
     }
 
     public String getMinWarningSize() {
@@ -200,12 +217,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
         this.isNewTranslation = newTranslation;
     }
     
-    public boolean isPreCommitInformQA() {
-        return this.preCommitInformQA;
+    public boolean isPreCommitInformOther() {
+        return this.preCommitInformOther;
     }
     
-    public void setPreCommitInformQA(boolean preCommitInformQA) {
-        this.preCommitInformQA = preCommitInformQA;
+    public void setPreCommitInformOther(boolean preCommitInformOther) {
+        this.preCommitInformOther = preCommitInformOther;
     }
     
     public boolean isPreCommitCodeReview() {
@@ -214,9 +231,5 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     
     public void setPreCommitCodeReview(boolean preCommitCodeReview) {
         this.preCommitCodeReview = preCommitCodeReview;
-    }
-    
-    private CredentialAttributes createCredentialAttributes(String key) {
-        return new CredentialAttributes(CredentialAttributesKt.generateServiceName("Swiss-AS-Dev-Tools", key));
     }
 }

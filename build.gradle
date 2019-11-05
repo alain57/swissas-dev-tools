@@ -39,7 +39,7 @@ Add picture in LetterCode information menu
 Add Who is this in the Annotate menu
 Add new configurations in the settings menu
 Add precommit code review condition (configurable in the settings menu)
-Add Inform QA per mail of Client/Web changes
+Add Inform QA/Support/Documentation  per mail if Client/Web changes
 Small code cleaning.
 </pre>
 <b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
