@@ -1,13 +1,18 @@
 package com.swissas.checkin;
 
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -27,6 +32,8 @@ import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 /**
  * The pre commit checking that will prevent committing with empty message, incorrect traffic light indicator
  * or if the definition of done is not respected.
@@ -36,15 +43,16 @@ import org.jetbrains.annotations.NonNls;
 class PreCommitCheckingHandler extends CheckinHandler {
 
     public static final String FIX_RELEASE_BLOCKER = "fix release blocker";
-    private final Project project;
-    private final CheckinProjectPanel checkinProjectPanel;
-
+    private static final Pattern START_WITH_SUPPORT_STRING = Pattern.compile("^(sc|story|case|sup)\\s\\d+", CASE_INSENSITIVE);
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-
     @NonNls
     private static final String TITLE = RESOURCE_BUNDLE.getString("commit.title");
     @NonNls
     private static final String EMPTY_COMMIT_MSG = RESOURCE_BUNDLE.getString("commit.without.message");
+    
+    private final Project project;
+    private final CheckinProjectPanel checkinProjectPanel;
+    
     private TrafficLightPanel trafficLightPanel = null;
     
     PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel){
@@ -106,16 +114,25 @@ class PreCommitCheckingHandler extends CheckinHandler {
     }
     
     private boolean sendMail(){
+        String message = this.checkinProjectPanel.getCommitMessage();
+        Matcher matcher = START_WITH_SUPPORT_STRING.matcher(message);
+        if(!matcher.find()) {
+            Messages.showMessageDialog("Your commit message needs to start with one of following options: SC/CASE/STORY/SUP followed by case number", "Commit message invalid", Messages.getErrorIcon());
+            return false;
+        }
         Properties properties = System.getProperties();
+        SwissAsStorage storage = SwissAsStorage.getInstance();
         properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
         Session session = Session.getDefaultInstance(properties, null);
         try {
             Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
-            //TODO take the mails out of the selected persons from configuration
-            msg.addRecipient(RecipientType.TO, new InternetAddress(SwissAsStorage.getInstance().getFourLetterCode() + "@swiss-as.com"));
-            msg.setSubject("Automatic UI Change EMail");
-            msg.setText("my nice text goes here");//TODO: take out the text of the commit dialog
+            msg.setFrom(new InternetAddress(storage.getMyMail()));
+            InternetAddress[] internetAddresses = Stream.of(storage.getQaMail(), storage.getDocuMail(), storage.getSupportMail())
+                    .map(this::generateAddress).filter(Objects::nonNull).toArray(InternetAddress[]::new);
+            
+            msg.addRecipients(RecipientType.TO, internetAddresses);
+            msg.setSubject("Automatic User Interface Change");
+            msg.setText(message);
             Transport.send(msg);
         }catch (Exception e){
             Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent", Messages.getErrorIcon());
@@ -140,4 +157,22 @@ class PreCommitCheckingHandler extends CheckinHandler {
 
         return messageResult == DialogWrapper.OK_EXIT_CODE ? ReturnResult.COMMIT : ReturnResult.CLOSE_WINDOW;
     }
+    
+    /**
+     * dummy method needed in order to generate an InternetAddress with a stream 
+     * @param address
+     * @return
+     */
+    private InternetAddress generateAddress(String address) {
+        InternetAddress result = null;
+        if(address != null) {
+            try {
+                result = new InternetAddress(address);
+            } catch (AddressException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+    
 }

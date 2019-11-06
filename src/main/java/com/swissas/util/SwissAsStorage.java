@@ -28,12 +28,14 @@ import org.jetbrains.annotations.Nullable;
 
 @State(name = "SwissAsStorage", storages = @Storage("swissas_settings.xml"))
 public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> {
-    
-    public static final String PASSWORD_FOR_MAIL = "passwordForMail";
+    private static final String MAIL_SUFFIX = "@swiss-as.com";
     private String fourLetterCode = "";
     private String qaLetterCode = "";
+    private String qaMail = "";
     private String docuLetterCode = "";
+    private String docuMail = "";
     private String supportLetterCode = "";
+    private String supportMail = "";
     private boolean horizontalOrientation = true;
     private String minWarningSize = "5";
     private boolean fixMissingOverride = true;
@@ -86,6 +88,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     
     public void setDocuLetterCode(String docuLetterCode) {
         this.docuLetterCode = docuLetterCode;
+        if(docuLetterCode.isEmpty()){
+            setDocuMail(null);
+        }else {
+            String letterCode = docuLetterCode.substring(0, docuLetterCode.indexOf(" "));
+            setDocuMail(letterCode + MAIL_SUFFIX);
+        }
     }
     
     public String getSupportLetterCode() {
@@ -94,6 +102,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     
     public void setSupportLetterCode(String supportLetterCode) {
         this.supportLetterCode = supportLetterCode;
+        if(supportLetterCode.isEmpty()){
+            setSupportMail(null);
+        }else {
+            String letterCode = supportLetterCode.substring(0, supportLetterCode.indexOf(" "));
+            setSupportMail(letterCode + MAIL_SUFFIX);
+        }
     }
     
     public void setFourLetterCode(String fourLetterCode){
@@ -102,6 +116,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     
     public void setQaLetterCode(String qaLetterCode) {
         this.qaLetterCode = qaLetterCode;
+        if(qaLetterCode.isEmpty()) {
+            setQaMail(null);
+        }else {
+            String letterCode = qaLetterCode.substring(0, qaLetterCode.indexOf(" "));
+            setQaMail(letterCode + MAIL_SUFFIX);
+        }
     }
 
     public boolean isHorizontalOrientation() {
@@ -148,8 +168,36 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     public List<String> getIgnoredValues() {
         return this.ignoredValues;
     }
-
-
+    
+    
+    public String getQaMail() {
+        return this.qaMail;
+    }
+    
+    public void setQaMail(String qaMail) {
+        this.qaMail = qaMail;
+    }
+    
+    public String getDocuMail() {
+        return this.docuMail;
+    }
+    
+    public void setDocuMail(String docuMail) {
+        this.docuMail = docuMail;
+    }
+    
+    public String getSupportMail() {
+        return this.supportMail;
+    }
+    
+    public String getMyMail() {
+        return this.fourLetterCode + MAIL_SUFFIX;
+    }
+    
+    public void setSupportMail(String supportMail) {
+        this.supportMail = supportMail;
+    }
+    
     public Map<String, User> getUserMap() {
         return this.userMap;
     }

@@ -26,25 +26,26 @@ import org.jetbrains.annotations.Nullable;
 public class ImportantPreCommitsDone extends DialogWrapper {
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 	private final CheckinProjectPanel checkinProjectPanel;
-	private final boolean informQANeeded;
+	private final boolean informOtherPeopleNeeded;
 	private final boolean reviewSelected;
-	private final Action informQAAction;
+	private final Action informOtherPeopleAction;
 	
 	public ImportantPreCommitsDone(CheckinProjectPanel checkinProjectPanel){
 		super(true);
 		this.checkinProjectPanel = checkinProjectPanel;
-		this.informQANeeded = informQANeeded();
+		this.informOtherPeopleNeeded = informOtherPeopleNeeded();
 		this.reviewSelected = SwissAsStorage.getInstance().isPreCommitCodeReview();
-		this.informQAAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("precommit.send_information_mail"), DialogWrapper.NEXT_USER_EXIT_CODE);
+		this.informOtherPeopleAction = new DialogWrapperExitAction(RESOURCE_BUNDLE.getString("precommit.send_information_mail"), DialogWrapper.NEXT_USER_EXIT_CODE);
 		setTitle("PreCommit Important Tasks");
 		setOKButtonText("Yes");
 		setCancelButtonText("No");
 		init();
 	}
 	
-	private boolean informQANeeded(){
+	private boolean informOtherPeopleNeeded(){
 		if(SwissAsStorage.getInstance().isPreCommitInformOther()) {
-			Predicate<String> isClientOrWebPredicate = path -> path.contains("amos" + File.separator + "client") || path.contains("amos" + File.separator + "web");
+			String clientPath = "amos" + File.separator + "client";
+			Predicate<String> isClientOrWebPredicate = path -> path.contains(clientPath) && !path.contains(clientPath + File.separator + "unpublic") || path.contains("amos" + File.separator + "web");
 			return this.checkinProjectPanel.getFiles().stream().map(File::getPath).anyMatch(isClientOrWebPredicate);
 		}
 		return false;
@@ -57,10 +58,10 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 		JPanel panel = new JPanel(new VerticalLayout());
 		StringBuilder text = new StringBuilder("<html>");
 		if(this.reviewSelected){
-			text.append("Code review done?<br/>");
+			text.append("Code review done?<br/>");//TODO: once Jetbrains fix IDEA-221550 allow to type the Reviewer and modify the commit message.
 		}
-		if(this.informQANeeded){
-			text.append("QA was informed?");
+		if(this.informOtherPeopleNeeded){
+			text.append("Was the graphical change Communicated?");
 		}
 		JLabel label = new JLabel(text.toString());
 		panel.add(label);
@@ -70,11 +71,11 @@ public class ImportantPreCommitsDone extends DialogWrapper {
 	@NotNull
 	@Override
 	protected Action[] createActions() {
-		return this.informQANeeded ? new Action[]{getOKAction(), getInformQAAction(), getCancelAction()} :
+		return this.informOtherPeopleNeeded ? new Action[]{getOKAction(), getInformOtherPeopleAction(), getCancelAction()} :
 				new Action[]{getOKAction(), getCancelAction()};
 	}
 	
-	private Action getInformQAAction() {
-		return this.informQAAction;
+	private Action getInformOtherPeopleAction() {
+		return this.informOtherPeopleAction;
 	}
 }
