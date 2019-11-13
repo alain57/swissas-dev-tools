@@ -73,7 +73,7 @@ class WarningContentTreeNode extends DefaultMutableTreeNode {
                     break;
                 }
             }
-            this.isMarked = !loopBreak; //this means at least one child is not marked, otherwise all are marked.
+            this.isMarked = !loopBreak; //this means at least one child isn't marked, otherwise all are marked.
         }
         return this.isMarked;
     }

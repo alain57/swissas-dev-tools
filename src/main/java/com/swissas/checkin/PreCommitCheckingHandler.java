@@ -117,7 +117,8 @@ class PreCommitCheckingHandler extends CheckinHandler {
         String message = this.checkinProjectPanel.getCommitMessage();
         Matcher matcher = START_WITH_SUPPORT_STRING.matcher(message);
         if(!matcher.find()) {
-            Messages.showMessageDialog("Your commit message needs to start with one of following options: SC/CASE/STORY/SUP followed by case number", "Commit message invalid", Messages.getErrorIcon());
+            Messages.showMessageDialog("Your commit message needs to start with one of following options: SC/CASE/STORY/SUP followed by case number",
+                                       "Commit Message Invalid", Messages.getErrorIcon());
             return false;
         }
         Properties properties = System.getProperties();

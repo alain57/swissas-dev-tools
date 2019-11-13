@@ -32,6 +32,7 @@ import com.swissas.util.NetworkUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.select.Elements;
 
 import static com.swissas.util.Constants.BLINKING;
 import static com.swissas.util.Constants.GREEN;
@@ -60,7 +61,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
     @NonNls
     private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
-    
+
     private static final int RADIUS_VERTICAL = 4;
     private static final int RADIUS_HORIZONTAL = 6;
     private static final int BORDER_VERTICAL = 1;
@@ -196,13 +197,32 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     }
     
     private void readTrafficValues() {
+        Elements tickerDetail = NetworkUtil.getInstance().getTrafficLightContent();
         this.status.clear();
-        this.status.putAll(NetworkUtil.getInstance().getTrafficLightColors());
+        this.status.putAll(getSmartTrafficLightColor(tickerDetail));
         if(!State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW))) {
-            this.trafficDetails = NetworkUtil.getInstance().getTrafficLightDetails();
+            this.trafficDetails = tickerDetail.html();
         }else {
             this.trafficDetails = null;
         }
+    }
+
+    public Map<String, String> getSmartTrafficLightColor(Elements tickerDetail) {
+        Map<String, String> lampColors = new HashMap<>();
+        Elements trs = tickerDetail.select("tr");
+        if(trs.size() == 1 && trs.html().contains("happy.jpg")){
+            //no issues
+            lampColors.put("green", "on");
+            lampColors.put("yellow", "off");
+            lampColors.put("red", "off");
+        } else {
+            lampColors.put("green", "off");
+            boolean issueOnSameBranch = true; //TODO implement once lamp is not green, use ProjectUtil.getBranchOfSelectedEditor()
+            lampColors.put("yellow", issueOnSameBranch ? "off" : "on");
+            lampColors.put("red", issueOnSameBranch ? "on" : "off");
+        }
+
+        return lampColors;
     }
 
     

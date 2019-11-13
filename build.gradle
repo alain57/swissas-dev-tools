@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.intellij' version '0.4.9'
+    id 'org.jetbrains.intellij' version '0.4.12'
 }
 
 group 'com.swissas.tala'
@@ -24,7 +24,7 @@ apply plugin: 'org.jetbrains.intellij'
 intellij {
     downloadSources true
     intellij.updateSinceUntilBuild false
-    plugins 'java', 'properties'
+    plugins 'java', 'properties', 'svn4idea', 'git4idea'
 
 }
 
@@ -40,6 +40,9 @@ Add Who is this in the Annotate menu
 Add new configurations in the settings menu
 Add precommit code review condition (configurable in the settings menu)
 Add Inform QA/Support/Documentation  per mail if Client/Web changes
+Disable inspection, bulb and SAS warning on non SAS projects 
+Adapt the lamp logic to be smarter : red => the branch you are is broken, yellow => another branch is broken, green => all is ok
+Show the lamp color of the branch you currently are working
 Small code cleaning.
 </pre>
 <b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>

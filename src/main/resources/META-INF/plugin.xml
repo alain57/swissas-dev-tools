@@ -10,7 +10,7 @@
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.properties</depends>
     <depends>com.intellij.modules.java</depends>
-    
+    <depends>com.intellij.modules.vcs</depends>
     <extensions defaultExtensionNs="com.intellij">
         <applicationService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 

@@ -35,6 +35,7 @@ import com.swissas.beans.File;
 import com.swissas.beans.Message;
 import com.swissas.beans.Module;
 import com.swissas.beans.Type;
+import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -78,21 +79,22 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        this.swissAsStorage = SwissAsStorage.getInstance();
+        if(ProjectUtil.getInstance().isAmosProject(project)) {
+            this.swissAsStorage = SwissAsStorage.getInstance();
+            ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+            Content content = contentFactory.createContent(this, "", false);
+            toolWindow.getContentManager().addContent(content);
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    WarningContent.this.refresh();
+                }
+            };
+            Timer timer = new Timer(WARNING_CONTENT_TIMER);
+            timer.schedule(timerTask, 30, 24 * 60 * 60_000);
 
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(this, "", false);
-        toolWindow.getContentManager().addContent(content);
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                WarningContent.this.refresh();
-            }
-        };
-        Timer timer = new Timer(WARNING_CONTENT_TIMER);
-        timer.schedule(timerTask, 30, 24 * 60 * 60_000);
-        
-        ((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
+            ((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
+        }
     }
     
     
@@ -216,7 +218,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
                 if(selectedNode.isErrorLine()) {
                     JMenuItem markIgnore = new JMenuItem("ignore all \"" +selectedNode.getDescription() + "\"");
                     markIgnore.addActionListener(event -> markIgnore(selectedNode));
-                    //popupMenu.add(markIgnore); //TODO: add this on 1.6. No need to show not ready menu
+                    //popupMenu.add(markIgnore); //TODO: add this on 1.6. No need to show not ready menu.
                 }
                 popupMenu.show(tree, x, y);
             }

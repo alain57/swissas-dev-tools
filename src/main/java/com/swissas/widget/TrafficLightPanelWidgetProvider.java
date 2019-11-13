@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Stream;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -17,6 +15,7 @@ import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.StatusBarWidgetProvider;
 import com.intellij.openapi.wm.impl.status.MemoryUsagePanel;
 import com.swissas.util.NetworkUtil;
+import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +31,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 	private final Properties properties;
 	private final SwissAsStorage swissAsStorage;
 	private TrafficLightPanel trafficLightPanel = null;
-	
+	private Project project;
 	
 	public TrafficLightPanelWidgetProvider() {
 		this.properties = new Properties();
@@ -44,7 +43,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 		TimerTask refreshUserMapTimerTask = new TimerTask() {
 			@Override
 			public void run() {
-				if(TrafficLightPanelWidgetProvider.this.swissAsStorage.isAmosProject()) {
+				if(ProjectUtil.getInstance().isAmosProject(TrafficLightPanelWidgetProvider.this.project)) {
 					NetworkUtil.getInstance().refreshUserMap();
 				}
 			}
@@ -65,9 +64,9 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 	}
 	
 	
-	private void fillSharedProperties(@NotNull Project project) {
-		Module shared = Stream.of(ModuleManager.getInstance(project).getModules()).filter(e -> e.getName().contains("amos_shared")).findFirst().orElse(null);
-		if (shared != null) {
+	private void fillSharedProperties() {
+		if(ProjectUtil.getInstance().isAmosProject(this.project)) {
+			Module shared = ProjectUtil.getInstance().getShared();
 			VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
 			VirtualFile propertyFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
 			try {
@@ -80,17 +79,17 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			this.swissAsStorage.setAmosProject(true);
 			setupSchedulerTask();
+			this.swissAsStorage.setShareProperties(this.properties);
 		}
-		this.swissAsStorage.setShareProperties(this.properties);
 	}
 	
 	@Nullable
 	@Override
 	public StatusBarWidget getWidget(@NotNull Project project) {
-		fillSharedProperties(project);
-		if(this.swissAsStorage.isAmosProject() && this.trafficLightPanel == null){
+		this.project = project;
+		fillSharedProperties();
+		if(ProjectUtil.getInstance().isAmosProject(project) && this.trafficLightPanel == null){
 			this.trafficLightPanel = new TrafficLightPanel(project);
 		}
 		return this.trafficLightPanel;

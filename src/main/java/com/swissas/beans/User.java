@@ -56,7 +56,6 @@ public class User implements Serializable {
 				Image image = ImageIO.read(url);
 				this.picture = new ImageIcon(image);
 			}catch (Exception e){
-				e.printStackTrace();
 				this.picture = null;
 			}
 		}

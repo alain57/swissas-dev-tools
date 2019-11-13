@@ -1,7 +1,6 @@
 package com.swissas.util;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
@@ -56,32 +55,15 @@ public class NetworkUtil {
 		}
 		SwissAsStorage.getInstance().setUserMap(userMap);
 	}
-	
-	public Map<String, String> getTrafficLightColors() {
-		Map<String, String> lampColors = new HashMap<>();
+
+	public Elements getTrafficLightContent() {
+		Elements body = null;
 		try {
-			String trafficLight = Jsoup.connect(TRAFFIC_LIGHT_URL + SwissAsStorage.getInstance().getFourLetterCode()).get().select("body").html();
-			
-			
-			String[] parts = trafficLight.toLowerCase().split(",\\s?"/*NON-NLS*/);
-			for (String part: parts) {
-				String[] s = part.split(":");
-				lampColors.put(s[0], s[1].trim());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return lampColors;
-	}
-	
-	public String getTrafficLightDetails() {
-		String detail = null;
-		try {
-			detail = Jsoup.connect(TRAFFIC_LIGHT_CLICK_URL+ SwissAsStorage.getInstance().getFourLetterCode()).get().html();
+			body = Jsoup.connect(TRAFFIC_LIGHT_CLICK_URL+ SwissAsStorage.getInstance().getFourLetterCode()).get().select("body");
 		}catch (IOException e){
 			e.printStackTrace();
 		}
-		return detail;
+		return body;
 	}
 	
 	

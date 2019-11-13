@@ -156,7 +156,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         String result;
         if(element instanceof PsiPolyadicExpression){
             StringBuilder stringBuilder = new StringBuilder();
-            //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One containing the full stuff, and one only the ending. We don't need the last one, so we filter it out
+            //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One containing the full stuff, and one only the ending. We don't need the last one, so we remote it.
             Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
             List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression || e instanceof PsiMethodCallExpression || e instanceof  PsiReferenceExpression)).
                     filter(onlyIncludeFullMethodCode).collect(Collectors.toList());

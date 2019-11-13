@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.intellij.credentialStore.CredentialAttributes;
-import com.intellij.credentialStore.CredentialAttributesKt;
-import com.intellij.credentialStore.Credentials;
-import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
@@ -50,7 +46,6 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
     private final List<String> ignoredValues;
     private final Map<String, User> userMap;
     private Properties shareProperties; 
-    private boolean isAmosProject = false;
     private boolean isNewTranslation = false;
     
     public SwissAsStorage() {
@@ -247,14 +242,6 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
     public void setShareProperties(Properties shareProperties) {
         this.shareProperties = shareProperties;
-    }
-
-    public boolean isAmosProject() {
-        return this.isAmosProject;
-    }
-
-    public void setAmosProject(boolean amosProject) {
-        this.isAmosProject = amosProject;
     }
 
     public boolean isNewTranslation() {
