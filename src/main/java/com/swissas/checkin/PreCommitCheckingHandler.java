@@ -28,6 +28,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
 import com.swissas.dialog.ConfirmationDialog;
 import com.swissas.dialog.ImportantPreCommitsDone;
+import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
@@ -100,11 +101,11 @@ class PreCommitCheckingHandler extends CheckinHandler {
         boolean result = true;
         boolean informOther = SwissAsStorage.getInstance().isPreCommitInformOther();
         boolean reviewNeeded = SwissAsStorage.getInstance().isPreCommitCodeReview();
-        if(informOther || reviewNeeded){
+        if(ProjectUtil.getInstance().isAmosProject(this.project) && (informOther || reviewNeeded)){
             ImportantPreCommitsDone dialog = new ImportantPreCommitsDone(this.checkinProjectPanel);
             dialog.show();
             int exitCode = dialog.getExitCode();
-            if((exitCode == DialogWrapper.NEXT_USER_EXIT_CODE && !sendMail()) || 
+            if(exitCode == DialogWrapper.NEXT_USER_EXIT_CODE && !sendMail() ||
                     exitCode == DialogWrapper.CANCEL_EXIT_CODE){
                 result = false;
             }
@@ -161,9 +162,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
     
     /**
      * dummy method needed in order to generate an InternetAddress with a stream 
-     * @param address
-     * @return
-     */
+    */
     private InternetAddress generateAddress(String address) {
         InternetAddress result = null;
         if(address != null) {

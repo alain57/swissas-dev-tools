@@ -29,6 +29,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.swissas.config.SwissAsConfig;
 import com.swissas.util.NetworkUtil;
+import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +72,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     private boolean informWhenReady;
     private CheckinProjectPanel checkinProjectPanel;
-    private final Project project;
+    private Project project;
     private final Bulb green;
     private final Bulb yellow;
     private final Bulb red;
@@ -113,7 +114,13 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
                 }
             }
         });
-        
+    }
+
+    public void changeProject(Project project) {
+        if(this.project == null && project != null || this.project.equals(project)) {
+            this.project = project;
+            refreshContent();
+        }
     }
 
     private void openTrafficDetailLink(HyperlinkEvent event){
@@ -210,16 +217,22 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     public Map<String, String> getSmartTrafficLightColor(Elements tickerDetail) {
         Map<String, String> lampColors = new HashMap<>();
         Elements trs = tickerDetail.select("tr");
+        String branchOfSelectedFile = this.project == null ? null : ProjectUtil.getInstance().getBranchOfSelectedEditor(this.project);
         if(trs.size() == 1 && trs.html().contains("happy.jpg")){
             //no issues
             lampColors.put("green", "on");
             lampColors.put("yellow", "off");
             lampColors.put("red", "off");
-        } else {
+        } else if(branchOfSelectedFile != null){
             lampColors.put("green", "off");
-            boolean issueOnSameBranch = true; //TODO implement once lamp is not green, use ProjectUtil.getBranchOfSelectedEditor()
+            boolean issueOnSameBranch = trs.html().toLowerCase().contains(branchOfSelectedFile);
             lampColors.put("yellow", issueOnSameBranch ? "off" : "on");
             lampColors.put("red", issueOnSameBranch ? "on" : "off");
+        }else {
+            //not ready or no file opened
+            lampColors.put("green", "off");
+            lampColors.put("yellow", "off");
+            lampColors.put("red", "off");
         }
 
         return lampColors;

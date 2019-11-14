@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.AbstractVcs;
 import com.intellij.openapi.vcs.FilePath;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.vcs.branch.BranchData;
 import com.intellij.vcs.branch.BranchStateProvider;
 import com.intellij.vcsUtil.VcsUtil;
 
@@ -37,19 +38,26 @@ public class ProjectUtil {
     }
 
     public String getBranchOfSelectedEditor(Project project) {
+        String branchName = null;
         VirtualFile file = Optional.ofNullable(FileEditorManager.getInstance(project).getSelectedEditor())
                 .map(FileEditor::getFile).orElse(null);
+
         if(file != null) {
-            FilePath filePath = VcsUtil.getFilePath(file);
+            FilePath filePath = VcsUtil.getFilePath(file.getPath());
             AbstractVcs vcsFor = VcsUtil.getVcsFor(project, file);
             for (BranchStateProvider provider : BranchStateProvider.EP_NAME.getExtensionList(
                     project)) {
                 if (provider.getClass().getName().contains(vcsFor.getName())) {
-                    return provider.getCurrentBranch(filePath).getBranchName();
+                    branchName = Optional.ofNullable(provider.getCurrentBranch(filePath)).map(
+                            BranchData::getBranchName).map(String::toLowerCase).orElse(null);
+                    break;
                 }
             }
+            if("trunk".equals(branchName)){
+                branchName = "preview";
+            }
         }
-        return null;
+        return branchName;
     }
 
     public boolean isAmosProject(Project project) {

@@ -89,8 +89,12 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 	public StatusBarWidget getWidget(@NotNull Project project) {
 		this.project = project;
 		fillSharedProperties();
-		if(ProjectUtil.getInstance().isAmosProject(project) && this.trafficLightPanel == null){
-			this.trafficLightPanel = new TrafficLightPanel(project);
+		if(ProjectUtil.getInstance().isAmosProject(project)) {
+			if (this.trafficLightPanel == null) {
+				this.trafficLightPanel = new TrafficLightPanel(project);
+			} else {
+				this.trafficLightPanel.changeProject(project);
+			}
 		}
 		return this.trafficLightPanel;
 	}
