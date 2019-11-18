@@ -9,6 +9,11 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
+
+import static com.swissas.util.Constants.BLINKING;
+import static com.swissas.util.Constants.OFF;
+import static com.swissas.util.Constants.ON;
 
 /**
  * The traffic light Bulb 
@@ -18,7 +23,7 @@ import com.intellij.ui.JBColor;
 
 class Bulb extends JPanel {
     private final Color onColor;
-    private TrafficLightPanel.State currentState;
+    private String currentState;
     private boolean blinkingCurrentOn;
     private final TimerTask timerTask;
     private int radius;
@@ -27,8 +32,7 @@ class Bulb extends JPanel {
     Bulb(Color color){
         this.blinkingCurrentOn = false;
         this.onColor = color;
-        this.currentState = TrafficLightPanel.State.OFF;
-        /*NON-NLS*/
+        this.currentState = OFF;
         Timer timer = new Timer("blink"/*NON-NLS*/);
         this.timerTask = new TimerTask() {
             @Override
@@ -45,10 +49,10 @@ class Bulb extends JPanel {
         this.border = border;
     }
 
-    void changeState(TrafficLightPanel.State newState){
-        if(newState != this.currentState) {
+    void changeState(@NotNull String newState){
+        if(!newState.equals(this.currentState)) {
             this.currentState = newState;
-            if (this.currentState.equals(TrafficLightPanel.State.BLINK)) {
+            if (this.currentState.equals(BLINKING)) {
                 this.timerTask.run();
             } else {
                 this.blinkingCurrentOn = false;
@@ -76,14 +80,10 @@ class Bulb extends JPanel {
                 g.setColor( this.onColor.darker().darker().darker() );
                 g.fillOval(this.border, this.border,2* this.radius,2* this.radius);
                 break;
-            case BLINK:
+            case BLINKING:
                 g.setColor(this.blinkingCurrentOn ? this.onColor : this.onColor.darker().darker().darker());
                 g.fillOval(this.border, this.border,2* this.radius,2* this.radius);
                 break;
         }
-    }
-
-    public boolean isOff(){
-        return this.currentState == TrafficLightPanel.State.OFF;
     }
 }

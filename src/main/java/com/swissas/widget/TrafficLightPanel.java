@@ -7,14 +7,20 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.ui.UISettings;
+import com.intellij.ide.ui.UISettingsListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -23,6 +29,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vcs.AbstractVcsHelper;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.changes.LocalChangeList;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.CustomStatusBarWidget;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.ui.JBColor;
@@ -35,10 +42,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.select.Elements;
 
-import static com.swissas.util.Constants.BLINKING;
 import static com.swissas.util.Constants.GREEN;
 import static com.swissas.util.Constants.OFF;
-import static com.swissas.util.Constants.ON;
 import static com.swissas.util.Constants.RED;
 import static com.swissas.util.Constants.YELLOW;
 
@@ -49,13 +54,12 @@ import static com.swissas.util.Constants.YELLOW;
  * @author Tavan Alain
  */
 
-public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
+public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, UISettingsListener {
 
-    enum State{
-        ON,
-        OFF,
-        BLINK
+    private final TimerTask refreshTrafficLightTimerTask;
 
+    @Override public void uiSettingsChanged(UISettings uiSettings) {
+        refreshContent();
     }
 
     @NonNls
@@ -68,8 +72,9 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     private static final int BORDER_VERTICAL = 1;
     private static final int BORDER_HORIZONTAL = 2;
     @NonNls
-    public static final String WIDGET_ID = "com.swissas.widget.TrafficLightPanel";
+    public static final String WIDGET_ID = "trafficLightPanel";
 
+    private StatusBar statusBar;
     private boolean informWhenReady;
     private CheckinProjectPanel checkinProjectPanel;
     private Project project;
@@ -83,7 +88,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     private final Map<String, String> status = new HashMap<>();
     private final SwissAsStorage swissAsStorage;
     private final String clickUrl;
-
+    private String currentBranch = null;
+    private final Timer retrieveTrafficLightTimer;
 
 
     TrafficLightPanel(Project project) {
@@ -99,6 +105,12 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
         this.lamps.add(this.green);
         add(this.lamps);
         setOrientation();
+        this.project.getMessageBus().connect().subscribe(
+                FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+                    @Override public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+                        refreshOnBranchChange(event.getNewFile());
+                    }
+                });
 
         addMouseListener(new MouseAdapter() {
 
@@ -114,13 +126,15 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
                 }
             }
         });
-    }
 
-    public void changeProject(Project project) {
-        if(this.project == null && project != null || this.project.equals(project)) {
-            this.project = project;
-            refreshContent();
-        }
+        this.retrieveTrafficLightTimer = new Timer("trafficLightChecker");
+        this.refreshTrafficLightTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                    refreshContent();
+            }
+        };
+        this.retrieveTrafficLightTimer.schedule(this.refreshTrafficLightTimerTask, 500, 30_000);
     }
 
     private void openTrafficDetailLink(HyperlinkEvent event){
@@ -159,6 +173,9 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     }
 
     void refreshContent(){
+        if(this.project.isDisposed() || this.currentBranch == null){
+            return;
+        }
         if(this.swissAsStorage.getFourLetterCode().isEmpty()){
             
             JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(RESOURCE_BUNDLE.getString("4lc.not.configured"), 
@@ -170,13 +187,12 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
             this.red.changeState(getStateForColor(RED));
             this.yellow.changeState(getStateForColor(YELLOW));
         }
-        this.isRedOrYellowOn = !State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW));
+        this.isRedOrYellowOn = !OFF.equals(getStateForColor(RED)) || !OFF.equals(getStateForColor(YELLOW));
         if(this.informWhenReady) {
             displayCommitDialogWhenReady();
         }
+        this.statusBar.updateWidget(ID());
     }
-    
-
 
     private void displayCommitDialogWhenReady(){
         if(!this.isRedOrYellowOn){
@@ -188,51 +204,48 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
         }
     }
 
-    private State getStateForColor(String color) {
+    @NotNull
+    private String getStateForColor(String color) {
         if(this.status.isEmpty()){
-            return State.OFF;
+            return OFF;
         }
-        switch (this.status.get(color)) {
-            case ON:
-                return State.ON;
-            case BLINKING:
-                return State.BLINK;
-            default:
-            case OFF:
-                return State.OFF;
-        }
+        return this.status.getOrDefault(color, OFF);
     }
     
     private void readTrafficValues() {
         Elements tickerDetail = NetworkUtil.getInstance().getTrafficLightContent();
         this.status.clear();
         this.status.putAll(getSmartTrafficLightColor(tickerDetail));
-        if(!State.OFF.equals(getStateForColor(RED)) || !State.OFF.equals(getStateForColor(YELLOW))) {
+        if(!OFF.equals(getStateForColor(RED)) || !OFF.equals(getStateForColor(YELLOW))) {
             this.trafficDetails = tickerDetail.html();
         }else {
             this.trafficDetails = null;
         }
     }
 
+    private void refreshOnBranchChange(VirtualFile file){
+        String branch = ProjectUtil.getInstance().getBranchOfFile(this.project, file);
+        if(branch != null && !branch.equals(this.currentBranch)){
+            this.currentBranch = branch;
+
+            this.retrieveTrafficLightTimer.cancel();
+            this.retrieveTrafficLightTimer.schedule(this.refreshTrafficLightTimerTask, 0, 30_000);
+        }
+    }
+
+
     public Map<String, String> getSmartTrafficLightColor(Elements tickerDetail) {
         Map<String, String> lampColors = new HashMap<>();
-        Elements trs = tickerDetail.select("tr");
-        String branchOfSelectedFile = this.project == null ? null : ProjectUtil.getInstance().getBranchOfSelectedEditor(this.project);
-        if(trs.size() == 1 && trs.html().contains("happy.jpg")){
-            //no issues
-            lampColors.put("green", "on");
-            lampColors.put("yellow", "off");
-            lampColors.put("red", "off");
-        } else if(branchOfSelectedFile != null){
-            lampColors.put("green", "off");
-            boolean issueOnSameBranch = trs.html().toLowerCase().contains(branchOfSelectedFile);
-            lampColors.put("yellow", issueOnSameBranch ? "off" : "on");
-            lampColors.put("red", issueOnSameBranch ? "on" : "off");
-        }else {
-            //not ready or no file opened
-            lampColors.put("green", "off");
-            lampColors.put("yellow", "off");
-            lampColors.put("red", "off");
+        if(tickerDetail != null) {
+            Elements trs = tickerDetail.select("tr");
+            if (trs.size() == 1 && trs.html().contains("happy.jpg")) {
+                //no issues
+                lampColors.put("green", "on");
+            } else if (this.currentBranch != null) {
+                boolean issueOnSameBranch = trs.html().toLowerCase().contains(this.currentBranch);
+                lampColors.put("yellow", issueOnSameBranch ? "off" : "on");
+                lampColors.put("red", issueOnSameBranch ? "on" : "off");
+            }
         }
 
         return lampColors;
@@ -251,7 +264,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
     public String getTrafficDetails() {
         return this.trafficDetails;
     }
-    
+
     @Override
     public JComponent getComponent() {
         return this;
@@ -266,11 +279,13 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget {
 
     @Override
     public void install(@NotNull StatusBar statusBar) {
-
+        this.statusBar = statusBar;
+        this.project = statusBar.getProject();
+        refreshContent();
     }
 
     @Override
     public void dispose() {
-
+        this.project = null;
     }
 }

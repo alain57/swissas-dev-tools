@@ -35,7 +35,6 @@ class ConfigPanel {
 	private JPanel generalPanel;
 	private JPanel jenkinsPanel;
 	private JTextField minTranslationSize;
-	private JPanel warningPanel;
 	private JPanel translationPanel;
 	private JCheckBox chkTranslateOnlyModifiedLines;
 	private JPanel preCommitPanel;

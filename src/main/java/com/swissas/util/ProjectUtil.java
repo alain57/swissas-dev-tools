@@ -1,7 +1,5 @@
 package com.swissas.util;
 
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -12,6 +10,7 @@ import com.intellij.vcs.branch.BranchData;
 import com.intellij.vcs.branch.BranchStateProvider;
 import com.intellij.vcsUtil.VcsUtil;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -37,24 +36,21 @@ public class ProjectUtil {
         return INSTANCE;
     }
 
-    public String getBranchOfSelectedEditor(Project project) {
+    public String getBranchOfFile(Project project, VirtualFile file) {
         String branchName = null;
-        VirtualFile file = Optional.ofNullable(FileEditorManager.getInstance(project).getSelectedEditor())
-                .map(FileEditor::getFile).orElse(null);
-
         if(file != null) {
             FilePath filePath = VcsUtil.getFilePath(file.getPath());
-            AbstractVcs vcsFor = VcsUtil.getVcsFor(project, file);
-            for (BranchStateProvider provider : BranchStateProvider.EP_NAME.getExtensionList(
-                    project)) {
-                if (provider.getClass().getName().contains(vcsFor.getName())) {
-                    branchName = Optional.ofNullable(provider.getCurrentBranch(filePath)).map(
-                            BranchData::getBranchName).map(String::toLowerCase).orElse(null);
-                    break;
+            AbstractVcs vcsFor = VcsUtil.getVcsFor(project, filePath);
+            if(vcsFor != null) {
+                branchName = BranchStateProvider.EP_NAME.getExtensionList(project)
+                        .stream().filter(Objects::nonNull)
+                        .filter(p -> p.getClass().getName().contains(vcsFor.getName()))
+                        .map(p -> p.getCurrentBranch(filePath)).filter(Objects::nonNull)
+                        .map(BranchData::getBranchName).filter(Objects::nonNull)
+                        .map(String::toLowerCase).findFirst().orElse(null);
+                if ("trunk".equals(branchName)) {
+                    branchName = "preview";
                 }
-            }
-            if("trunk".equals(branchName)){
-                branchName = "preview";
             }
         }
         return branchName;

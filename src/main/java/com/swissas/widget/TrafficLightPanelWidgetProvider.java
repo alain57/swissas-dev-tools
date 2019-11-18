@@ -48,19 +48,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 				}
 			}
 		};
-		
-		
-		Timer retrieveTrafficLightTimer = new Timer("trafficLightChecker");
-		TimerTask refreshTrafficLightTimerTask = new TimerTask() {
-			@Override
-			public void run() {
-				if(TrafficLightPanelWidgetProvider.this.trafficLightPanel != null) {
-					TrafficLightPanelWidgetProvider.this.trafficLightPanel.refreshContent();
-				}
-			}
-		};
 		retrieveUserDataTimer.schedule(refreshUserMapTimerTask, 30, 24 * 60 * 60_000);
-		retrieveTrafficLightTimer.schedule(refreshTrafficLightTimerTask, 60, 30_000);
 	}
 	
 	
@@ -70,7 +58,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 			VirtualFile sourceRoots = ModuleRootManager.getInstance(shared).getSourceRoots()[0];
 			VirtualFile propertyFile = sourceRoots.findFileByRelativePath("amos/share/multiLanguage/Standard.properties");
 			try {
-				if (propertyFile != null) { //if null then older amos release maybe add this case in future... For now don't handle it
+				if (propertyFile != null) { //if null then older amos release maybe add this case in the future... For now don't handle it.
 					FileInputStream in = new FileInputStream(propertyFile.getPath());
 					this.properties.load(in);
 					in.close();
@@ -90,18 +78,16 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 		this.project = project;
 		fillSharedProperties();
 		if(ProjectUtil.getInstance().isAmosProject(project)) {
-			if (this.trafficLightPanel == null) {
-				this.trafficLightPanel = new TrafficLightPanel(project);
-			} else {
-				this.trafficLightPanel.changeProject(project);
-			}
+			this.trafficLightPanel = new TrafficLightPanel(project);
 		}
 		return this.trafficLightPanel;
 	}
-	
+
 	@NotNull
 	@Override
 	public String getAnchor() {
 		return StatusBar.Anchors.before(MemoryUsagePanel.WIDGET_ID);
 	}
+
+
 }
