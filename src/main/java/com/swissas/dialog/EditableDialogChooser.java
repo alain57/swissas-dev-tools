@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * a simple dialog with a text field completion
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class EditableDialogChooser extends DialogWrapper {

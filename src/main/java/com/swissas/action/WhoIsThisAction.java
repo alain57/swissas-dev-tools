@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Class for showing more information about a 4LC
- * @author TALA
+ * @author Tavan Alain
  */
 public class WhoIsThisAction extends LetterCodeAction {
 	protected WhoIsThisAction() {

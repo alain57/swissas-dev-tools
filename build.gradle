@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.5.14'
+version '1.6.0'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -14,7 +14,11 @@ repositories {
 
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group:'org.junit.jupiter', name:'junit-jupiter-api', version: '5.2.0'
+    testCompile group:'org.junit.jupiter', name:'junit-jupiter-params', version: '5.2.0'
+    testRuntime group:'org.junit.jupiter', name:'junit-jupiter-engine', version: '5.2.0'
+    testCompile group: 'org.assertj', name: 'assertj-core', version:'3.11.0'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
     compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'javax.mail', name: 'mail', version: '1.4.7'
@@ -28,15 +32,21 @@ intellij {
 
 }
 
+test {
+    useJUnitPlatform()
+}
+
 publishPlugin {
     token intellijPublishToken //variable defined in the gradle.properties file
 }
 
 patchPluginXml {
     changeNotes """
-<b>V1.5.14</b><pre>Use combobox for the LetterCode information menu
+<b>V1.6.0</b><pre>Use combobox for the LetterCode information menu
 Add picture in LetterCode information menu
 Add Who is this in the Annotate menu
+Add open case within the Annotate menu
+Add open review within the Annotate menu
 Add new configurations in the settings menu
 Add precommit code review condition (configurable in the settings menu)
 Add Inform QA/Support/Documentation  per mail if Client/Web changes

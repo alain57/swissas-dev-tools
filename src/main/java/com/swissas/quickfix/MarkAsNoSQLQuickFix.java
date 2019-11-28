@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Quickfix class to mark a string as not an SQL
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class MarkAsNoSQLQuickFix implements LocalQuickFix {

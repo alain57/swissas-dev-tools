@@ -7,7 +7,7 @@ import com.intellij.openapi.util.IconLoader;
 /**
  * The Icon interface that is used by the plugin xml file
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public interface SwissAsIcons {

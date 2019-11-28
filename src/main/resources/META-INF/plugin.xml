@@ -23,7 +23,9 @@
         <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
         <statusBarWidgetProvider id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetProvider"/>
-        <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.AnnotationProvider" />
+        <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.WhoWroteThisAnnotationProvider" />
+        <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenCaseAnnotationProvider" />
+        <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />
     </extensions>
 
     <application-components>

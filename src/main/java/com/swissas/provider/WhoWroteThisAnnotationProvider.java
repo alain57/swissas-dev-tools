@@ -1,5 +1,7 @@
 package com.swissas.provider;
 
+import java.util.Objects;
+
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
@@ -11,12 +13,12 @@ import icons.SwissAsIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * TODO: write you class description here
+ * The annotation provider that allows to have the "who wrote this" menu in the subversion annotate gutter
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
-public class AnnotationProvider implements AnnotationGutterActionProvider {
+public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionProvider {
 	
 	@NotNull
 	@Override
@@ -30,7 +32,7 @@ public class AnnotationProvider implements AnnotationGutterActionProvider {
 		private int lineNumber;
 		
 		public WhoIsThisRightClickAction(@NotNull FileAnnotation annotation){
-			super("Who Is This", "Display information about the letter code", SwissAsIcons.AMOS);
+			super("Who Wrote This", "Display information about the letter code", SwissAsIcons.AMOS);
 			
 			this.annotation = annotation;
 		}
@@ -40,7 +42,8 @@ public class AnnotationProvider implements AnnotationGutterActionProvider {
 		@Override
 		public void actionPerformed(@NotNull AnActionEvent e) {
 			VcsRevisionNumber lineRevisionNumber = this.annotation.getLineRevisionNumber(this.lineNumber);
-			String lc = this.annotation.getAuthorsMappingProvider().getAuthors().get(lineRevisionNumber);
+			String lc = Objects.requireNonNull(this.annotation.getAuthorsMappingProvider())
+			                   .getAuthors().get(lineRevisionNumber);
 			ShowLetterCodeInformation.displayInformation(lc, null);
 		}
 		

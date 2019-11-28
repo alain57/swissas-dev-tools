@@ -27,7 +27,6 @@ class LabelWithIcon extends JLabel {
     private Icon currentIcon;
 
     public LabelWithIcon() {
-        super();
         setOpaque(false);
         setBorder(BorderFactory.createEmptyBorder(0, SIZE + MARGIN, 0, SIZE + MARGIN +3));
     }
@@ -60,7 +59,7 @@ class LabelWithIcon extends JLabel {
             g2d.fill(new Ellipse2D.Double(2, 2, 30, 30));
         }
         
-        g2d.drawImage(ImageUtility.iconToImage(this.currentIcon), MARGIN + 13 - this.currentIcon.getIconWidth() / 2, MARGIN + 13 - this.currentIcon.getIconHeight() / 2, null);
+        g2d.drawImage(ImageUtility.getInstance().iconToImage(this.currentIcon), MARGIN + 13 - this.currentIcon.getIconWidth() / 2, MARGIN + 13 - this.currentIcon.getIconHeight() / 2, null);
 
         int bubbleWith = this.data.getNewMessages() > 99 ? halfSize + 4 : halfSize;
         int bubbleXPos = this.data.getNewMessages() > 99 ? getWidth() - SIZE - MARGIN -2 : getWidth() - SIZE - MARGIN;
@@ -88,7 +87,7 @@ class LabelWithIcon extends JLabel {
             g2d.setFont(oldFont);
         }
         if(this.selected){
-            g2d.drawImage(ImageUtility.iconToImage(SwissAsIcons.DELETE), getWidth() - 9 - MARGIN - SwissAsIcons.DELETE.getIconWidth() / 2,
+            g2d.drawImage(ImageUtility.getInstance().iconToImage(SwissAsIcons.DELETE), getWidth() - 9 - MARGIN - SwissAsIcons.DELETE.getIconWidth() / 2,
                     getHeight() / 2 - SwissAsIcons.DELETE.getIconHeight() / 2, null);
         }
     }

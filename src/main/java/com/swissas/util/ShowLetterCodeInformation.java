@@ -14,7 +14,7 @@ import com.swissas.beans.User;
 /**
  * A helper class for the display User Information logic.
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class ShowLetterCodeInformation {

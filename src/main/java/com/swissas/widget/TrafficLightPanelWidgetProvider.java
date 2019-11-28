@@ -24,13 +24,12 @@ import org.jetbrains.annotations.Nullable;
  * The main class of the plugin that installs the traffic light on the bottom of the IDE
  * It also checks the traffic light all 30 seconds, and the user list every day
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider {
 	private final Properties properties;
 	private final SwissAsStorage swissAsStorage;
-	private TrafficLightPanel trafficLightPanel = null;
 	private Project project;
 	
 	public TrafficLightPanelWidgetProvider() {
@@ -77,10 +76,13 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 	public StatusBarWidget getWidget(@NotNull Project project) {
 		this.project = project;
 		fillSharedProperties();
+		TrafficLightPanel trafficLightPanel = null;
 		if(ProjectUtil.getInstance().isAmosProject(project)) {
-			this.trafficLightPanel = new TrafficLightPanel(project);
+			trafficLightPanel = new TrafficLightPanel(project);
+		}else {
+			trafficLightPanel = null;
 		}
-		return this.trafficLightPanel;
+		return trafficLightPanel;
 	}
 
 	@NotNull

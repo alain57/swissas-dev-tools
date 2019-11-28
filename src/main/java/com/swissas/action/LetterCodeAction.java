@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract class to display information about letter code 
- * @author TALA
+ * @author Tavan Alain
  */
 abstract class LetterCodeAction extends EditorAction {
 	LetterCodeAction(){

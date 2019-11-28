@@ -56,7 +56,7 @@ import static com.swissas.util.Constants.YELLOW;
 
 public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, UISettingsListener {
 
-    private final TimerTask refreshTrafficLightTimerTask;
+    private TimerTask refreshTrafficLightTimerTask;
 
     @Override public void uiSettingsChanged(UISettings uiSettings) {
         refreshContent();
@@ -88,13 +88,14 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     private final Map<String, String> status = new HashMap<>();
     private final SwissAsStorage swissAsStorage;
     private final String clickUrl;
-    private String currentBranch = null;
-    private final Timer retrieveTrafficLightTimer;
+    private String currentBranch;
+    private Timer retrieveTrafficLightTimer;
 
 
     TrafficLightPanel(Project project) {
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
+        this.currentBranch = ProjectUtil.getInstance().getBranchOfFile(project, null);
         this.clickUrl = URL_BUNDLE.getString("url.trafficlight.click");
         this.lamps = new JPanel();
         this.green =  new Bulb(JBColor.GREEN);
@@ -173,7 +174,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     void refreshContent(){
-        if(this.project.isDisposed() || this.currentBranch == null){
+        if(this.currentBranch == null || this.project.isDisposed() || !ProjectUtil.getInstance().isAmosProject(this.project)){
             return;
         }
         if(this.swissAsStorage.getFourLetterCode().isEmpty()){
@@ -227,8 +228,16 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         String branch = ProjectUtil.getInstance().getBranchOfFile(this.project, file);
         if(branch != null && !branch.equals(this.currentBranch)){
             this.currentBranch = branch;
-
             this.retrieveTrafficLightTimer.cancel();
+            this.retrieveTrafficLightTimer.purge();
+            this.refreshTrafficLightTimerTask.cancel();
+            this.refreshTrafficLightTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    refreshContent();
+                }
+            };
+            this.retrieveTrafficLightTimer = new Timer("trafficLightChecker");
             this.retrieveTrafficLightTimer.schedule(this.refreshTrafficLightTimerTask, 0, 30_000);
         }
     }
@@ -286,6 +295,9 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
 
     @Override
     public void dispose() {
-        this.project = null;
+        this.currentBranch = null;
+        this.status.clear();
+        this.trafficDetails = null;
+        
     }
 }

@@ -11,7 +11,7 @@ import javax.swing.ImageIcon;
 /**
  * A User Bean class
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class User implements Serializable {

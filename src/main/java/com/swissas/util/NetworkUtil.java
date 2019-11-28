@@ -15,9 +15,9 @@ import org.jsoup.select.Elements;
 
 
 /**
- * TODO: write you class description here
+ * A Utility class to do some networking stuff
  *
- * @author TALA
+ * @author Tavan Alain
  */
 
 public class NetworkUtil {
