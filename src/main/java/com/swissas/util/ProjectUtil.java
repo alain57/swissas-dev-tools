@@ -25,14 +25,14 @@ import java.util.stream.Stream;
 
 public class ProjectUtil {
     private static ProjectUtil INSTANCE;
-
+    static final Pattern AMOS_SHARED_DIRECTORY_PATTERN = Pattern.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/");
+    static final Pattern STABLE_VERSION_PATTERN        = Pattern.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$");
+    
     Module shared;
     String currentProjectBasePath = null;
     boolean isAmosProject = false;
     String projectDefaultBranch = null;
     boolean shouldSearchDefaultBranch  = false;
-    final Pattern amosSharedDirectoryPattern = Pattern.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/");
-    final Pattern stableVersionPattern = Pattern.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$");
 
     private ProjectUtil() {
 
@@ -67,7 +67,7 @@ public class ProjectUtil {
         if ("trunk".equals(branchName)) {
             result = "preview";
         }else if(!"preview".equals(result)){
-            Matcher matcher = this.stableVersionPattern.matcher(result.toLowerCase());
+            Matcher matcher = STABLE_VERSION_PATTERN.matcher(result.toLowerCase());
             if(matcher.find() && matcher.groupCount() == 2){
                 int majorVersion = Integer.parseInt(matcher.group(1));
                 int minorVersion = Integer.parseInt(matcher.group(2));
@@ -108,7 +108,7 @@ public class ProjectUtil {
     String getProjectDefaultBranch(){
         if(this.shouldSearchDefaultBranch) {
             this.shouldSearchDefaultBranch = false;
-            Matcher matcher = this.amosSharedDirectoryPattern
+            Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
                     .matcher(this.shared.getModuleFilePath().toLowerCase());
             if(matcher.find()){
                 this.projectDefaultBranch = matcher.group(1);

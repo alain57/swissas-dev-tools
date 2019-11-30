@@ -3,18 +3,29 @@ package com.swissas.dialog;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.BodyPart;
 import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.PreencodedMimeBodyPart;
+import javax.mail.util.ByteArrayDataSource;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -27,12 +38,17 @@ import javax.swing.KeyStroke;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
-import com.intellij.ui.components.JBCheckBox;
 import com.swissas.ui.DragDropTextPane;
+import com.swissas.util.ImageUtility;
 import com.swissas.util.SwissAsStorage;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
+/**
+ * The importantPreCommits dialog that appears if user configured 
+ * his IntelliJ to ask for a reviewer or send an Email to other departments
+ * @author Tavan Alain
+ */
 public class ImportantPreCommits extends JDialog {
 	
 	private static final Pattern START_WITH_SUPPORT_STRING = Pattern
@@ -79,6 +95,7 @@ public class ImportantPreCommits extends JDialog {
 			this.messageContent.setEnabled(this.InformCheckbox.isSelected());
 			
 		});
+		pack();
 	}
 	
 	
@@ -111,7 +128,19 @@ public class ImportantPreCommits extends JDialog {
 		SwissAsStorage storage = SwissAsStorage.getInstance();
 		properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
 		Session session = Session.getDefaultInstance(properties, null);
+		Multipart multipart = new MimeMultipart();
+		BodyPart messageBodyPart = new MimeBodyPart();
+		int imageCounter = 1;
 		try {
+			messageBodyPart.setText(message);
+			multipart.addBodyPart(messageBodyPart);
+			for (ImageIcon image : this.messageContent.getImages()) {
+				String imageName = "image_" + imageCounter + ".jpg";
+				String imageContent = ImageUtility.getInstance().imageToBase64Jpeg(image);
+				MimeBodyPart  part = addJpegAttachment(imageName, imageContent);
+				multipart.addBodyPart(part);
+				imageCounter++;
+			}
 			Message msg = new MimeMessage(session);
 			msg.setFrom(new InternetAddress(storage.getMyMail()));
 			InternetAddress[] internetAddresses = Stream
@@ -119,10 +148,10 @@ public class ImportantPreCommits extends JDialog {
 					.map(this::generateAddress).filter(Objects::nonNull)
 					.toArray(InternetAddress[]::new);
 			
-			//msg.addRecipients(Message.RecipientType.TO, internetAddresses);
-			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(storage.getMyMail()));
+			msg.addRecipients(Message.RecipientType.TO, internetAddresses); //comment this for testing 
+			//msg.addRecipient(Message.RecipientType.TO, new InternetAddress(storage.getMyMail())); //uncomment this for testing
 			msg.setSubject("Automatic User Interface Change");
-			msg.setText(message);
+			msg.setContent(multipart);
 			Transport.send(msg);
 		} catch (Exception e) {
 			Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent",
@@ -133,6 +162,23 @@ public class ImportantPreCommits extends JDialog {
 		return true;
 	}
 	
+	
+	private MimeBodyPart addJpegAttachment(final String fileName, final String fileContent){
+		if (fileName == null || fileContent == null) {
+			return null;
+		}
+		MimeBodyPart filePart;
+		try {
+			DataSource ds = new ByteArrayDataSource(fileContent, "image/jpeg");
+			filePart = new PreencodedMimeBodyPart("base64");
+			filePart.setDataHandler(new DataHandler(ds));
+			filePart.setFileName(fileName);
+		} catch (MessagingException | IOException e) {
+			e.printStackTrace();
+			filePart = null;
+		}
+		return filePart;
+	}
 	/**
 	 * dummy method needed in order to generate an InternetAddress with a stream
 	 */
