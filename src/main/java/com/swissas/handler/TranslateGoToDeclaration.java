@@ -26,17 +26,25 @@ class TranslateGoToDeclaration implements GotoDeclarationHandler {
 	@Nullable
 	@Override
 	public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
-		IElementType elementType = sourceElement.getNode().getElementType();
-		Language language = elementType.getLanguage();
-
-		if (language.equals(JavaLanguage.INSTANCE) && elementType.toString().equals("IDENTIFIER") && TranslationDocumentationProvider.isSasMultiLang(sourceElement)) {
-			PsiFile currentPropertiesFile = sourceElement.getContainingFile().getContainingDirectory().findFile("Standard.properties");
-			if(currentPropertiesFile != null) { //when null then we may be on old stable version without properties file
-				PropertiesFile propertiesFile = (PropertiesFile) currentPropertiesFile;
-				PsiElement psiElement = Optional.ofNullable(propertiesFile.findPropertyByKey(sourceElement.getText())).map(IProperty::getPsiElement).orElse(null);
-				if (psiElement != null) {
-					Property property = (Property) psiElement;
-					return new PsiElement[]{property.getLastChild()};
+		if(sourceElement != null) {
+			IElementType elementType = sourceElement.getNode().getElementType();
+			Language language = elementType.getLanguage();
+			
+			if (language.equals(JavaLanguage.INSTANCE) && elementType.toString()
+			                                                         .equals("IDENTIFIER")
+			    && TranslationDocumentationProvider.isSasMultiLang(sourceElement)) {
+				PsiFile currentPropertiesFile = sourceElement.getContainingFile()
+				                                             .getContainingDirectory()
+				                                             .findFile("Standard.properties");
+				if (currentPropertiesFile != null) { //when null then we may be on old stable version without properties file
+					PropertiesFile propertiesFile = (PropertiesFile) currentPropertiesFile;
+					PsiElement psiElement = Optional
+							.ofNullable(propertiesFile.findPropertyByKey(sourceElement.getText()))
+							.map(IProperty::getPsiElement).orElse(null);
+					if (psiElement != null) {
+						Property property = (Property) psiElement;
+						return new PsiElement[]{ property.getLastChild() };
+					}
 				}
 			}
 		}

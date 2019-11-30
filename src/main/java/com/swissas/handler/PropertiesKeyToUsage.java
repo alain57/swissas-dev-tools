@@ -24,15 +24,24 @@ public class PropertiesKeyToUsage implements GotoDeclarationHandler {
 	@Nullable
 	@Override
 	public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
-		IElementType elementType = sourceElement.getNode().getElementType();
-		Language language = elementType.getLanguage();
-		if(PropertiesLanguage.INSTANCE.equals(language) && elementType.toString().contains("KEY_CHARACTERS")){
-			PsiFile currentMessageFile = sourceElement.getContainingFile().getContainingDirectory().findFile("_Messages.java");
-			PsiField correspondingField = PsiTreeUtil.collectElementsOfType(currentMessageFile, PsiField.class).
-					stream().filter(e -> e.getText().contains(sourceElement.getText())).findFirst().orElse(null);
-			if(correspondingField != null){
-				//TODO: result is somehow ugly... not the same style as the references from _Message file. Need to find out what is going wrong here.
-				return ReferencesSearch.search(correspondingField).findAll().stream().map(PsiReference::getElement).toArray(PsiElement[]::new);
+		if(sourceElement != null) {
+			IElementType elementType = sourceElement.getNode().getElementType();
+			Language language = elementType.getLanguage();
+			if (PropertiesLanguage.INSTANCE.equals(language) && elementType.toString().contains(
+					"KEY_CHARACTERS")) {
+				PsiFile currentMessageFile = sourceElement.getContainingFile()
+				                                          .getContainingDirectory()
+				                                          .findFile("_Messages.java");
+				PsiField correspondingField = PsiTreeUtil
+						.collectElementsOfType(currentMessageFile, PsiField.class).
+								stream().filter(e -> e.getText().contains(sourceElement.getText()))
+						.findFirst().orElse(null);
+				if (correspondingField != null) {
+					//TODO: result is somehow ugly... not the same style as the references from _Message file. Need to find out what is going wrong here.
+					return ReferencesSearch.search(correspondingField).findAll().stream()
+					                       .map(PsiReference::getElement)
+					                       .toArray(PsiElement[]::new);
+				}
 			}
 		}
 		return new PsiElement[0];

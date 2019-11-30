@@ -46,7 +46,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * The importantPreCommits dialog that appears if user configured 
- * his IntelliJ to ask for a reviewer or send an Email to other departments
+ * his IntelliJ to ask for a reviewer or send an e-mail to other departments
  * @author Tavan Alain
  */
 public class ImportantPreCommits extends JDialog {

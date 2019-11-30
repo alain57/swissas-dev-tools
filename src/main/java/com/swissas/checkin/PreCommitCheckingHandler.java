@@ -49,7 +49,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
 		IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
-		if (ideFrame != null) {
+		if (ideFrame != null && ideFrame.getStatusBar() != null) {
 			this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(
 					TrafficLightPanel.WIDGET_ID);
 		}

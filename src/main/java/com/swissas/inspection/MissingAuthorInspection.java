@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An inspection for missing author in the java files.
- * It will automatically add a default javadoc author template if none is present
+ * It will automatically add a default javadoc author template if none is present.
  * @author Tavan Alain
  */
 

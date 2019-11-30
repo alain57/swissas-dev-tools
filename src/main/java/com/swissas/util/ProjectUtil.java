@@ -87,7 +87,7 @@ public class ProjectUtil {
             this.isAmosProject = false;
         }else {
             String basePath = project.getBasePath();
-            if (!basePath.equals(this.currentProjectBasePath)) {
+            if (basePath != null && !basePath.equals(this.currentProjectBasePath)) {
                 this.currentProjectBasePath = basePath;
                 Optional<Module> amos_shared = Stream
                         .of(ModuleManager.getInstance(project).getModules())

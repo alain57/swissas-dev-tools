@@ -16,6 +16,6 @@ Bulbs can be on/off/blinking and multiple bulbs can be turned on the same time.
 
 5. Add a smart way to automatically generate Internal Translation
 
-Even if this plugin is no use for people outside of Swiss-AS,  this project is public as it may help other doing the same kind of plugin
+Even if this plugin is no use for people outside of Swiss-AS, this project is public as it may help other doing the same kind of plugin
 
 ![ScreenShot](/doc/screenshot.png)

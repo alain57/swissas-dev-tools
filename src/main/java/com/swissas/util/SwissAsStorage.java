@@ -220,7 +220,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public void setUserMap(Map<String, User> userMap) {
-		if (this.userMap.size() != userMap.size() && !this.userMap.equals(userMap)) {
+		if (this.userMap.size() != userMap.size() || !this.userMap.equals(userMap)) {
 			this.userMap.clear();
 			this.userMap.putAll(userMap);
 			fillMyTeam();
@@ -245,7 +245,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public void setIgnoredValues(List<String> ignoredValues) {
-		if (this.ignoredValues.size() != ignoredValues.size() &&
+		if (this.ignoredValues.size() != ignoredValues.size() ||
 		    !this.ignoredValues.equals(ignoredValues)) {
 			this.ignoredValues.clear();
 			this.ignoredValues.addAll(ignoredValues);
