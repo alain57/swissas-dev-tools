@@ -66,7 +66,7 @@ public class ProjectUtil {
         String result = branchName;
         if ("trunk".equals(branchName)) {
             result = "preview";
-        }else if(!"preview".equals(result)){
+        }else if(result != null && !"preview".equals(result)){
             Matcher matcher = STABLE_VERSION_PATTERN.matcher(result.toLowerCase());
             if(matcher.find() && matcher.groupCount() == 2){
                 int majorVersion = Integer.parseInt(matcher.group(1));

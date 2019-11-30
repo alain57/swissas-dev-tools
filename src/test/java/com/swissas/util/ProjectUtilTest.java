@@ -69,6 +69,12 @@ class ProjectUtilTest {
 		assertThat(result).isEqualTo("V12-20");
 	}
 	
+	@Test
+	void testConvertBranchNoNPEOnNull() {
+		String result = this.projectUtil.convertToCorrectBranch(null);
+		assertThat(result).isEqualTo(null);
+	}
+	
 
 	@Test
 	void testGetProjectDefaultBranchShouldReturnNull() {
