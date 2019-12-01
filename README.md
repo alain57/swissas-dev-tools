@@ -1,3 +1,5 @@
+[![Known Vulnerabilities](https://snyk.io/test/github/alain57/swissas-dev-tools/badge.svg?targetFile=build.gradle)](https://snyk.io/test/github/alain57/swissas-dev-tools?targetFile=build.gradle) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ca8fb7777f0b4982a31ed6824bb3a491)](https://www.codacy.com/manual/alain57/swissas-dev-tools?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=alain57/swissas-dev-tools&amp;utm_campaign=Badge_Grade)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0d04e7590d8b723674b3/maintainability)](https://codeclimate.com/github/alain57/swissas-dev-tools/maintainability)
 # Swiss-AS Dev-Tools
 An IntelliJ Plugin used for developers at Swiss-AS.
 
