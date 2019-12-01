@@ -126,8 +126,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 						for (Node message : file.childNodes()) {
 							Message currentMessage = new Message(message);
 							if (!this.criticalActionToggle.isCriticalOnly() ||
-							    currentType.getName().equalsIgnoreCase(COMPILER) ||
-							    currentType.getName().equalsIgnoreCase(SONAR) && currentMessage
+							    currentType.getMainAttribute().equalsIgnoreCase(COMPILER) ||
+							    currentType.getMainAttribute().equalsIgnoreCase(SONAR) && currentMessage
 									    .isCritical()) {
 								currentFile.addMessage(currentMessage);
 							}
@@ -145,7 +145,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		removeAll();
 		if (!this.types.isEmpty()) {
 			for (Type type : this.types) {
-				if (!type.getName().equalsIgnoreCase(
+				if (!type.getMainAttribute().equalsIgnoreCase(
 						CODE_CHECK)) { //code check has no use in the eclipse plugin, therefore get rid of useless stuff
 					WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
 					for (Module module : type.getModules()) {
@@ -167,7 +167,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			                                                                fileNode);
 		}
 		if (moduleNode.getChildCount() > 0) {
-			moduleNode.setUserObject(module.getName() + " (" + messageCount + ")");
+			moduleNode.setUserObject(module.getMainAttribute() + " (" + messageCount + ")");
 			root.add(moduleNode);
 		}
 	}
@@ -177,7 +177,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	                                                            WarningContentTreeNode fileNode) {
 		int children = 0;
 		if (fileNode.getChildCount() > 0) {
-			fileNode.setUserObject(file.getPath() + " (" + fileNode.getChildCount() + ")");
+			fileNode.setUserObject(file.getMainAttribute() + " (" + fileNode.getChildCount() + ")");
 			moduleNode.add(fileNode);
 			children = fileNode.getChildCount();
 		}
@@ -262,7 +262,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				}
 			}
 		});
-		add(type.getName(), new JBScrollPane(tree));
+		add(type.getMainAttribute(), new JBScrollPane(tree));
 	}
 	
 }

@@ -1,45 +1,25 @@
 package com.swissas.beans;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.nodes.Node;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The Bean structure for the Module
  * @author Tavan Alain
  */
-public class Module implements Comparable<Module>{
-    private String name;
-    private final Set<File> files;
+public class Module extends AttributeChildrenBean{
     
     public Module(Node module) {
-        this.files = new TreeSet<>();
-        setName(module.attr("name"));
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    private void setName(String name) {
-        this.name = name;
+        super(module, "name");
     }
 
     public Set<File> getFiles() {
-        return this.files;
+        return getChildren().stream().map(File.class::cast).collect(Collectors.toSet());
     }
 
     public void addFile(File file) {
-        this.files.add(file);
-    }
-
-
-    @Override
-    public int compareTo(@NotNull Module o) {
-        return new CompareToBuilder()
-                .append(this.name, o.getName())
-                .toComparison();
+        addChildren(file);
     }
 }

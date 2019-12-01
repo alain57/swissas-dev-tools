@@ -1,10 +1,9 @@
 package com.swissas.beans;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.nodes.Node;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A simple Java Bean for the file structure
@@ -12,36 +11,19 @@ import java.util.*;
  * @author Tavan Alain
  */
 
-public class File implements Comparable<File>{
-    private String path;
-    private final Set<Message> messages;
+public class File extends AttributeChildrenBean {
     
     public File(Node fileElement){
-        this.messages = new TreeSet<>();
-        this.setPath(fileElement.attr("path"));
-    }
-
-    public String getPath() {
-        return this.path;
-    }
-
-    private void setPath(String path) {
-        this.path = path;
+        super(fileElement, "path");
     }
 
     public Set<Message> getMessages() {
-        return this.messages;
+        return getChildren().stream().map(Message.class::cast).collect(Collectors.toSet());
     }
 
     public void addMessage(Message message) {
-        this.messages.add(message);
+        addChildren(message);
     }
 
-
-    @Override
-    public int compareTo(@NotNull File o) {
-        return new CompareToBuilder()
-                .append(this.path, o.getPath())
-                .toComparison();
-    }
+    
 }
