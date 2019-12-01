@@ -15,8 +15,7 @@ import com.intellij.openapi.vcs.ex.Range;
 import com.intellij.openapi.vcs.impl.LineStatusTrackerManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.swissas.quickfix.MarkAsNoSQLQuickFix;
-import com.swissas.quickfix.TranslateMakAsIgnoreQuickFix;
+import com.swissas.quickfix.MarkAsIgnoredQuickfix;
 import com.swissas.quickfix.TranslateQuickFix;
 import com.swissas.quickfix.TranslateTooltipQuickFix;
 import com.swissas.util.ProjectUtil;
@@ -56,10 +55,10 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	@NotNull
 	@Override
 	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
-		LocalQuickFix ignoreFix = new TranslateMakAsIgnoreQuickFix();
+		LocalQuickFix ignoreFix = new MarkAsIgnoredQuickfix("/*NO_EXT*/");
 		LocalQuickFix translateFix = new TranslateQuickFix(holder.getFile());
 		LocalQuickFix translateTooltipFix = new TranslateTooltipQuickFix(holder.getFile());
-		LocalQuickFix noSolFix = new MarkAsNoSQLQuickFix();
+		LocalQuickFix noSolFix = new MarkAsIgnoredQuickfix("/*NOSQL*/");
 		LocalQuickFix[] fixes = SwissAsStorage.getInstance().isNewTranslation() ? new LocalQuickFix[]{ignoreFix, translateFix, translateTooltipFix} : new LocalQuickFix[]{ignoreFix};
 		
 		if (holder.getFile().getName().endsWith("Test.java")) {

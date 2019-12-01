@@ -13,14 +13,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ResourceBundle;
 
 /**
- * Quickfix class to mark a string as not translatable
+ * Quickfix class to mark a string as ignored (for translation or SQL check)
  * @author Tavan Alain
  */
-public class TranslateMakAsIgnoreQuickFix implements LocalQuickFix {
+public class MarkAsIgnoredQuickfix implements LocalQuickFix {
 
     @NonNls
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
+    private final String javaComment;
+    
+    public MarkAsIgnoredQuickfix(String javaComment) {
+        this.javaComment = javaComment;
+    }
+    
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
@@ -38,7 +44,7 @@ public class TranslateMakAsIgnoreQuickFix implements LocalQuickFix {
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
         PsiElement startElement = descriptor.getPsiElement();
-        PsiComment noExt = JavaPsiFacade.getInstance(project).getElementFactory().createCommentFromText("/*NO_EXT*/", null);
+        PsiComment noExt = JavaPsiFacade.getInstance(project).getElementFactory().createCommentFromText(this.javaComment, null);
         startElement.getParent().addAfter(noExt, startElement);
     }
 }
