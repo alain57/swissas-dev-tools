@@ -31,6 +31,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
 import com.swissas.action.criticalActionToggle;
+import com.swissas.beans.AttributeChildrenBean;
 import com.swissas.beans.File;
 import com.swissas.beans.Message;
 import com.swissas.beans.Module;
@@ -129,12 +130,12 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 							    currentType.getMainAttribute().equalsIgnoreCase(COMPILER) ||
 							    currentType.getMainAttribute().equalsIgnoreCase(SONAR) && currentMessage
 									    .isCritical()) {
-								currentFile.addMessage(currentMessage);
+								currentFile.addChildren(currentMessage);
 							}
 						}
-						currentModule.addFile(currentFile);
+						currentModule.addChildren(currentFile);
 					}
-					currentType.addModule(currentModule);
+					currentType.addChildren(currentModule);
 				}
 				this.types.add(currentType);
 			}
@@ -148,8 +149,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				if (!type.getMainAttribute().equalsIgnoreCase(
 						CODE_CHECK)) { //code check has no use in the eclipse plugin, therefore get rid of useless stuff
 					WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
-					for (Module module : type.getModules()) {
-						addModuleNodeToRootIfHasChildren(root, module);
+					for (AttributeChildrenBean childrenBean : type.getChildren()) {
+						addModuleNodeToRootIfHasChildren(root, (Module)childrenBean);
 					}
 					createAndAddTreeForTypeAndRootNode(type, root);
 				}
@@ -160,7 +161,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private void addModuleNodeToRootIfHasChildren(WarningContentTreeNode root, Module module) {
 		int messageCount = 0;
 		WarningContentTreeNode moduleNode = new WarningContentTreeNode("");
-		for (File file : module.getFiles()) {
+		for (AttributeChildrenBean attributeChildrenBean : module.getChildren()) {
+			File file = (File) attributeChildrenBean;
 			WarningContentTreeNode fileNode = new WarningContentTreeNode("");
 			addMessageNodesToFileNode(file, fileNode);
 			messageCount += addFileNodeToModuleNodeAndRetunAmountOfChildren(moduleNode, file,
@@ -185,7 +187,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	}
 	
 	private void addMessageNodesToFileNode(File file, WarningContentTreeNode fileNode) {
-		for (Message message : file.getMessages()) {
+		for (AttributeChildrenBean childrenBean : file.getChildren()) {
+			Message message = (Message)childrenBean; 
 			WarningContentTreeNode messageNode = new WarningContentTreeNode(message.getLine(),
 			                                                                message.getDescription());
 			messageNode.setCritical(message.isCritical());

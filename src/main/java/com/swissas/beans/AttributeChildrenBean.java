@@ -29,11 +29,11 @@ public abstract class AttributeChildrenBean implements Comparable<AttributeChild
 		this.mainAttribute = mainAttribute;
 	}
 	
-	protected Set<AttributeChildrenBean> getChildren() {
+	public Set<AttributeChildrenBean> getChildren() {
 		return this.children;
 	}
 	
-	protected void addChildren(AttributeChildrenBean child) {
+	public void addChildren(AttributeChildrenBean child) {
 		this.children.add(child);
 	}
 	
