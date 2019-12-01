@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class OpenReviewAnnotationProvider implements AnnotationGutterActionProvider {
 	private static final Pattern REVIEW_FINDER = Pattern
-			.compile("review( (#|id|no))?[: ]?(\\d+)", Pattern.CASE_INSENSITIVE);
+			.compile("review( (#|id|no))?[: ]*(\\d+)", Pattern.CASE_INSENSITIVE);
 	
 	@NotNull
 	@Override
