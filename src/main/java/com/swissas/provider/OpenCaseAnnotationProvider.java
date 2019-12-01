@@ -17,14 +17,14 @@ import org.jetbrains.annotations.NotNull;
 public class OpenCaseAnnotationProvider implements AnnotationGutterActionProvider {
 	
 	private static final Pattern SUPPORT_FINDER = Pattern
-			.compile("(#|sc|case|sup|support|story|request) ?(id|no)?[: ]?(\\d+[`']?\\d+)");
+			.compile("(#|sc|case|sup|support|story|request) ?(id|no)?[: ]?(\\d+[`']?\\d+)", Pattern.CASE_INSENSITIVE);
 	
 	
 	@NotNull
 	@Override
 	public AnAction createAction(@NotNull FileAnnotation annotation) {
-		return new OpenCaseOrReviewAction(annotation, "Open Support Case",
-		                                  "Open the support written in the annotation",
+		return new OpenCaseOrReviewAction(annotation, "Show Support Case",
+		                                  "Show the support written in the annotation in AMOS",
 		                                  "amos://SUP.",
 		                                  SUPPORT_FINDER);
 	}

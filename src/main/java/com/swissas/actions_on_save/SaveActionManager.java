@@ -34,6 +34,9 @@ public class SaveActionManager implements FileDocumentManagerListener {
 	public static final Logger LOGGER = Logger.getInstance(SaveActionManager.class);
 	
 	private static SaveActionManager instance;
+	private final List<Processor> processors;
+	private boolean running;
+	
 	
 	public static  SaveActionManager getInstance(){
 		if(instance == null){
@@ -42,9 +45,6 @@ public class SaveActionManager implements FileDocumentManagerListener {
 		return instance;
 	}
 	
-	
-	private final List<Processor> processors;
-	private boolean running;
 	
 	private SaveActionManager() {
 		this.processors = new ArrayList<>();

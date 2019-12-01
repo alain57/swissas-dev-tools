@@ -32,12 +32,8 @@ class ConfigPanel {
 	private JCheckBox chkFixOverride;
 	private JCheckBox chkFixUnused;
 	private JPanel mainPanel;
-	private JPanel generalPanel;
-	private JPanel jenkinsPanel;
 	private JTextField minTranslationSize;
-	private JPanel translationPanel;
 	private JCheckBox chkTranslateOnlyModifiedLines;
-	private JPanel preCommitPanel;
 	private JCheckBox preCommitCodeReviewCheckbox;
 	private JCheckBox preCommitInformOtherPersonCheckbox;
 	private TextFieldWithCompletion qualityLetterBox;

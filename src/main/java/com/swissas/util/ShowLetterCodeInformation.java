@@ -21,6 +21,7 @@ public class ShowLetterCodeInformation {
 	
 	public static void displayInformation(String authorString, String errorText){
 		String userInfos = null;
+		String errorMessage = errorText;
 		User user = null;
 		JLabel lbl = new JLabel();
 		if(authorString != null){
@@ -30,12 +31,12 @@ public class ShowLetterCodeInformation {
 				user = userMap.get(authorString);
 				userInfos = user.getInfos();
 			}else{
-				errorText = "<html><b>Could not find \"" + authorString + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
+				errorMessage = "<html><b>Could not find \"" + authorString + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
 			}
 		}
 		JPanel pane = new JPanel(new BorderLayout());
 		if(userInfos == null){
-			lbl.setText(errorText);
+			lbl.setText(errorMessage);
 			pane.add(lbl);
 		}else {
 			lbl.setText(userInfos);

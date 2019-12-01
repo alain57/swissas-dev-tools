@@ -25,16 +25,16 @@ import java.util.stream.Stream;
 
 public class ProjectUtil {
 	private static ProjectUtil INSTANCE;
-	static final   Pattern     AMOS_SHARED_DIRECTORY_PATTERN = Pattern
+	private static final   Pattern     AMOS_SHARED_DIRECTORY_PATTERN = Pattern
 			.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/", Pattern.CASE_INSENSITIVE);
-	static final   Pattern     STABLE_VERSION_PATTERN        = Pattern
+	private static final   Pattern     STABLE_VERSION_PATTERN        = Pattern
 			.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$", Pattern.CASE_INSENSITIVE);
 	
-	Module  shared;
-	String  currentProjectBasePath    = null;
-	boolean isAmosProject             = false;
-	String  projectDefaultBranch      = null;
-	boolean shouldSearchDefaultBranch = false;
+	protected Module  shared;
+	protected String  currentProjectBasePath    = null;
+	protected boolean isAmosProject             = false;
+	protected String  projectDefaultBranch      = null;
+	protected boolean shouldSearchDefaultBranch = false;
 	
 	private ProjectUtil() {
 		

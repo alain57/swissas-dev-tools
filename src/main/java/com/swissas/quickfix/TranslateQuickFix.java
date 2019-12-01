@@ -3,11 +3,11 @@ package com.swissas.quickfix;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
+import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
-import com.intellij.lang.properties.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SwissAsStorage;
 import groovy.json.StringEscapeUtils;
@@ -31,12 +31,14 @@ import java.util.stream.Stream;
 public class TranslateQuickFix implements LocalQuickFix {
 
     private static final String MESSAGE_CLASS = "_Messages.java";
-
+    @NonNls
+    protected static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
+    
     private final SmartPsiElementPointer<PsiFile> javaPsiPointer;
     private final Properties sharedProperties;
-    private String currentPropertiesPath;
-    String ending;
-    String className;
+    protected String ending;
+    protected String className;
+    
 
     public TranslateQuickFix(PsiFile file){
         this.javaPsiPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
@@ -44,9 +46,6 @@ public class TranslateQuickFix implements LocalQuickFix {
         this.className = "MultiLangText";
         this.sharedProperties = SwissAsStorage.getInstance().getShareProperties();
     }
-
-    @NonNls
-    static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -213,8 +212,8 @@ public class TranslateQuickFix implements LocalQuickFix {
     private String replaceWithKnownKeys(String sentence){
         String result = sentence;
         for (Map.Entry<Object, Object> objectObjectEntry : this.sharedProperties.entrySet()) {
-            String key = "@" + objectObjectEntry.getKey().toString() + "@";
-            String value = "\\b" + objectObjectEntry.getValue().toString() + "\\b";
+            String key = "@" + objectObjectEntry.getKey() + "@";
+            String value = "\\b" + objectObjectEntry.getValue() + "\\b";
             result = result.replaceAll(value, key);
         }
         return result;

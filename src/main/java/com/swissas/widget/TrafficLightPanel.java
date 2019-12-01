@@ -58,23 +58,20 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
 
     private TimerTask refreshTrafficLightTimerTask;
 
-    @Override public void uiSettingsChanged(UISettings uiSettings) {
-        refreshContent();
-    }
-
     @NonNls
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
+    
     @NonNls
     private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
-
     private static final int RADIUS_VERTICAL = 4;
+    
     private static final int RADIUS_HORIZONTAL = 6;
     private static final int BORDER_VERTICAL = 1;
     private static final int BORDER_HORIZONTAL = 2;
     @NonNls
     public static final String WIDGET_ID = "trafficLightPanel";
-
     private StatusBar statusBar;
+    
     private boolean informWhenReady;
     private CheckinProjectPanel checkinProjectPanel;
     private Project project;
@@ -84,14 +81,13 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     private final JPanel lamps;
     private boolean isRedOrYellowOn = false;
     private String trafficDetails;
-
     private final Map<String, String> status = new HashMap<>();
+    
     private final SwissAsStorage swissAsStorage;
     private final String clickUrl;
     private String currentBranch;
     private Timer retrieveTrafficLightTimer;
-
-
+    
     TrafficLightPanel(Project project) {
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
@@ -136,6 +132,11 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             }
         };
         this.retrieveTrafficLightTimer.schedule(this.refreshTrafficLightTimerTask, 500, 30_000);
+    }
+    
+    @Override
+    public void uiSettingsChanged(UISettings uiSettings) {
+        refreshContent();
     }
 
     private void openTrafficDetailLink(HyperlinkEvent event){

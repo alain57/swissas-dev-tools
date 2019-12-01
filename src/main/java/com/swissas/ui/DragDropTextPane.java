@@ -46,27 +46,26 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 	
 	@Override
 	public void dragEnter(DropTargetDragEvent dtde) {
-		
+		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragOver(DropTargetDragEvent dtde) {
-		
+		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
 	}
 	
 	@Override
 	public void dropActionChanged(DropTargetDragEvent dtde) {
-		
+		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragExit(DropTargetEvent dte) {
-		
+		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
 	}
 	
 	@Override
 	public void drop(DropTargetDropEvent dropTargetDropEvent) {
-		System.out.println("Drop event");
 		Transferable transferable = dropTargetDropEvent.getTransferable();
 		for (DataFlavor d : transferable.getTransferDataFlavors()) {
 			dropTargetDropEvent
@@ -83,7 +82,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 	private void insertIfImage(File file){
 		String mimetype = new MimetypesFileTypeMap().getContentType(file);
 		String type = mimetype.split("/")[0];
-		if (type.equals("image")) {
+		if ("image".equals(type)) {
 			try {
 				insertIcon(new ImageIcon(ImageIO.read(file)));
 			} catch (IOException e) {
