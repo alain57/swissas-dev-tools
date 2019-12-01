@@ -5,7 +5,26 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiImportList;
+import com.intellij.psi.PsiImportStaticStatement;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiPolyadicExpression;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -35,7 +54,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     protected static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
     
     private final SmartPsiElementPointer<PsiFile> javaPsiPointer;
-    private final Properties sharedProperties;
+    private final Properties                      sharedProperties;
     protected String ending;
     protected String className;
     
@@ -89,9 +108,10 @@ public class TranslateQuickFix implements LocalQuickFix {
         StringBuilder replacement = new StringBuilder(fullKey);
         if(element instanceof PsiPolyadicExpression) {
             List<PsiElement> elementsToFormat = Stream.of(element.getChildren()).filter(e ->
-                    !(e instanceof PsiWhiteSpace) &&
-                            !(e instanceof PsiJavaToken) &&
-                            !(e instanceof PsiLiteralExpressionImpl && ((PsiLiteralExpressionImpl)e).getLiteralElementType().equals(JavaTokenType.STRING_LITERAL))
+                                                    !(e instanceof PsiWhiteSpace) &&
+                                                    !(e instanceof PsiJavaToken) &&
+                                                    !(e instanceof PsiLiteralExpressionImpl && ((PsiLiteralExpressionImpl)e).getLiteralElementType().equals(
+                                    JavaTokenType.STRING_LITERAL))
             ).collect(Collectors.toList());
             replacement.append(".format(");
             String collect = elementsToFormat.stream().map(PsiElement::getText).collect(Collectors.joining(", "));
@@ -157,7 +177,9 @@ public class TranslateQuickFix implements LocalQuickFix {
             StringBuilder stringBuilder = new StringBuilder();
             //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One containing the full stuff, and one only the ending. We don't need the last one, so we remote it.
             Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
-            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression || e instanceof PsiMethodCallExpression || e instanceof  PsiReferenceExpression)).
+            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression
+                                                                                               || e instanceof PsiMethodCallExpression
+                                                                                               || e instanceof PsiReferenceExpression)).
                     filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
             for (PsiElement psiElement : psiElements) {
                 if(psiElement instanceof PsiLiteralExpressionImpl){

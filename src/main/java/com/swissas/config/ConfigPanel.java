@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.JCheckBox;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -12,7 +11,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
-import com.swissas.beans.LabelData;
 import com.swissas.beans.User;
 import com.swissas.util.NetworkUtil;
 import com.swissas.util.PositiveNumberVerifier;
@@ -39,9 +37,6 @@ class ConfigPanel {
 	private TextFieldWithCompletion qualityLetterBox;
 	private TextFieldWithCompletion supportLetterBox;
 	private TextFieldWithCompletion documentationLetterBox;
-	
-	private JCheckBox chkShowIgnoreLists;
-	private JList<LabelData> lstIgnoreValues;
 	
 	private final Project project;
 	

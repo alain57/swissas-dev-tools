@@ -46,22 +46,22 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 	
 	@Override
 	public void dragEnter(DropTargetDragEvent dtde) {
-		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
+		//Method isn't needed therefore empty, but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragOver(DropTargetDragEvent dtde) {
-		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
+		//Method isn't needed therefore empty, but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dropActionChanged(DropTargetDragEvent dtde) {
-		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
+		//Method isn't needed therefore empty, but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragExit(DropTargetEvent dte) {
-		//Method is not needed therefore empty, but reaquired bw the DropTargetListener
+		//Method isn't needed therefore empty, but required bw the DropTargetListener
 	}
 	
 	@Override

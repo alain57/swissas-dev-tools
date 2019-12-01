@@ -12,6 +12,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.util.Consumer;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.swissas.beans.User;
 import org.jetbrains.annotations.NotNull;
@@ -85,26 +86,26 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public void setDocuLetterCode(String docuLetterCode) {
 		this.docuLetterCode = docuLetterCode;
-		if (docuLetterCode.isEmpty()) {
-			setDocuMail(null);
-		} else {
-			String letterCode = docuLetterCode.substring(0, docuLetterCode.indexOf(" "));
-			setDocuMail(letterCode + MAIL_SUFFIX);
-		}
-	}
-	
-	public String getSupportLetterCode() {
-		return this.supportLetterCode;
+		setLetterCodeToFunction(docuLetterCode, this::setDocuMail);
 	}
 	
 	public void setSupportLetterCode(String supportLetterCode) {
 		this.supportLetterCode = supportLetterCode;
-		if (supportLetterCode.isEmpty()) {
-			setSupportMail(null);
-		} else {
-			String letterCode = supportLetterCode.substring(0, supportLetterCode.indexOf(" "));
-			setSupportMail(letterCode + MAIL_SUFFIX);
-		}
+		setLetterCodeToFunction(supportLetterCode, this::setSupportMail);
+	}
+	
+	public void setQaLetterCode(String qaLetterCode) {
+		this.qaLetterCode = qaLetterCode;
+		setLetterCodeToFunction(qaLetterCode, this::setQaMail);
+	}
+	
+	private void setLetterCodeToFunction(String letterCode, Consumer<String> consumer) {
+		String valueToPass =  letterCode.isEmpty() ? null : letterCode.substring(0, letterCode.indexOf(" ")) + MAIL_SUFFIX;
+		consumer.consume(valueToPass);
+	}
+	
+	public String getSupportLetterCode() {
+		return this.supportLetterCode;
 	}
 	
 	public void setFourLetterCode(String fourLetterCode) {
@@ -129,16 +130,6 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		}
 		return Collections.emptyList();
 		
-	}
-	
-	public void setQaLetterCode(String qaLetterCode) {
-		this.qaLetterCode = qaLetterCode;
-		if (qaLetterCode.isEmpty()) {
-			setQaMail(null);
-		} else {
-			String letterCode = qaLetterCode.substring(0, qaLetterCode.indexOf(" "));
-			setQaMail(letterCode + MAIL_SUFFIX);
-		}
 	}
 	
 	public boolean isHorizontalOrientation() {
