@@ -38,7 +38,7 @@ public class Message implements Comparable<Message> {
     }
 
     public boolean isCritical() {
-        return this.severity != null && CRITICAL.equals(this.severity.toLowerCase());
+        return this.severity != null && CRITICAL.equalsIgnoreCase(this.severity);
     }
     
     private String getSeverity() {

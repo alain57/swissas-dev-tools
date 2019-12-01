@@ -24,101 +24,107 @@ import java.util.stream.Stream;
  */
 
 public class ProjectUtil {
-    private static ProjectUtil INSTANCE;
-    static final Pattern AMOS_SHARED_DIRECTORY_PATTERN = Pattern.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/");
-    static final Pattern STABLE_VERSION_PATTERN        = Pattern.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$");
-    
-    Module shared;
-    String currentProjectBasePath = null;
-    boolean isAmosProject = false;
-    String projectDefaultBranch = null;
-    boolean shouldSearchDefaultBranch  = false;
-
-    private ProjectUtil() {
-
-    }
-
-    public static ProjectUtil getInstance(){
-        if(INSTANCE == null) {
-            INSTANCE = new ProjectUtil();
-        }
-        return INSTANCE;
-    }
-
-    public String getBranchOfFile(Project project, VirtualFile file) {
-        String branchName = getProjectDefaultBranch();
-        if(file != null) {
-            FilePath filePath = VcsUtil.getFilePath(file.getPath());
-            AbstractVcs vcsFor = VcsUtil.getVcsFor(project, filePath);
-            if(vcsFor != null) {
-                branchName = BranchStateProvider.EP_NAME.getExtensionList(project)
-                        .stream().filter(Objects::nonNull)
-                        .filter(p -> p.getClass().getName().contains(vcsFor.getName()))
-                        .map(p -> p.getCurrentBranch(filePath)).filter(Objects::nonNull)
-                        .map(BranchData::getBranchName).filter(Objects::nonNull)
-                        .map(String::toLowerCase).findFirst().orElse(null);
-            }
-        }
-        return convertToCorrectBranch(branchName);
-    }
-    
-    String convertToCorrectBranch(String branchName){
-        String result = branchName;
-        if ("trunk".equals(branchName)) {
-            result = "preview";
-        }else if(result != null && !"preview".equals(result)){
-            Matcher matcher = STABLE_VERSION_PATTERN.matcher(result.toLowerCase());
-            if(matcher.find() && matcher.groupCount() == 2){
-                int majorVersion = Integer.parseInt(matcher.group(1));
-                int minorVersion = Integer.parseInt(matcher.group(2));
-                result = getBranchOfMajorAndMinorVersion(majorVersion, minorVersion);
-            }
-        }
-        return result;
-    }
-    
-    String getBranchOfMajorAndMinorVersion(int majorVersion, int minorVersion) {
-        return majorVersion >= 19 ? majorVersion + "." + minorVersion 
-                                  : "V" + majorVersion + "-" + minorVersion;
-    }
-    
-    public boolean isAmosProject(@NotNull Project project) {
-        if(project.isDisposed()){
-            this.isAmosProject = false;
-        }else {
-            String basePath = project.getBasePath();
-            if (basePath != null && !basePath.equals(this.currentProjectBasePath)) {
-                this.currentProjectBasePath = basePath;
-                Optional<Module> amos_shared = Stream
-                        .of(ModuleManager.getInstance(project).getModules())
-                        .filter(e -> e.getName().contains("amos_shared")).findFirst();
-                if (amos_shared.isPresent()) {
-                    this.shared = amos_shared.get();
-                    this.projectDefaultBranch = null;
-                    this.shouldSearchDefaultBranch = true;
-                    this.isAmosProject = true;
-                } else {
-                    this.isAmosProject = false;
-                }
-            }
-        }
-        return this.isAmosProject;
-    }
-    
-    String getProjectDefaultBranch(){
-        if(this.shouldSearchDefaultBranch) {
-            this.shouldSearchDefaultBranch = false;
-            Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
-                    .matcher(this.shared.getModuleFilePath().toLowerCase());
-            if(matcher.find()){
-                this.projectDefaultBranch = matcher.group(1);
-            }
-        }
-        return this.projectDefaultBranch;
-    }
-
-    public Module getShared() {
-        return this.shared;
-    }
-
+	private static ProjectUtil INSTANCE;
+	static final   Pattern     AMOS_SHARED_DIRECTORY_PATTERN = Pattern
+			.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/", Pattern.CASE_INSENSITIVE);
+	static final   Pattern     STABLE_VERSION_PATTERN        = Pattern
+			.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$", Pattern.CASE_INSENSITIVE);
+	
+	Module  shared;
+	String  currentProjectBasePath    = null;
+	boolean isAmosProject             = false;
+	String  projectDefaultBranch      = null;
+	boolean shouldSearchDefaultBranch = false;
+	
+	private ProjectUtil() {
+		
+	}
+	
+	public static ProjectUtil getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new ProjectUtil();
+		}
+		return INSTANCE;
+	}
+	
+	public String getBranchOfFile(Project project, VirtualFile file) {
+		String branchName = getProjectDefaultBranch();
+		if (file != null) {
+			FilePath filePath = VcsUtil.getFilePath(file.getPath());
+			AbstractVcs vcsFor = VcsUtil.getVcsFor(project, filePath);
+			if (vcsFor != null) {
+				branchName = BranchStateProvider.EP_NAME.getExtensionList(project)
+				                                        .stream().filter(Objects::nonNull)
+				                                        .filter(p -> p.getClass().getName()
+				                                                      .contains(vcsFor.getName()))
+				                                        .map(p -> p.getCurrentBranch(filePath))
+				                                        .filter(Objects::nonNull)
+				                                        .map(BranchData::getBranchName)
+				                                        .filter(Objects::nonNull)
+				                                        .map(String::toLowerCase).findFirst()
+				                                        .orElse(null);
+			}
+		}
+		return convertToCorrectBranch(branchName);
+	}
+	
+	String convertToCorrectBranch(String branchName) {
+		String result = branchName;
+		if ("trunk".equals(branchName)) {
+			result = "preview";
+		} else if (result != null && !"preview".equalsIgnoreCase(result)) {
+			Matcher matcher = STABLE_VERSION_PATTERN.matcher(result);
+			if (matcher.find() && matcher.groupCount() == 2) {
+				int majorVersion = Integer.parseInt(matcher.group(1));
+				int minorVersion = Integer.parseInt(matcher.group(2));
+				result = getBranchOfMajorAndMinorVersion(majorVersion, minorVersion);
+			}
+		}
+		return result;
+	}
+	
+	String getBranchOfMajorAndMinorVersion(int majorVersion, int minorVersion) {
+		return majorVersion >= 19 ? majorVersion + "." + minorVersion
+		                          : "V" + majorVersion + "-" + minorVersion;
+	}
+	
+	public boolean isAmosProject(@NotNull Project project) {
+		if (project.isDisposed()) {
+			this.isAmosProject = false;
+		} else {
+			String basePath = project.getBasePath();
+			if (basePath != null && !basePath.equals(this.currentProjectBasePath)) {
+				this.currentProjectBasePath = basePath;
+				Optional<Module> amos_shared = Stream
+						.of(ModuleManager.getInstance(project).getModules())
+						.filter(e -> e.getName().contains("amos_shared")).findFirst();
+				if (amos_shared.isPresent()) {
+					this.shared = amos_shared.get();
+					this.projectDefaultBranch = null;
+					this.shouldSearchDefaultBranch = true;
+					this.isAmosProject = true;
+				} else {
+					this.isAmosProject = false;
+				}
+			}
+		}
+		return this.isAmosProject;
+	}
+	
+	String getProjectDefaultBranch() {
+		if (this.shouldSearchDefaultBranch) {
+			this.shouldSearchDefaultBranch = false;
+			Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
+					.matcher(this.shared.getModuleFilePath());
+			if (matcher.find()) {
+				this.projectDefaultBranch = matcher.group(1);
+			}
+		}
+		return this.projectDefaultBranch;
+	}
+	
+	public Module getShared() {
+		return this.shared;
+	}
+	
 }

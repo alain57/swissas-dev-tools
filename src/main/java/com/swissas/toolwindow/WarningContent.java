@@ -126,8 +126,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 						for (Node message : file.childNodes()) {
 							Message currentMessage = new Message(message);
 							if (!this.criticalActionToggle.isCriticalOnly() ||
-							    currentType.getName().toLowerCase().equals(COMPILER) ||
-							    currentType.getName().toLowerCase().equals(SONAR) && currentMessage
+							    currentType.getName().equalsIgnoreCase(COMPILER) ||
+							    currentType.getName().equalsIgnoreCase(SONAR) && currentMessage
 									    .isCritical()) {
 								currentFile.addMessage(currentMessage);
 							}

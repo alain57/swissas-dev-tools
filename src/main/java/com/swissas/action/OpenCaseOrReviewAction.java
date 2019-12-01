@@ -48,7 +48,6 @@ public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumb
 			String message = this.annotation.getHtmlToolTip(this.lineNumber);
 			this.link = null;
 			if (message != null) {
-				message = message.toLowerCase();
 				Matcher matcher = this.searchPattern.matcher(message);
 				if (matcher.find() && matcher.groupCount() == PATTERN_POSITION) {
 					this.link = this.urlPrefix + matcher.group(PATTERN_POSITION);
