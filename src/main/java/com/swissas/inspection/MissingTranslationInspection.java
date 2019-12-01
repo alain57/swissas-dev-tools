@@ -123,27 +123,50 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			if(hasNoNoSqlAsNextSibling(expression)) {
 				PsiElement parent = expression.getParent();
 				if (hasNoNoSqlAsNextSibling(parent)) {
-					if (parent instanceof PsiExpressionList) {
-						PsiElement parentPrevSibling = getPrevNotEmptySpaces(parent);
-						if (parentPrevSibling != null) {
-							this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
-						}
-					} else if (parent instanceof PsiPolyadicExpression) {
-						PsiElement grandParent = parent.getParent();
-						if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
-							this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
-						} else {
-							PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
-							if (beforeGrandParent != null) {
-								this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
-							}
-						}
-					} else { //don't care about the parent special cases, the issue is on the expression itself
+					boolean wasRegisteredOnParent = registerNoSOLProblemOnParentIfRequired(parent, expression);
+					boolean wasRegisterOnGrandParent = registerNoSOLProblemOnGrandParentIfRequired(parent, wasRegisteredOnParent);
+					if(!wasRegisteredOnParent && !wasRegisterOnGrandParent) { //don't care about the parent special cases, the issue is on the expression itself
 						this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
 					}
 				}
 			}
 		}
+		
+		private boolean registerNoSOLProblemOnParentIfRequired(PsiElement parent, PsiLiteralExpression expression) {
+			boolean wasRegistered = false;
+			if (parent instanceof PsiExpressionList) {
+				PsiElement parentPrevSibling = getPrevNotEmptySpaces(parent);
+				if (parentPrevSibling != null) {
+					this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
+					wasRegistered = true;
+				}
+			}
+			return wasRegistered;
+		}
+		
+		private boolean registerNoSOLProblemOnGrandParentIfRequired(PsiElement parent, boolean wasRegisteredOnParent) {
+			boolean wasRegistered = false;
+			if (!wasRegisteredOnParent && parent instanceof PsiPolyadicExpression) {
+				PsiElement grandParent = parent.getParent();
+				if (grandParent instanceof PsiAssignmentExpression
+				    || grandParent instanceof PsiLocalVariable) {
+					this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"),
+					                            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+					                            this.noSqlFix);
+					wasRegistered = true;
+				} else {
+					PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
+					if (beforeGrandParent != null) {
+						this.holder
+								.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"),
+								                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+								                 this.noSqlFix);
+						wasRegistered = true;
+					}
+				}
+			}
+			return wasRegistered;
+		} 
 		
 		private void checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(@NotNull PsiLiteralExpression expression) {
 			PsiElement parent = expression.getParent();
