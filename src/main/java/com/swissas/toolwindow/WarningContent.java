@@ -18,7 +18,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -30,7 +30,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
-import com.swissas.action.criticalActionToggle;
+import com.swissas.action.CriticalActionToggle;
 import com.swissas.beans.AttributeChildrenBean;
 import com.swissas.beans.File;
 import com.swissas.beans.Message;
@@ -43,6 +43,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
+
+import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
 
 
 /**
@@ -68,11 +70,11 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	
 	private final Set<Type> types = new TreeSet<>();
 	
-	private final criticalActionToggle criticalActionToggle;
+	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
 	
 	public WarningContent() {
-		this.criticalActionToggle = new criticalActionToggle();
+		this.criticalActionToggle = new CriticalActionToggle();
 		this.criticalActionToggle.setWarningContent(this);
 	}
 	
@@ -90,7 +92,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				}
 			};
 			Timer timer = new Timer(WARNING_CONTENT_TIMER);
-			timer.schedule(timerTask, 30, 24 * 60 * 60_000);
+			timer.schedule(timerTask, 30, 24 * 60 * 60_000L);
 			
 			((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
 		}
@@ -108,7 +110,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.getInstance("Swiss-as").error(e);
 		}
 	}
 	
@@ -211,7 +213,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				    && tree.getSelectionPath() != null
 				    && tree.getSelectionPath().getPath().length > 3) {
 					Project p = DataManager.getInstance().getDataContext(WarningContent.this)
-					                       .getData(PlatformDataKeys.PROJECT);
+					                       .getData(PROJECT);
 					if (p != null) {
 						Object[] path = tree.getSelectionPath().getPath();
 						int line = 0;

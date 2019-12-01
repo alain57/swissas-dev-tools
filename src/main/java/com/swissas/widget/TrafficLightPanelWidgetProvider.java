@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -47,7 +48,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 				}
 			}
 		};
-		retrieveUserDataTimer.schedule(refreshUserMapTimerTask, 30, 24 * 60 * 60_000);
+		retrieveUserDataTimer.schedule(refreshUserMapTimerTask, 30, 24 * 60 * 60_000L);
 	}
 	
 	
@@ -64,7 +65,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 					this.swissAsStorage.setNewTranslation(true);
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.getInstance("Swiss-as").error(e);
 			}
 			setupSchedulerTask();
 			this.swissAsStorage.setShareProperties(this.properties);

@@ -71,17 +71,17 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	
 	static class MyJavaElementVisitor extends JavaElementVisitor {
 		
-		private final ProblemsHolder holder;
+		private final ProblemsHolder  holder;
 		private final LocalQuickFix[] fixes;
-		private final LocalQuickFix noSqlFix;
-		private final Pattern filenamePattern;
-		private final Pattern SQLPattern;
-		private final Pattern isInMethods;
-		private final boolean noSvn;
-		private final List<Range> rangesToCheck;
+		private final LocalQuickFix   noSqlFix;
+		private final Pattern         filenamePattern;
+		private final Pattern         sqlPattern;
+		private final Pattern         isInMethods;
+		private final boolean         noSvn;
+		private final List<Range>     rangesToCheck;
 		
 		MyJavaElementVisitor(@NotNull ProblemsHolder holder, @NotNull LocalQuickFix[] fixes, @NotNull LocalQuickFix noSqlFix) {
-			this.SQLPattern = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*", Pattern.CASE_INSENSITIVE);
+			this.sqlPattern = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*", Pattern.CASE_INSENSITIVE);
 			this.filenamePattern = Pattern.compile("^[^.]+\\.\\w{3}$");
 			this.isInMethods = Pattern.compile(".*(Exception|firePropertyChange|fireIndexedPropertyChange|assertEquals|MultiLang(Text|ToolTip)|getLogger\\(\\).*|WithHistory)$");
 			this.noSqlFix = noSqlFix;
@@ -110,7 +110,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 					Object expressionValue = expression.getValue();
 					if (expressionValue instanceof String && ((String) expressionValue).length() > minSize &&
 							!this.filenamePattern.matcher((String) expressionValue).matches()) {
-						if (this.SQLPattern.matcher((String) expressionValue).matches()) {
+						if (this.sqlPattern.matcher((String) expressionValue).matches()) {
 							checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
 						}
 						checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
@@ -205,13 +205,11 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			return psiElement;
 		}
 		
-		@NotNull
-		private Boolean hasNoNoExtAsNextSibling(PsiElement expression) {
+		private boolean hasNoNoExtAsNextSibling(PsiElement expression) {
 			return hasNoSiblingContainingText(expression, "NO_EXT");
 		}
 		
-		@NotNull
-		private Boolean hasNoNoSqlAsNextSibling(PsiElement expression) {
+		private boolean hasNoNoSqlAsNextSibling(PsiElement expression) {
 			return hasNoSiblingContainingText(expression, "NOSQL");
 		}
 		

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * It purposes is to switch from critical to non-critical issues.
  * @author Tavan Alain
  */
-public class criticalActionToggle extends AnAction {
+public class CriticalActionToggle extends AnAction {
 
     @NonNls
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
@@ -23,8 +23,7 @@ public class criticalActionToggle extends AnAction {
     private boolean isCriticalOnly = false;
     private WarningContent parent;
     
-    public criticalActionToggle(){
-        super();
+    public CriticalActionToggle(){
         getTemplatePresentation().setIcon(SwissAsIcons.CRITICAL);
         getTemplatePresentation().setText(RESOURCE_BUNDLE.getString("sonar.critical.tooltip"));
     }

@@ -19,6 +19,10 @@ import com.swissas.beans.User;
 
 public class ShowLetterCodeInformation {
 	
+	private ShowLetterCodeInformation() throws IllegalAccessException {
+		throw new IllegalAccessException("Utility class");
+	}
+	
 	public static void displayInformation(String authorString, String errorText){
 		String userInfos = null;
 		String errorMessage = errorText;

@@ -35,6 +35,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
@@ -50,7 +51,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * @author Tavan Alain
  */
 public class ImportantPreCommits extends JDialog {
-	
+	private static final Logger  LOGGER                    = Logger.getInstance("Swiss-as");
 	private static final Pattern START_WITH_SUPPORT_STRING = Pattern
 			.compile("^(#|sc|case|sup|support|story|request)\\s\\d+", CASE_INSENSITIVE);
 	private static final String  SELECT_SOMEONE            = "Select someone !";
@@ -58,10 +59,10 @@ public class ImportantPreCommits extends JDialog {
 	private JPanel            contentPane;
 	private JButton           buttonOK;
 	private JButton           buttonCancel;
-	private JCheckBox         InformCheckbox;
+	private JCheckBox         informCheckbox;
 	private JComboBox<String> reviewerComboBox;
 	private DragDropTextPane  messageContent;
-	private JLabel reviewerLbl;
+	private JLabel            reviewerLbl;
 	private int               exitCode;
 	
 	public ImportantPreCommits(CheckinProjectPanel checkinProjectPanel) {
@@ -84,15 +85,15 @@ public class ImportantPreCommits extends JDialog {
 		this.contentPane.registerKeyboardAction(e -> onCancel(),
 		                                        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 		                                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		this.InformCheckbox.addActionListener(e -> {
-			if(this.InformCheckbox.isSelected()){
+		this.informCheckbox.addActionListener(e -> {
+			if(this.informCheckbox.isSelected()){
 				this.messageContent.setText(checkinProjectPanel.getCommitMessage());
 				this.messageContent.setEnabled(true);
 			}else {
 				this.messageContent.setText("");
 				this.messageContent.setEnabled(false);
 			}
-			this.messageContent.setEnabled(this.InformCheckbox.isSelected());
+			this.messageContent.setEnabled(this.informCheckbox.isSelected());
 			
 		});
 		pack();
@@ -156,7 +157,7 @@ public class ImportantPreCommits extends JDialog {
 		} catch (Exception e) {
 			Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent",
 			                           Messages.getErrorIcon());
-			e.printStackTrace();
+			LOGGER.error(e);
 			return false;
 		}
 		return true;
@@ -174,7 +175,7 @@ public class ImportantPreCommits extends JDialog {
 			filePart.setDataHandler(new DataHandler(ds));
 			filePart.setFileName(fileName);
 		} catch (MessagingException | IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 			filePart = null;
 		}
 		return filePart;
@@ -188,7 +189,7 @@ public class ImportantPreCommits extends JDialog {
 			try {
 				result = new InternetAddress(address);
 			} catch (AddressException e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 		return result;
@@ -197,7 +198,7 @@ public class ImportantPreCommits extends JDialog {
 	
 	public void refreshContent(boolean informOtherPeopleNeeded) {
 		boolean reviewNeeded = SwissAsStorage.getInstance().isPreCommitCodeReview();
-		this.InformCheckbox.setEnabled(informOtherPeopleNeeded);
+		this.informCheckbox.setEnabled(informOtherPeopleNeeded);
 		if(reviewNeeded) {
 			this.reviewerLbl.setVisible(true);
 			this.reviewerComboBox.setVisible(true);

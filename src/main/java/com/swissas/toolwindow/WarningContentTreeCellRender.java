@@ -28,11 +28,7 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
         WarningContentTreeNode node = (WarningContentTreeNode) value;
         Map attributes = getFont().getAttributes();
-        if (node.isMarked()) {
-            attributes.put(TextAttribute.STRIKETHROUGH, true);
-        } else {
-            attributes.put(TextAttribute.STRIKETHROUGH, false);
-        }
+        attributes.put(TextAttribute.STRIKETHROUGH, node.isMarked());
         setFont(new Font(attributes));
         if(node.getChildCount() ==0){
             setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);

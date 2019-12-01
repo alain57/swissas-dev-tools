@@ -74,7 +74,7 @@ public class InspectionRunnable implements Runnable {
 				try {
 					typedFix.applyFix(this.project, problemDescriptor);
 				} catch (Exception e) {
-					LOGGER.error(e.getMessage(), e);
+					LOGGER.error(e);
 				}
 			}
 		}

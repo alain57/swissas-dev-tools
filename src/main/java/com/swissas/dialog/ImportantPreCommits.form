@@ -16,7 +16,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="855f9" class="javax.swing.JCheckBox" binding="InformCheckbox">
+          <component id="855f9" class="javax.swing.JCheckBox" binding="informCheckbox">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <preferred-size width="149" height="303"/>

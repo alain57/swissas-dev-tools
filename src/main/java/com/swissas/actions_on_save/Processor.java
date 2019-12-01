@@ -22,18 +22,18 @@ import com.swissas.inspection.MissingAuthorInspection;
 
 public enum Processor {
 	
-	unqualifiedFieldAccess(InspectionAction.unqualifiedFieldAccess,
-			UnqualifiedFieldAccessInspection::new),
+	UNQUALIFIED_FIELD_ACCESS(InspectionAction.UNQUALIFIED_FIELD_ACCESS,
+	                         UnqualifiedFieldAccessInspection::new),
 	
-	missingOverrideAnnotation(InspectionAction.missingOverrideAnnotation,
-			() -> {
-				MissingOverrideAnnotationInspection inspection = new MissingOverrideAnnotationInspection();
-				inspection.ignoreObjectMethods = false;
-				return inspection;
+	MISSING_OVERRIDE_ANNOTATION(InspectionAction.MISSING_OVERRIDE_ANNOTATION,
+	                            () -> {
+				MissingOverrideAnnotationInspection missingOverrideAnnotationInspection = new MissingOverrideAnnotationInspection();
+				missingOverrideAnnotationInspection.ignoreObjectMethods = false;
+				return missingOverrideAnnotationInspection;
 			}),
-	suppressAnnotation(InspectionAction.suppressAnnotation,
-			SuppressionAnnotationInspection::new),
-	missingAuthor(InspectionAction.missingAuthor, MissingAuthorInspection::new);
+	SUPPRESS_ANNOTATION(InspectionAction.SUPPRESS_ANNOTATION,
+	                    SuppressionAnnotationInspection::new),
+	MISSING_AUTHOR(InspectionAction.MISSING_AUTHOR, MissingAuthorInspection::new);
 	
 	private final InspectionAction inspectionAction;
 	private final LocalInspectionTool inspection;

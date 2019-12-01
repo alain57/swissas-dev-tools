@@ -26,10 +26,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
-import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.swissas.util.ImageUtility;
+
+import static javax.swing.text.StyleConstants.IconAttribute;
 
 /**
  * A TextPane component supporting drag and drop and returns the images that were added to it
@@ -37,6 +39,7 @@ import com.swissas.util.ImageUtility;
  * @author Tavan Alain
  */
 public class DragDropTextPane extends JTextPane implements DropTargetListener {
+	private static final Logger LOGGER = Logger.getInstance("Swiss-as");
 	
 	public DragDropTextPane() {
 		new DropTarget(this, this);
@@ -73,7 +76,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 			try {
 				((List<File>) transferable.getTransferData(d)).forEach(this::insertIfImage);
 			} catch (UnsupportedFlavorException | IOException e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 		dropTargetDropEvent.getDropTargetContext().dropComplete(true);
@@ -86,7 +89,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 			try {
 				insertIcon(new ImageIcon(ImageIO.read(file)));
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 	}
@@ -97,7 +100,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 		for(int i = 0; i < doc.getLength() ; i++){
 			Element element = doc.getCharacterElement(i);
 			if ("icon".equals(element.getName())) {
-				result.add((ImageIcon)element.getAttributes().getAttribute(StyleConstants.CharacterConstants.IconAttribute));
+				result.add((ImageIcon)element.getAttributes().getAttribute(IconAttribute));
 			}
 		}
 		return result;

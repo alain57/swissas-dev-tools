@@ -35,7 +35,7 @@
     </application-components>
     
     <actions>
-        <action class="com.swissas.action.criticalActionToggle" id="swissas.show_critical_only" icon="SwissAsIcons.CRITICAL"/>
+        <action class="com.swissas.action.CriticalActionToggle" id="swissas.show_critical_only" icon="SwissAsIcons.CRITICAL"/>
         <group id="translation.menu" text="Swiss-As"
                popup="true"
                icon="SwissAsIcons.AMOS">

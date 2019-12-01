@@ -59,28 +59,28 @@ public class MissingAuthorInspection extends LocalInspectionTool{
                     PsiClass[] classes = file.getClasses();
                     if (classes.length > 0) {
                         PsiClass firstClass = classes[0];
-                        LocalQuickFix MissingAuthorQuickFix = new MissingAuthorQuickFix(file);
+                        LocalQuickFix missingAuthorQuickFix = new MissingAuthorQuickFix(file);
 
                         if (firstClass.getDocComment() == null) {
                             holder.registerProblem(
                                     holder.getManager().createProblemDescriptor(firstClass,
                                                                                 RESOURCE_BUNDLE.getString(
                                                                                         "class.has.no.javadoc"),
-                                                                                MissingAuthorQuickFix,
+                                                                                missingAuthorQuickFix,
                                                                                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
                                                                                 isOnTheFly));
                         } else if (firstClass.getDocComment().getTags().length == 0) {
                             holder.registerProblem(holder.getManager().createProblemDescriptor(
                                     firstClass.getDocComment(),
                                     RESOURCE_BUNDLE.getString("class.has.no.author"),
-                                    MissingAuthorQuickFix,
+                                    missingAuthorQuickFix,
                                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
                         } else if (Stream.of(firstClass.getDocComment().getTags()).noneMatch(
                                 tag -> "author".equals(tag.getName()))) {
                             holder.registerProblem(holder.getManager().createProblemDescriptor(
                                     firstClass.getDocComment().getTags()[0],
                                     RESOURCE_BUNDLE.getString("class.has.no.author"),
-                                    MissingAuthorQuickFix,
+                                    missingAuthorQuickFix,
                                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
                         }
                     }

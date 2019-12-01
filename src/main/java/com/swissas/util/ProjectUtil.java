@@ -24,10 +24,10 @@ import java.util.stream.Stream;
  */
 
 public class ProjectUtil {
-	private static ProjectUtil INSTANCE;
-	private static final   Pattern     AMOS_SHARED_DIRECTORY_PATTERN = Pattern
+	private static ProjectUtil     instance;
+	private static final   Pattern AMOS_SHARED_DIRECTORY_PATTERN = Pattern
 			.compile("\\/([^\\/]+)\\/[^\\/]*amos_shared\\/", Pattern.CASE_INSENSITIVE);
-	private static final   Pattern     STABLE_VERSION_PATTERN        = Pattern
+	private static final   Pattern STABLE_VERSION_PATTERN        = Pattern
 			.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$", Pattern.CASE_INSENSITIVE);
 	
 	protected Module  shared;
@@ -41,10 +41,10 @@ public class ProjectUtil {
 	}
 	
 	public static ProjectUtil getInstance() {
-		if (INSTANCE == null) {
-			INSTANCE = new ProjectUtil();
+		if (instance == null) {
+			instance = new ProjectUtil();
 		}
-		return INSTANCE;
+		return instance;
 	}
 	
 	public String getBranchOfFile(Project project, VirtualFile file) {
@@ -95,11 +95,11 @@ public class ProjectUtil {
 			String basePath = project.getBasePath();
 			if (basePath != null && !basePath.equals(this.currentProjectBasePath)) {
 				this.currentProjectBasePath = basePath;
-				Optional<Module> amos_shared = Stream
+				Optional<Module> amosShared = Stream
 						.of(ModuleManager.getInstance(project).getModules())
 						.filter(e -> e.getName().contains("amos_shared")).findFirst();
-				if (amos_shared.isPresent()) {
-					this.shared = amos_shared.get();
+				if (amosShared.isPresent()) {
+					this.shared = amosShared.get();
 					this.projectDefaultBranch = null;
 					this.shouldSearchDefaultBranch = true;
 					this.isAmosProject = true;

@@ -10,10 +10,10 @@ import com.swissas.util.SwissAsStorage;
 
 public enum InspectionAction {
 	
-	unqualifiedFieldAccess("Add this to field access"),
-	missingOverrideAnnotation("Add missing @Override annotations"),
-	missingAuthor("add missing @Author"),
-	suppressAnnotation("Remove unused suppress warning annotation");
+	UNQUALIFIED_FIELD_ACCESS("Add this to field access"),
+	MISSING_OVERRIDE_ANNOTATION("Add missing @Override annotations"),
+	MISSING_AUTHOR("add missing @Author"),
+	SUPPRESS_ANNOTATION("Remove unused suppress warning annotation");
 	
 	private final String text;
 	private final SwissAsStorage storage;
@@ -29,13 +29,13 @@ public enum InspectionAction {
 	
 	public boolean isEnabled() {
 		switch (this) {
-			case missingAuthor:
+			case MISSING_AUTHOR:
 				return this.storage.isFixMissingAuthor();
-			case missingOverrideAnnotation:
+			case MISSING_OVERRIDE_ANNOTATION:
 				return this.storage.isFixMissingOverride();
-			case unqualifiedFieldAccess:
+			case UNQUALIFIED_FIELD_ACCESS:
 				return this.storage.isFixMissingThis();
-			case suppressAnnotation:
+			case SUPPRESS_ANNOTATION:
 				return this.storage.isFixUnusedSuppressWarning();
 			default:
 				throw new IllegalArgumentException("case not defined");

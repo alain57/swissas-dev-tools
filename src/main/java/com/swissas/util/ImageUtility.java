@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.Base64;
 
 /**
@@ -27,18 +28,18 @@ import com.intellij.util.Base64;
  */
 
 public class ImageUtility {
-	
-	private static ImageUtility INSTANCE;
+	private static final Logger       LOGGER = Logger.getInstance("Swiss-as");
+	private static       ImageUtility instance;
 	
 	private ImageUtility(){
 		
 	}
 	
 	public static ImageUtility getInstance() {
-		if(INSTANCE == null){
-			INSTANCE = new ImageUtility();
+		if(instance == null){
+			instance = new ImageUtility();
 		}
-		return INSTANCE;
+		return instance;
 	}
 
 	public ImageIcon getImageFromClipboard()
@@ -52,13 +53,12 @@ public class ImageUtility {
 			}
 			catch (UnsupportedFlavorException | IOException e)
 			{
-				// handle this as desired
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 		else
 		{
-			System.err.println("getImageFromClipboard: That wasn't an image!");
+			LOGGER.error("getImageFromClipboard: That wasn't an image!");
 		}
 		return null;
 	}
@@ -96,7 +96,7 @@ public class ImageUtility {
 			
 			bos.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 		return imageString;
 	}

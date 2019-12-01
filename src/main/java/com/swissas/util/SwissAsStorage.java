@@ -100,7 +100,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	private void setLetterCodeToFunction(String letterCode, Consumer<String> consumer) {
-		String valueToPass =  letterCode.isEmpty() ? null : letterCode.substring(0, letterCode.indexOf(" ")) + MAIL_SUFFIX;
+		String valueToPass =  letterCode.isEmpty() ? null : letterCode.substring(0, letterCode.indexOf(' ')) + MAIL_SUFFIX;
 		consumer.consume(valueToPass);
 	}
 	
