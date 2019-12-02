@@ -45,15 +45,16 @@ patchPluginXml {
 <b>V1.6.0</b><pre>Use combobox for the LetterCode information menu
 Add picture in LetterCode information menu
 Add Who is this in the Annotate menu
-Add open case within the Annotate menu
-Add open review within the Annotate menu
+Add show support case within the Annotate menu
+Add show review within the Annotate menu
 Add new configurations in the settings menu
 Add precommit code review condition (configurable in the settings menu)
-Add Inform QA/Support/Documentation  per mail if Client/Web changes
+Add Inform QA/Support/Documentation per mail if Client/Web changes
+Add possibility to add picture to the Information Mail per drag and drop (copy paste is not yet workin with intellij)
 Disable inspection, bulb and SAS warning on non SAS projects 
 Adapt the lamp logic to be smarter : red => the branch you are is broken, yellow => another branch is broken, green => all is ok
 Show the lamp color of the branch you currently are working
-Small code cleaning.
+Important Code cleaning.
 </pre>
 <b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
 <b>V1.5.12</b><pre>fix a bug in the Information about a lettercode menu
