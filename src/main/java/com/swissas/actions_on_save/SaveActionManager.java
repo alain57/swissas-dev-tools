@@ -51,7 +51,7 @@ public class SaveActionManager implements FileDocumentManagerListener {
 		this.running = false;
 	}
 	
-	void addProcessors(Stream<Processor> processors) {
+	public void addProcessors(Stream<Processor> processors) {
 		processors.forEach(this.processors::add);
 	}
 	

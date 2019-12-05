@@ -12,6 +12,7 @@
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.modules.vcs</depends>
     <extensions defaultExtensionNs="com.intellij">
+        <backgroundPostStartupActivity implementation="com.swissas.Startup" />
         <applicationService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
                                  instance="com.swissas.config.SwissAsConfig" />
@@ -26,13 +27,8 @@
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.WhoWroteThisAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenCaseAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />
+        <editorActionHandler action="EditorPaste" implementationClass="com.swissas.handler.PasteImageHandler" order="first" />
     </extensions>
-
-    <application-components>
-    <component>
-        <implementation-class>com.swissas.actions_on_save.DoOnSave</implementation-class>
-    </component>
-    </application-components>
     
     <actions>
         <action class="com.swissas.action.CriticalActionToggle" id="swissas.show_critical_only" icon="SwissAsIcons.CRITICAL"/>

@@ -1,8 +1,6 @@
 package com.swissas.ui;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
+import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -12,7 +10,6 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,15 +18,16 @@ import java.util.List;
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JTextPane;
-import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
 import javax.swing.text.StyledDocument;
 
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
-import com.swissas.util.ImageUtility;
+import com.intellij.openapi.ide.CopyPasteManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static javax.swing.text.StyleConstants.IconAttribute;
 
@@ -38,33 +36,32 @@ import static javax.swing.text.StyleConstants.IconAttribute;
  *
  * @author Tavan Alain
  */
-public class DragDropTextPane extends JTextPane implements DropTargetListener {
-	private static final Logger LOGGER = Logger.getInstance("Swiss-as");
+public class DragDropTextPane extends JTextPane implements DropTargetListener, DataProvider {
+	private static final Logger               LOGGER = Logger.getInstance("Swiss-as");
 	
 	public DragDropTextPane() {
 		new DropTarget(this, this);
 		setDragEnabled(true);
-		getActionMap().put(DefaultEditorKit.pasteAction, new DrapDropPasteAction());
 	}
 	
 	@Override
 	public void dragEnter(DropTargetDragEvent dtde) {
-		//Method isn't needed therefore empty, but required bw the DropTargetListener
+		//Method isn't needed but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragOver(DropTargetDragEvent dtde) {
-		//Method isn't needed therefore empty, but required bw the DropTargetListener
+		//Method isn't needed but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dropActionChanged(DropTargetDragEvent dtde) {
-		//Method isn't needed therefore empty, but required bw the DropTargetListener
+		//Method isn't needed but required bw the DropTargetListener
 	}
 	
 	@Override
 	public void dragExit(DropTargetEvent dte) {
-		//Method isn't needed therefore empty, but required bw the DropTargetListener
+		//Method isn't needed but required bw the DropTargetListener
 	}
 	
 	@Override
@@ -82,7 +79,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 		dropTargetDropEvent.getDropTargetContext().dropComplete(true);
 	}
 	
-	private void insertIfImage(File file){
+	private void insertIfImage(File file) {
 		String mimetype = new MimetypesFileTypeMap().getContentType(file);
 		String type = mimetype.split("/")[0];
 		if ("image".equals(type)) {
@@ -97,43 +94,34 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener {
 	public List<ImageIcon> getImages() {
 		List<ImageIcon> result = new ArrayList<>();
 		StyledDocument doc = getStyledDocument();
-		for(int i = 0; i < doc.getLength() ; i++){
+		for (int i = 0; i < doc.getLength(); i++) {
 			Element element = doc.getCharacterElement(i);
 			if ("icon".equals(element.getName())) {
-				result.add((ImageIcon)element.getAttributes().getAttribute(IconAttribute));
+				result.add((ImageIcon) element.getAttributes().getAttribute(IconAttribute));
 			}
 		}
 		return result;
 	}
 	
-	/**
-	 * TODO remove once I find out why the copy/paste of picture is not working directly in IntelliJ :(
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args){
-		JFrame frame = new JFrame();
-		DragDropTextPane comp = new DragDropTextPane();
-		comp.setPreferredSize(new Dimension(500, 400));
-		JPanel p = new JPanel();
-		p.add(comp);
-		frame.add(p);
-		frame.pack();
-		frame.setVisible(true);
-		
+	@Nullable
+	@Override
+	public Object getData(@NotNull String dataId) {
+		if (PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+			return this;
+		}
+		return null;
 	}
 	
-	class DrapDropPasteAction extends DefaultEditorKit.PasteAction{
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			if(clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)){
-				ImageIcon imageFromClipboard = ImageUtility.getInstance().getImageFromClipboard();
-				if(imageFromClipboard != null) {
-					insertIcon(imageFromClipboard);
-				}
-			}else {
-				super.actionPerformed(e);
+	public void pastePicture() {
+		Transferable transferable = CopyPasteManager.getInstance().getContents();
+		if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+			ImageIcon imageIcon;
+			try {
+				imageIcon = new ImageIcon(
+						(Image) transferable.getTransferData(DataFlavor.imageFlavor));
+				insertIcon(imageIcon);
+			} catch (UnsupportedFlavorException | IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}

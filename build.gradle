@@ -54,6 +54,7 @@ Add possibility to add picture to the Information Mail per drag and drop (copy p
 Disable inspection, bulb and SAS warning on non SAS projects 
 Adapt the lamp logic to be smarter : red => the branch you are is broken, yellow => another branch is broken, green => all is ok
 Show the lamp color of the branch you currently are working
+Adapt the plugin to be ready for loading without IntelliJ restart (planned for 2020.1)
 Important Code cleaning.
 </pre>
 <b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
