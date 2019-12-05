@@ -188,8 +188,8 @@ public class ImportantPreCommits extends JDialog {
 					.map(this::generateAddress).filter(Objects::nonNull)
 					.toArray(InternetAddress[]::new);
 			
-//			msg.addRecipients(Message.RecipientType.TO, internetAddresses); //comment this for testing 
-			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(storage.getMyMail())); //uncomment this for testing
+			msg.addRecipients(Message.RecipientType.TO, internetAddresses); //comment this for testing 
+//			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(storage.getMyMail())); //uncomment this for testing
 			msg.setSubject("Automatic User Interface Change");
 			msg.setContent(multipart);
 			Transport.send(msg);
