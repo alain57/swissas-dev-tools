@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.0'
+version '1.6.1'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -42,6 +42,11 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.6.1</b><pre>
+don't check for graphical UI changes in the unpublic folders
+Add some further basic tests 
+Adapt some part of the code based on feedback of Sergey Ignatov and Vladimir Schneider
+</pre>
 <b>V1.6.0</b><pre>Use combobox for the LetterCode information menu
 Add picture in LetterCode information menu
 Add Who is this in the Annotate menu

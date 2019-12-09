@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.AppTopics.FILE_DOCUMENT_SYNC;
 
-public class Startup implements StartupActivity {
+public class Startup implements StartupActivity.Background {
 	
 	@Override
 	public void runActivity(@NotNull Project project) {

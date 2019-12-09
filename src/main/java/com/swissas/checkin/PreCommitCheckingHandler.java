@@ -108,10 +108,10 @@ class PreCommitCheckingHandler extends CheckinHandler {
 		if (SwissAsStorage.getInstance().isPreCommitInformOther()) {
 			String clientPath = "amos" + File.separator + "client";
 			Predicate<String> isClientOrWebPredicate = path -> path.contains(clientPath)
-//			                                                   && 
-//			                                                   !path.contains(
-//					                                                   clientPath + File.separator +
-//					                                                   "unpublic") 
+			                                                   && 
+			                                                   !path.contains(
+					                                                   clientPath + File.separator +
+					                                                   "unpublic") 
 			                                                   || path.contains(
 					"amos" + File.separator + "web");
 			return this.checkinProjectPanel.getFiles().stream().map(File::getPath)
