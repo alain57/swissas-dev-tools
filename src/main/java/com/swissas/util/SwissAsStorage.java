@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -122,13 +124,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		}
 	}
 	
-	public List<String> getMyTeamMembers() {
+	public Set<String> getMyTeamMembers() {
 		if (!this.myTeam.isEmpty()) {
 			return this.userMap.values().stream().filter(user -> user.isInTeam(this.myTeam))
-                               .map(User::getLc)
-			                   .collect(Collectors.toList());
+                               .map(User::getLc).filter(lc -> !lc.equalsIgnoreCase(this.fourLetterCode))
+			                   .collect(Collectors.toCollection(TreeSet::new));
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 		
 	}
 	
@@ -207,7 +209,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public Map<String, User> getUserMap() {
-		return this.userMap;
+		return Collections.unmodifiableMap(this.userMap);
 	}
 	
 	public void setUserMap(Map<String, User> userMap) {

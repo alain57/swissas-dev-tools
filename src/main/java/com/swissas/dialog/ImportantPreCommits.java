@@ -4,10 +4,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.activation.DataHandler;
@@ -54,7 +56,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 public class ImportantPreCommits extends JDialog {
 	private static final Logger  LOGGER                    = Logger.getInstance("Swiss-as");
 	private static final Pattern START_WITH_SUPPORT_STRING = Pattern
-			.compile("^(#|sc|case|sup|support|story|request)\\s\\d+", CASE_INSENSITIVE);
+			.compile("^(#|sc|case|sup|support|story|request) ?(id|no)?.(\\d+[`']?\\d+)", CASE_INSENSITIVE);
 	private static final Pattern REVIEWER                  = Pattern
 			.compile("reviewed by ([a-z]{3,4})", CASE_INSENSITIVE);
 	private static final String  SELECT_SOMEONE            = "Select a reviewer !";
@@ -107,21 +109,30 @@ public class ImportantPreCommits extends JDialog {
 	private void onOK() {
 		this.shouldDispose = true;
 		validateReviewerCombobox();
-		validateInformMesssageAndSendMail();
-		if (this.shouldDispose) { //validateMethods will change the shouldDispose value
-			dispose();
+		validateInformMesssage();
+		if (this.shouldDispose) {
+			setVisible(false);
 		}
 	}
 	
-	private void validateInformMesssageAndSendMail() {
+	private void validateInformMesssage() {
 		if (this.exitCode == DialogWrapper.OK_EXIT_CODE && this.informCheckbox.isSelected()) {
 			if (this.messageContent.getText().isEmpty()) {
 				Messages.showErrorDialog("Please fill the graphical change text", "Error");
 				this.exitCode = DialogWrapper.CANCEL_EXIT_CODE;
 				this.shouldDispose = false;
 			} else {
-				this.exitCode =
-						sendMail() ? DialogWrapper.OK_EXIT_CODE : DialogWrapper.CANCEL_EXIT_CODE;
+				String message = this.messageContent.getText();
+				Matcher matcher = START_WITH_SUPPORT_STRING.matcher(message);
+				if (!matcher.find()) {
+					Messages.showMessageDialog(
+							"Your commit message needs to start with one of following options: #/SC/CASE/STORY/SUP/SUPPORT followed by case number",
+							"Commit Message Invalid", Messages.getErrorIcon());
+					this.shouldDispose = false;
+					this.exitCode = DialogWrapper.CANCEL_EXIT_CODE;
+				}else {
+					this.exitCode = DialogWrapper.OK_EXIT_CODE;
+				}
 			}
 		}
 	}
@@ -154,26 +165,46 @@ public class ImportantPreCommits extends JDialog {
 		return this.exitCode;
 	}
 	
-	private boolean sendMail() {
-		String message = this.messageContent.getText();
-		Matcher matcher = START_WITH_SUPPORT_STRING.matcher(message);
-		if (!matcher.find()) {
-			Messages.showMessageDialog(
-					"Your commit message needs to start with one of following options: #/SC/CASE/STORY/SUP/SUPPORT followed by case number",
-					"Commit Message Invalid", Messages.getErrorIcon());
-			this.shouldDispose = false;
-			return false;
+	public void sendMail() {
+		if(this.informCheckbox.isSelected()) {
+			Properties properties = System.getProperties();
+			SwissAsStorage storage = SwissAsStorage.getInstance();
+			properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
+			List<String> destinationMails = Stream.of(storage.getQaMail(), storage.getDocuMail(), storage.getSupportMail())
+			                                      .filter(Objects::nonNull).collect(Collectors.toList());
+			try {
+				Message msg = generateMessage(properties, storage.getMyMail(), destinationMails);
+				Transport.send(msg);
+			} catch (Exception e) {
+				Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent",
+				                           Messages.getErrorIcon());
+				LOGGER.error(e);
+			}
 		}
-		Properties properties = System.getProperties();
-		SwissAsStorage storage = SwissAsStorage.getInstance();
-		properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
+		dispose();
+	}
+	
+	private Message generateMessage(Properties properties, String sender, List<String> destination) throws MessagingException {
 		Session session = Session.getDefaultInstance(properties, null);
+		Message msg = new MimeMessage(session);
+		msg.setFrom(new InternetAddress(sender));
+		InternetAddress[] internetAddresses = destination.stream()
+				.map(this::generateAddress).filter(Objects::nonNull)
+				.toArray(InternetAddress[]::new);
+		
+		msg.addRecipients(Message.RecipientType.TO,
+		                  internetAddresses);
+		msg.setSubject("Automatic User Interface Change");
+		msg.setContent(generateMultipartWithMessageContent());
+		return msg;
+	}
+	
+	private Multipart generateMultipartWithMessageContent() throws MessagingException {
 		Multipart multipart = new MimeMultipart();
-		BodyPart messageBodyPart = new MimeBodyPart();
-		int imageCounter = 1;
-		try {
-			messageBodyPart.setText(message);
+			BodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setText(this.messageContent.getText());
 			multipart.addBodyPart(messageBodyPart);
+			int imageCounter = 1;
 			for (ImageIcon image : this.messageContent.getImages()) {
 				String imageName = "image_" + imageCounter + ".jpg";
 				String imageContent = ImageUtility.getInstance().imageToBase64Jpeg(image);
@@ -181,25 +212,7 @@ public class ImportantPreCommits extends JDialog {
 				multipart.addBodyPart(part);
 				imageCounter++;
 			}
-			Message msg = new MimeMessage(session);
-			msg.setFrom(new InternetAddress(storage.getMyMail()));
-			InternetAddress[] internetAddresses = Stream
-					.of(storage.getQaMail(), storage.getDocuMail(), storage.getSupportMail())
-					.map(this::generateAddress).filter(Objects::nonNull)
-					.toArray(InternetAddress[]::new);
-			
-			msg.addRecipients(Message.RecipientType.TO, internetAddresses); //comment this for testing 
-//			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(storage.getMyMail())); //uncomment this for testing
-			msg.setSubject("Automatic User Interface Change");
-			msg.setContent(multipart);
-			Transport.send(msg);
-		} catch (Exception e) {
-			Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent",
-			                           Messages.getErrorIcon());
-			LOGGER.error(e);
-			return false;
-		}
-		return true;
+		return multipart;
 	}
 	
 	private MimeBodyPart addJpegAttachment(final String fileName, final String fileContent) {
@@ -244,9 +257,8 @@ public class ImportantPreCommits extends JDialog {
 			Matcher matcher = REVIEWER.matcher(this.checkinProjectPanel.getCommitMessage());
 			if (matcher.find()) {
 				String reviewerInCommitMessage = matcher.group(1).toUpperCase();
-				int reviewerPositionPlusOne = SwissAsStorage.getInstance().getMyTeamMembers()
-				                                            .indexOf(reviewerInCommitMessage) + 1;
-				this.reviewerComboBox.setSelectedIndex(reviewerPositionPlusOne);
+				boolean hasReviewer = SwissAsStorage.getInstance().getMyTeamMembers().contains(reviewerInCommitMessage);
+				this.reviewerComboBox.setSelectedItem(hasReviewer ? reviewerInCommitMessage : SELECT_SOMEONE);
 			}
 			this.reviewerLbl.setVisible(true);
 			this.reviewerComboBox.setVisible(true);

@@ -44,16 +44,23 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	private final CheckinProjectPanel checkinProjectPanel;
 	
 	private TrafficLightPanel trafficLightPanel = null;
+	private final ImportantPreCommits importantPreCommitsDialog;
 	
 	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel) {
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
+		this.importantPreCommitsDialog = new ImportantPreCommits(this.checkinProjectPanel);
 		IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
 		if (ideFrame != null && ideFrame.getStatusBar() != null) {
 			this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(
 					TrafficLightPanel.WIDGET_ID);
 		}
-		
+	}
+	
+	@Override
+	public void checkinSuccessful() {
+		super.checkinSuccessful();
+		this.importantPreCommitsDialog.sendMail();
 	}
 	
 	@Override
@@ -94,10 +101,9 @@ class PreCommitCheckingHandler extends CheckinHandler {
 		if (ProjectUtil.getInstance().isAmosProject(this.project)) {
 		    boolean informOther = informOtherPeopleNeeded(); 
 			if(informOther || SwissAsStorage.getInstance().isPreCommitCodeReview()) {
-				ImportantPreCommits dialog = new ImportantPreCommits(this.checkinProjectPanel);
-				dialog.refreshContent(informOther);
-				dialog.setVisible(true);
-				result = dialog.getExitCode() != DialogWrapper.CANCEL_EXIT_CODE;
+				this.importantPreCommitsDialog.refreshContent(informOther);
+				this.importantPreCommitsDialog.setVisible(true);
+				result = this.importantPreCommitsDialog.getExitCode() != DialogWrapper.CANCEL_EXIT_CODE;
 			}
 		}
 		
@@ -135,9 +141,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			}
 			messageResult = DialogWrapper.OK_EXIT_CODE;
 		}
-		
 		return messageResult == DialogWrapper.OK_EXIT_CODE ? ReturnResult.COMMIT
 		                                                   : ReturnResult.CLOSE_WINDOW;
 	}
-	
 }

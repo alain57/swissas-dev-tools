@@ -13,13 +13,12 @@ import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import com.swissas.beans.User;
 import com.swissas.util.NetworkUtil;
-import com.swissas.util.PositiveNumberVerifier;
 import com.swissas.util.SwissAsStorage;
 
 /**
  * Configuration panel java part
  *
- * @author
+ * @author Tavan Alain
  */
 
 class ConfigPanel {
@@ -139,7 +138,5 @@ class ConfigPanel {
 		this.qualityLetterBox = new TextFieldWithCompletion(this.project, qualityUserProvider, "", false, true,  true, false);
 		this.supportLetterBox = new TextFieldWithCompletion(this.project, supportUserProvider, "", false, true,  true, false);
 		this.documentationLetterBox = new TextFieldWithCompletion(this.project, documentationUserProvider, "", false, true,  true, false);
-		PositiveNumberVerifier verifier = new PositiveNumberVerifier();
-		this.minTranslationSize.setInputVerifier(verifier);
 	}
 }

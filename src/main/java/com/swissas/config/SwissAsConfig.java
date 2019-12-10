@@ -6,11 +6,13 @@ import java.util.ResourceBundle;
 import javax.swing.*;
 
 import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.WindowManager;
 import com.swissas.toolwindow.WarningContent;
+import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.Nls;
@@ -89,7 +91,8 @@ public class SwissAsConfig implements Configurable {
     }
 
     @Override
-    public void apply(){
+    public void apply() throws ConfigurationException{
+        validateSettings();
         this.swissAsStorage.setFourLetterCode(getFourLetterCode());
         this.swissAsStorage.setQaLetterCode(getQALetterCode());
         this.swissAsStorage.setDocuLetterCode(getDocuLetterCode());
@@ -105,7 +108,38 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setPreCommitInformOther(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected());
         refreshWarningContent();
     }
-
+    
+    private void validateSettings() throws ConfigurationException {
+        if(getFourLetterCode().isEmpty()){
+            throw new ConfigurationException("Please fill the 4LC field");
+        } else if(!StringUtils.getInstance().isLetterCode(getFourLetterCode())){
+            throw new ConfigurationException("Invalid letter code, please choose one from the list");
+        }
+        
+        if(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected()) {
+            if(getDocuLetterCode().isEmpty() && getQALetterCode().isEmpty() && getSupportLetterCode().isEmpty()) {
+                throw new ConfigurationException(
+                        "You need to fill at least one field between QA/Docu/Support");
+            }
+            if(!StringUtils.getInstance().isLetterCodeWithName(getDocuLetterCode())){
+                throw new ConfigurationException(
+                        "Please choose a proposed value for the Documentation field");
+            }
+            if(!StringUtils.getInstance().isLetterCodeWithName(getQALetterCode())){
+                throw new ConfigurationException(
+                        "Please choose a proposed value for the Quality field");
+            }
+            if(!StringUtils.getInstance().isLetterCodeWithName(getSupportLetterCode())){
+                throw new ConfigurationException(
+                        "Please choose a proposed value for the Support field");
+            }
+        }
+        
+        if(!StringUtils.getInstance().isPositiveNumber(this.configPanel.getMinTranslationSize().getText())){
+            throw new ConfigurationException("the minimum translation size needs to be a positive integer");
+        }
+    }
+    
     private String getFourLetterCode(){
         return this.configPanel.getFourLetterCode().getText().trim();
     }
