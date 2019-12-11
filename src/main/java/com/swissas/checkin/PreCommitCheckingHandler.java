@@ -44,12 +44,11 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	private final CheckinProjectPanel checkinProjectPanel;
 	
 	private TrafficLightPanel trafficLightPanel = null;
-	private final ImportantPreCommits importantPreCommitsDialog;
+	private ImportantPreCommits importantPreCommitsDialog;
 	
 	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel) {
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
-		this.importantPreCommitsDialog = new ImportantPreCommits(this.checkinProjectPanel);
 		IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
 		if (ideFrame != null && ideFrame.getStatusBar() != null) {
 			this.trafficLightPanel = (TrafficLightPanel) ideFrame.getStatusBar().getWidget(
@@ -98,6 +97,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	
 	private boolean displayPreCommitChecksIfNeeded() {
 		boolean result = true;
+		this.importantPreCommitsDialog = new ImportantPreCommits(this.checkinProjectPanel);
 		if (ProjectUtil.getInstance().isAmosProject(this.project)) {
 		    boolean informOther = informOtherPeopleNeeded(); 
 			if(informOther || SwissAsStorage.getInstance().isPreCommitCodeReview()) {

@@ -42,27 +42,6 @@ public class ImageUtility {
 		return instance;
 	}
 
-	public ImageIcon getImageFromClipboard()
-	{
-		Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-		if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor))
-		{
-			try
-			{
-				return new ImageIcon((Image)transferable.getTransferData(DataFlavor.imageFlavor));
-			}
-			catch (UnsupportedFlavorException | IOException e)
-			{
-				LOGGER.error(e);
-			}
-		}
-		else
-		{
-			LOGGER.error("getImageFromClipboard: That wasn't an image!");
-		}
-		return null;
-	}
-
 	public Image iconToImage(Icon icon) {
 		if (icon instanceof ImageIcon) {
 			return ((ImageIcon)icon).getImage();
