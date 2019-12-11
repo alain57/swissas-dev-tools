@@ -43,9 +43,12 @@ publishPlugin {
 patchPluginXml {
     changeNotes """
 <b>V1.6.1</b><pre>
-don't check for graphical UI changes in the unpublic folders
-Add some further basic tests 
-Adapt some part of the code based on feedback of Sergey Ignatov and Vladimir Schneider
+Don't check for graphical UI changes in the unpublic folders
+Adapt some part of the code based on feedback of Sergey Ignatov and Vladimir Schneider (thanks for helping)
+Send the mail only once the commit was confirmed
+Add some basic validation on the settings panel
+Sort the list of reviewer and exclude yourself from the list
+Improve the regex to detect support case number
 </pre>
 <b>V1.6.0</b><pre>Use combobox for the LetterCode information menu
 Add picture in LetterCode information menu
