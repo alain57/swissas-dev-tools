@@ -111,6 +111,10 @@ public class ProjectUtil {
 		return this.isAmosProject;
 	}
 	
+	public boolean isPreviewProject() {
+		return "preview".equalsIgnoreCase(convertToCorrectBranch(this.projectDefaultBranch));
+	}
+	
 	String getProjectDefaultBranch() {
 		if (this.shouldSearchDefaultBranch) {
 			this.shouldSearchDefaultBranch = false;

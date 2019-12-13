@@ -58,11 +58,6 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
 
     private TimerTask refreshTrafficLightTimerTask;
 
-    @NonNls
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-    
-    @NonNls
-    private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
     private static final int RADIUS_VERTICAL = 4;
     
     private static final int RADIUS_HORIZONTAL = 6;
@@ -92,7 +87,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
         this.currentBranch = ProjectUtil.getInstance().getBranchOfFile(project, null);
-        this.clickUrl = URL_BUNDLE.getString("url.trafficlight.click");
+        this.clickUrl = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
         this.lamps = new JPanel();
         this.green =  new Bulb(JBColor.GREEN);
         this.yellow = new Bulb(JBColor.YELLOW);
@@ -180,7 +175,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         }
         if(this.swissAsStorage.getFourLetterCode().isEmpty()){
             
-            JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(RESOURCE_BUNDLE.getString("4lc.not.configured"), 
+            JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(ResourceBundle.getBundle("texts").getString("4lc.not.configured"), 
                     MessageType.ERROR, null).createBalloon().
                     show(RelativePoint.getCenterOf(this.getComponent()), Balloon.Position.above);
         }else {

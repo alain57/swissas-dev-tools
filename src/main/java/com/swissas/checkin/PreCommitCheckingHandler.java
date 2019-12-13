@@ -30,14 +30,11 @@ import org.jetbrains.annotations.NonNls;
  */
 class PreCommitCheckingHandler extends CheckinHandler {
 	
-	public static final String FIX_RELEASE_BLOCKER = "fix release blocker";
-	
-	private static final ResourceBundle RESOURCE_BUNDLE  = ResourceBundle.getBundle("texts");
 	@NonNls
-	private static final String         TITLE            = RESOURCE_BUNDLE
+	private static final String         TITLE            = ResourceBundle.getBundle("texts")
 			.getString("commit.title");
 	@NonNls
-	private static final String         EMPTY_COMMIT_MSG = RESOURCE_BUNDLE
+	private static final String         EMPTY_COMMIT_MSG = ResourceBundle.getBundle("texts")
 			.getString("commit.without.message");
 	
 	private final Project             project;
@@ -58,15 +55,16 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	
 	@Override
 	public void checkinSuccessful() {
-		super.checkinSuccessful();
-		this.importantPreCommitsDialog.sendMail();
+		if(this.importantPreCommitsDialog != null) {
+			this.importantPreCommitsDialog.sendMail();
+		}
 	}
 	
 	@Override
 	public ReturnResult beforeCheckin(CommitExecutor executor,
 	                                  PairConsumer<Object, Object> additionalDataConsumer) {
 		if (DumbService.getInstance(this.project).isDumb()) {
-			Messages.showErrorDialog(this.project, RESOURCE_BUNDLE.getString("commit.not.possible"),
+			Messages.showErrorDialog(this.project,  ResourceBundle.getBundle("texts").getString("commit.not.possible"),
 			                         TITLE);
 			return ReturnResult.CANCEL;
 		}
@@ -75,7 +73,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			Messages.showDialog(this.project,
 			                    EMPTY_COMMIT_MSG,
 			                    TITLE,
-			                    new String[]{ RESOURCE_BUNDLE.getString("ok") },
+			                    new String[]{  ResourceBundle.getBundle("texts").getString("ok") },
 			                    1,
 			                    null);
 			return ReturnResult.CANCEL;
@@ -127,19 +125,11 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	}
 	
 	private ReturnResult showTrafficLightDialog() {
-		ConfirmationDialog confirmationDialog = new ConfirmationDialog(
-				this.trafficLightPanel.getTrafficDetails());
+		ConfirmationDialog confirmationDialog = new ConfirmationDialog(this.trafficLightPanel.getTrafficDetails(), this.checkinProjectPanel);
 		confirmationDialog.show();
 		int messageResult = confirmationDialog.getExitCode();
 		if (messageResult == DialogWrapper.NEXT_USER_EXIT_CODE) {
 			this.trafficLightPanel.setInformWhenReady(this.checkinProjectPanel);
-		} else if (messageResult == ConfirmationDialog.FIX_RELEASE_EXIT_CODE) {
-			if (!this.checkinProjectPanel.getCommitMessage().contains(FIX_RELEASE_BLOCKER)) {
-				this.checkinProjectPanel.setCommitMessage(FIX_RELEASE_BLOCKER + " \n\n" +
-				                                          this.checkinProjectPanel
-						                                          .getCommitMessage());
-			}
-			messageResult = DialogWrapper.OK_EXIT_CODE;
 		}
 		return messageResult == DialogWrapper.OK_EXIT_CODE ? ReturnResult.COMMIT
 		                                                   : ReturnResult.CLOSE_WINDOW;

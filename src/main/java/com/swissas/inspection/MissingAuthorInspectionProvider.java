@@ -1,6 +1,7 @@
 package com.swissas.inspection;
 
 import com.intellij.codeInspection.InspectionToolProvider;
+import com.intellij.codeInspection.LocalInspectionTool;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -8,10 +9,11 @@ import org.jetbrains.annotations.NotNull;
  * @author Tavan Alain
  */
 class MissingAuthorInspectionProvider implements InspectionToolProvider {
-
+    
+    @SuppressWarnings("unchecked")
     @NotNull
     @Override
-    public Class[] getInspectionClasses() {
+    public Class<? extends LocalInspectionTool>[] getInspectionClasses() {
         return new Class[]{MissingAuthorInspection.class};
     }
 }

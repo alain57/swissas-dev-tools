@@ -9,7 +9,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * @author Tavan Alain
  */
 
-class WarningContentTreeNode extends DefaultMutableTreeNode {
+public class WarningContentTreeNode extends DefaultMutableTreeNode {
     private static final String LINE = "Line ";
     
     private boolean isMarked;
@@ -50,7 +50,7 @@ class WarningContentTreeNode extends DefaultMutableTreeNode {
         this.isMarked = value;
     }
     
-    void switchMark(){
+    public void switchMark(){
         markNode(this, !this.isMarked);
     }
     
@@ -61,7 +61,7 @@ class WarningContentTreeNode extends DefaultMutableTreeNode {
         }
     }
     
-    boolean isMarked() {
+    public boolean isMarked() {
         int children = getChildCount();
         if (children != 0) {
         

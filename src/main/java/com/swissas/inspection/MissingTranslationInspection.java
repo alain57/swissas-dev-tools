@@ -20,7 +20,6 @@ import com.swissas.quickfix.TranslateQuickFix;
 import com.swissas.quickfix.TranslateTooltipQuickFix;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,9 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 class MissingTranslationInspection extends LocalInspectionTool {
 	
-	@NonNls
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-	
 	@Override
 	public boolean isEnabledByDefault() {
 		return true;
@@ -43,13 +39,13 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	@Override
 	@NotNull
 	public String getDisplayName() {
-		return RESOURCE_BUNDLE.getString("missing.translation");
+		return ResourceBundle.getBundle("texts").getString("missing.translation");
 	}
 	
 	@Override
 	@NotNull
 	public String getGroupDisplayName() {
-		return RESOURCE_BUNDLE.getString("swiss.as");
+		return ResourceBundle.getBundle("texts").getString("swiss.as");
 	}
 	
 	@NotNull
@@ -126,7 +122,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 					boolean wasRegisteredOnParent = registerNoSOLProblemOnParentIfRequired(parent, expression);
 					boolean wasRegisterOnGrandParent = registerNoSOLProblemOnGrandParentIfRequired(parent, wasRegisteredOnParent);
 					if(!wasRegisteredOnParent && !wasRegisterOnGrandParent) { //don't care about the parent special cases, the issue is on the expression itself
-						this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
+						this.holder.registerProblem(expression, ResourceBundle.getBundle("texts").getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
 					}
 				}
 			}
@@ -135,13 +131,20 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		private boolean registerNoSOLProblemOnParentIfRequired(PsiElement parent, PsiLiteralExpression expression) {
 			boolean wasRegistered = false;
 			if (parent instanceof PsiExpressionList) {
-				PsiElement parentPrevSibling = getPrevNotEmptySpaces(parent);
-				if (parentPrevSibling != null) {
-					this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
-					wasRegistered = true;
-				}
+				wasRegistered = registerNoSolOnElementIfParentIsNotNull(expression, getPrevNotEmptySpaces(parent));
 			}
 			return wasRegistered;
+		}
+		
+		private boolean registerNoSolOnElementIfParentIsNotNull(PsiElement elementToHighlight, PsiElement elementToNullCheck) {
+			boolean result = elementToNullCheck != null;
+			if (result) {
+				this.holder
+						.registerProblem(elementToHighlight, ResourceBundle.getBundle("texts").getString("missing.nosql"),
+						                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+						                 this.noSqlFix);
+			}
+			return result;
 		}
 		
 		private boolean registerNoSOLProblemOnGrandParentIfRequired(PsiElement parent, boolean wasRegisteredOnParent) {
@@ -150,19 +153,12 @@ class MissingTranslationInspection extends LocalInspectionTool {
 				PsiElement grandParent = parent.getParent();
 				if (grandParent instanceof PsiAssignmentExpression
 				    || grandParent instanceof PsiLocalVariable) {
-					this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"),
+					this.holder.registerProblem(parent, ResourceBundle.getBundle("texts").getString("missing.nosql"),
 					                            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
 					                            this.noSqlFix);
 					wasRegistered = true;
 				} else {
-					PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
-					if (beforeGrandParent != null) {
-						this.holder
-								.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.nosql"),
-								                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-								                 this.noSqlFix);
-						wasRegistered = true;
-					}
+					wasRegistered = registerNoSolOnElementIfParentIsNotNull(parent, getPrevNotEmptySpaces(parent.getParent()));
 				}
 			}
 			return wasRegistered;
@@ -180,20 +176,20 @@ class MissingTranslationInspection extends LocalInspectionTool {
 					registerProblemIfParentPreviousSiblingNotInMethods(expression, parentPrevSibling);
 				} else if (parent instanceof PsiPolyadicExpression) {
 					if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
-						this.holder.registerProblem(parent, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+						this.holder.registerProblem(parent, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 					} else {
 						PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
 						registerProblemIfParentPreviousSiblingNotInMethods(parent, beforeGrandParent);
 					}
 				} else { //don't care about the parent special cases, the issue is on the expression itself
-					this.holder.registerProblem(expression, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+					this.holder.registerProblem(expression, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 				}
 			}
 		}
 
 		private void registerProblemIfParentPreviousSiblingNotInMethods(@NotNull PsiElement currentElement, PsiElement parentPrevSibling) {
 			if (parentPrevSibling != null && !this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
-				this.holder.registerProblem(currentElement, RESOURCE_BUNDLE.getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+				this.holder.registerProblem(currentElement, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 			}
 		}
 

@@ -1,6 +1,5 @@
 package com.swissas.ui;
 
-import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -25,7 +24,6 @@ import javax.swing.text.StyledDocument;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ide.CopyPasteManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +62,7 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener, D
 		//Method isn't needed but required bw the DropTargetListener
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void drop(DropTargetDropEvent dropTargetDropEvent) {
 		Transferable transferable = dropTargetDropEvent.getTransferable();
@@ -110,19 +109,5 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener, D
 			return this;
 		}
 		return null;
-	}
-	
-	public void pastePicture() {
-		Transferable transferable = CopyPasteManager.getInstance().getContents();
-		if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
-			ImageIcon imageIcon;
-			try {
-				imageIcon = new ImageIcon(
-						(Image) transferable.getTransferData(DataFlavor.imageFlavor));
-				insertIcon(imageIcon);
-			} catch (UnsupportedFlavorException | IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 }

@@ -1,8 +1,8 @@
 package com.swissas.toolwindow;
 
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.font.TextAttribute;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JTree;
@@ -19,17 +19,15 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
     
     
     public WarningContentTreeCellRender(){
-        super();
     }
     
-    @SuppressWarnings("unchecked")
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
         WarningContentTreeNode node = (WarningContentTreeNode) value;
-        Map attributes = getFont().getAttributes();
+        Map<TextAttribute, Object>  attributes = new HashMap<>();
         attributes.put(TextAttribute.STRIKETHROUGH, node.isMarked());
-        setFont(new Font(attributes));
+        setFont(getFont().deriveFont(attributes));
         if(node.getChildCount() ==0){
             setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
         }

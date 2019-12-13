@@ -24,9 +24,8 @@ import org.jsoup.select.Elements;
 public class NetworkUtil {
 	private static final Logger         LOGGER                  = Logger.getInstance("Swiss-as");
 	private static final Pattern        PATTERN                 = Pattern.compile(".*LC:\\s+([A-Z]+).*Team:\\s+([A-Z]+).*");
-	private static final ResourceBundle URL_BUNDLE              = ResourceBundle.getBundle("urls");
-	private static final String         STAFF_URL               = URL_BUNDLE.getString("url.staff");
-	private static final String         TRAFFIC_LIGHT_CLICK_URL = URL_BUNDLE.getString("url.trafficlight.click");
+	private static final String         STAFF_URL               = ResourceBundle.getBundle("urls").getString("url.staff");
+	private static final String         TRAFFIC_LIGHT_CLICK_URL = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
 	private static final NetworkUtil    INSTANCE                = new NetworkUtil();
 	
 	private NetworkUtil() {

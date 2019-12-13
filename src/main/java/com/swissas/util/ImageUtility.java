@@ -20,6 +20,7 @@ import javax.swing.ImageIcon;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.Base64;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A simple utility class
@@ -41,10 +42,27 @@ public class ImageUtility {
 		}
 		return instance;
 	}
+	
+	public Image getImageFromClipboard() {
+		Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard()
+		                                   .getContents(null);
+		return getImageFromTransferable(transferable);
+	}
+	
+	@Nullable
+	public Image getImageFromTransferable(Transferable transferable) {
+		try {
+			return transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor) ? (Image)transferable.getTransferData(DataFlavor.imageFlavor) : null;
+		} catch (UnsupportedFlavorException  | IOException e) {
+			LOGGER.error(e);
+			return null;
+		}
+	}
 
 	public Image iconToImage(Icon icon) {
+		Image result;
 		if (icon instanceof ImageIcon) {
-			return ((ImageIcon)icon).getImage();
+			result = ((ImageIcon)icon).getImage();
 		} else {
 			int w = icon.getIconWidth();
 			int h = icon.getIconHeight();
@@ -56,8 +74,9 @@ public class ImageUtility {
 			Graphics2D g = image.createGraphics();
 			icon.paintIcon(null, g, 0, 0);
 			g.dispose();
-			return image;
+			result = image;
 		}
+		return result;
 	}
 	
 	public String imageToBase64Jpeg(ImageIcon imageIcon) {

@@ -16,8 +16,7 @@ import javax.swing.ImageIcon;
 
 public class User implements Serializable {
 	
-	private static final ResourceBundle URL_BUNDLE = ResourceBundle.getBundle("urls");
-	private static final String STAFF_PIC_FOLDER = URL_BUNDLE.getString("url.staff.pics");
+	private static final String STAFF_PIC_FOLDER = ResourceBundle.getBundle("urls").getString("url.staff.pics");
 	private static final int NAME_START_INDEX = 12;//html and body tags
 	
 	private String lc;

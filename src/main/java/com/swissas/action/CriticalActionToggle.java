@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.SwissAsIcons;
 import com.swissas.toolwindow.WarningContent;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,15 +16,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CriticalActionToggle extends AnAction {
 
-    @NonNls
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-
     private boolean isCriticalOnly = false;
     private WarningContent parent;
     
     public CriticalActionToggle(){
         getTemplatePresentation().setIcon(SwissAsIcons.CRITICAL);
-        getTemplatePresentation().setText(RESOURCE_BUNDLE.getString("sonar.critical.tooltip"));
+        getTemplatePresentation().setText(ResourceBundle.getBundle("texts").getString("sonar.critical.tooltip"));
     }
     
     public void setWarningContent(WarningContent parent){
@@ -42,7 +38,7 @@ public class CriticalActionToggle extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         e.getPresentation().setIcon(this.isCriticalOnly ? SwissAsIcons.WARNING : SwissAsIcons.CRITICAL);
-        e.getPresentation().setText(this.isCriticalOnly ? RESOURCE_BUNDLE.getString("sonar.warnings.tooltip") : RESOURCE_BUNDLE.getString("sonar.critical.tooltip"));
+        e.getPresentation().setText(this.isCriticalOnly ? ResourceBundle.getBundle("texts").getString("sonar.warnings.tooltip") : ResourceBundle.getBundle("texts").getString("sonar.critical.tooltip"));
         
     }
     

@@ -14,7 +14,6 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiJavaFile;
 import com.swissas.quickfix.MissingAuthorQuickFix;
 import com.swissas.util.ProjectUtil;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -26,9 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class MissingAuthorInspection extends LocalInspectionTool{
 
-    @NonNls
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
-
     @Override
     public boolean isEnabledByDefault() {
         return true;
@@ -37,13 +33,13 @@ public class MissingAuthorInspection extends LocalInspectionTool{
     @Override
     @NotNull
     public String getDisplayName() {
-        return RESOURCE_BUNDLE.getString("missing.class.author");
+        return ResourceBundle.getBundle("texts").getString("missing.class.author");
     }
 
     @Override
     @NotNull
     public String getGroupDisplayName() {
-        return RESOURCE_BUNDLE.getString("swiss.as");
+        return ResourceBundle.getBundle("texts").getString("swiss.as");
     }
 
     @NotNull
@@ -64,7 +60,7 @@ public class MissingAuthorInspection extends LocalInspectionTool{
                         if (firstClass.getDocComment() == null) {
                             holder.registerProblem(
                                     holder.getManager().createProblemDescriptor(firstClass,
-                                                                                RESOURCE_BUNDLE.getString(
+                                                                                ResourceBundle.getBundle("texts").getString(
                                                                                         "class.has.no.javadoc"),
                                                                                 missingAuthorQuickFix,
                                                                                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
@@ -72,14 +68,14 @@ public class MissingAuthorInspection extends LocalInspectionTool{
                         } else if (firstClass.getDocComment().getTags().length == 0) {
                             holder.registerProblem(holder.getManager().createProblemDescriptor(
                                     firstClass.getDocComment(),
-                                    RESOURCE_BUNDLE.getString("class.has.no.author"),
+                                    ResourceBundle.getBundle("texts").getString("class.has.no.author"),
                                     missingAuthorQuickFix,
                                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
                         } else if (Stream.of(firstClass.getDocComment().getTags()).noneMatch(
                                 tag -> "author".equals(tag.getName()))) {
                             holder.registerProblem(holder.getManager().createProblemDescriptor(
                                     firstClass.getDocComment().getTags()[0],
-                                    RESOURCE_BUNDLE.getString("class.has.no.author"),
+                                    ResourceBundle.getBundle("texts").getString("class.has.no.author"),
                                     missingAuthorQuickFix,
                                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly));
                         }

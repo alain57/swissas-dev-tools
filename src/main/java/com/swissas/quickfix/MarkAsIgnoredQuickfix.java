@@ -7,7 +7,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ResourceBundle;
@@ -17,9 +16,6 @@ import java.util.ResourceBundle;
  * @author Tavan Alain
  */
 public class MarkAsIgnoredQuickfix implements LocalQuickFix {
-
-    @NonNls
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
 
     private final String javaComment;
     
@@ -31,14 +27,14 @@ public class MarkAsIgnoredQuickfix implements LocalQuickFix {
     @NotNull
     @Override
     public String getFamilyName() {
-        return RESOURCE_BUNDLE.getString("swiss.as");
+        return ResourceBundle.getBundle("texts").getString("swiss.as");
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
     public String getName() {
-        return RESOURCE_BUNDLE.getString("mark.as.no.ext");
+        return ResourceBundle.getBundle("texts").getString("mark.as.no.ext");
     }
 
     @Override

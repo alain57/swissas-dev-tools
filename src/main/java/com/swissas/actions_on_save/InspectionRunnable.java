@@ -10,7 +10,6 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.QuickFix;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -37,15 +36,16 @@ public class InspectionRunnable implements Runnable {
 		this.inspectionTool = inspectionTool;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		InspectionManager inspectionManager = InspectionManager.getInstance(this.project);
 		GlobalInspectionContext context = inspectionManager.createNewGlobalContext(false);
-		InspectionToolWrapper toolWrapper = new LocalInspectionToolWrapper(this.inspectionTool);
+		LocalInspectionToolWrapper toolWrapper = new LocalInspectionToolWrapper(this.inspectionTool);
 		for (PsiFile psiFile : this.psiFiles) {
 			List<ProblemDescriptor> problemDescriptors = getProblemDescriptors(context, toolWrapper, psiFile);
 			for (ProblemDescriptor problemDescriptor : problemDescriptors) {
-				QuickFix[] fixes = problemDescriptor.getFixes();
+				QuickFix<ProblemDescriptor>[] fixes = problemDescriptor.getFixes();
 				if (fixes != null) {
 					writeQuickFixes(problemDescriptor, fixes);
 				}
@@ -54,7 +54,7 @@ public class InspectionRunnable implements Runnable {
 	}
 	
 	private List<ProblemDescriptor> getProblemDescriptors(GlobalInspectionContext context,
-														  InspectionToolWrapper toolWrapper,
+	                                                      LocalInspectionToolWrapper toolWrapper,
 														  PsiFile psiFile) {
 		List<ProblemDescriptor> problemDescriptors;
 		try {
@@ -66,13 +66,11 @@ public class InspectionRunnable implements Runnable {
 		return problemDescriptors;
 	}
 	
-	private void writeQuickFixes(ProblemDescriptor problemDescriptor, QuickFix[] fixes) {
-		for (QuickFix fix : fixes) {
-			@SuppressWarnings("unchecked")
-			QuickFix<ProblemDescriptor> typedFix = (QuickFix<ProblemDescriptor>) fix;
+	private void writeQuickFixes(ProblemDescriptor problemDescriptor, QuickFix<ProblemDescriptor>[] fixes) {
+		for (QuickFix<ProblemDescriptor> fix : fixes) {
 			if (fix != null) {
 				try {
-					typedFix.applyFix(this.project, problemDescriptor);
+					fix.applyFix(this.project, problemDescriptor);
 				} catch (Exception e) {
 					LOGGER.error(e);
 				}

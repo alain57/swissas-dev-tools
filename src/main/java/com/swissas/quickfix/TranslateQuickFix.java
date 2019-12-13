@@ -50,8 +50,6 @@ import java.util.stream.Stream;
 public class TranslateQuickFix implements LocalQuickFix {
 
     private static final String MESSAGE_CLASS = "_Messages.java";
-    @NonNls
-    protected static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("texts");
     
     private final SmartPsiElementPointer<PsiFile> javaPsiPointer;
     private final Properties                      sharedProperties;
@@ -70,14 +68,14 @@ public class TranslateQuickFix implements LocalQuickFix {
     @NotNull
     @Override
     public String getFamilyName() {
-        return RESOURCE_BUNDLE.getString("swiss.as");
+        return ResourceBundle.getBundle("texts").getString("swiss.as");
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
     public String getName() {
-        return RESOURCE_BUNDLE.getString("translate");
+        return ResourceBundle.getBundle("texts").getString("translate");
     }
 
     @Override
