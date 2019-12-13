@@ -213,7 +213,7 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     @NonNls
     private String autoCorrectCommonMistakes(String sentence){
-        return sentence.replaceAll("\\b[wW]ork[ -]?[oO]rder\\b", "@WORKORDER@")
+        return sentence == null ? null : sentence.replaceAll("\\b[wW]ork[ -]?[oO]rder\\b", "@WORKORDER@")
         .replaceAll("\\bWO\\b", "@WO@")
         .replaceAll("\\baircraft\\b", "@AIRCRAFT@")
         .replaceAll("\\bAC\\b", "@AC@")

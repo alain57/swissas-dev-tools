@@ -8,7 +8,7 @@ import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.intellij.openapi.vcs.annotate.UpToDateLineNumberListener;
 import com.intellij.openapi.vcs.history.VcsRevisionNumber;
-import com.swissas.util.ShowLetterCodeInformation;
+import com.swissas.util.ShowLetterCodeInformationHelper;
 import icons.SwissAsIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +44,7 @@ public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionPro
 			VcsRevisionNumber lineRevisionNumber = this.annotation.getLineRevisionNumber(this.lineNumber);
 			String lc = Objects.requireNonNull(this.annotation.getAuthorsMappingProvider())
 			                   .getAuthors().get(lineRevisionNumber);
-			ShowLetterCodeInformation.displayInformation(lc, null);
+			ShowLetterCodeInformationHelper.displayInformation(lc, null);
 		}
 		
 		@Override

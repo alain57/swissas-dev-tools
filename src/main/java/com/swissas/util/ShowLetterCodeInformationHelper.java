@@ -17,10 +17,10 @@ import com.swissas.beans.User;
  * @author Tavan Alain
  */
 
-public class ShowLetterCodeInformation {
+public class ShowLetterCodeInformationHelper {
 	
-	private ShowLetterCodeInformation() throws IllegalAccessException {
-		throw new IllegalAccessException("Utility class");
+	private ShowLetterCodeInformationHelper() throws IllegalAccessException {
+		throw new IllegalAccessException("Helper class");
 	}
 	
 	public static void displayInformation(String authorString, String errorText){

@@ -1,5 +1,7 @@
 package com.swissas.quickfix;
 
+import java.util.ResourceBundle;
+
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +23,6 @@ public class TranslateTooltipQuickFix extends TranslateQuickFix {
     @NotNull
     @Override
     public String getName() {
-        return RESOURCE_BUNDLE.getString("translate.as.tooltip");
+        return ResourceBundle.getBundle("texts").getString("translate.as.tooltip");
     }
 }

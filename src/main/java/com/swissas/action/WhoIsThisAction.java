@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.swissas.dialog.EditableDialogChooser;
-import com.swissas.util.ShowLetterCodeInformation;
+import com.swissas.util.ShowLetterCodeInformationHelper;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +24,7 @@ public class WhoIsThisAction extends LetterCodeAction {
 		dialogChooser.show();
 		String authorString = dialogChooser.getInputValue();
 		if(authorString != null) {
-			ShowLetterCodeInformation.displayInformation(authorString, null);
+			ShowLetterCodeInformationHelper.displayInformation(authorString, null);
 		}
 	}
 }

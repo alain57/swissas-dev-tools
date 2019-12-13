@@ -58,6 +58,7 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 		}
 
 		int index = 0;
+		StringBuilder sb = new StringBuilder();
 		while ((index = phrase.indexOf('@', index)) != -1) {
 			int index2 = phrase.indexOf('@', index + 1);
 			if (index2 == -1) {
@@ -72,10 +73,10 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 				//do something else
 				repl = "<i>special case for key: "+ link + "not implemented yet</i>";
 			}
-			phrase = phrase.substring(0, index) + repl + phrase.substring(index2 + 1);
+			sb.append(phrase, 0, index).append(repl).append(phrase.substring(index2 + 1));
 			
 		}
-		return phrase;
+		return sb.toString();
 	}		
 	
 	

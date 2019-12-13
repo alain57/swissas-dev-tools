@@ -11,7 +11,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.swissas.util.ShowLetterCodeInformation;
+import com.swissas.util.ShowLetterCodeInformationHelper;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -39,6 +39,6 @@ class ShowClassOwnerAction extends LetterCodeAction {
 		}else {
 			errorText = "The plugin was not able to find the class author code";
 		}
-		ShowLetterCodeInformation.displayInformation(authorString, errorText);
+		ShowLetterCodeInformationHelper.displayInformation(authorString, errorText);
 	}
 }
