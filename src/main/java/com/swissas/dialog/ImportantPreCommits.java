@@ -1,9 +1,11 @@
 package com.swissas.dialog;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -27,6 +29,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.PreencodedMimeBodyPart;
 import javax.mail.util.ByteArrayDataSource;
+import javax.swing.*;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -41,8 +44,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
+import com.intellij.uiDesigner.core.*;
 import com.swissas.ui.DragDropTextPane;
 import com.swissas.util.ImageUtility;
+import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
@@ -57,22 +62,17 @@ public class ImportantPreCommits extends JDialog {
 	private static final Logger  LOGGER                    = Logger.getInstance("Swiss-as");
 	private static final Pattern START_WITH_SUPPORT_STRING = Pattern
 			.compile("^(#|sc|case|sup|support|story|request) ?(id|no)?.(\\d+[`']?\\d+)", CASE_INSENSITIVE);
-	private static final Pattern REVIEWER                  = Pattern
+	public static final Pattern REVIEWER                  = Pattern
 			.compile("reviewed by ([a-z]{3,4})", CASE_INSENSITIVE);
 	private static final String  SELECT_SOMEONE            = "Select a reviewer !";
+	private static final String NO_REVIEW                 = "NO REVIEW";
 	
 	private final CheckinProjectPanel checkinProjectPanel;
-	private       JPanel              contentPane;
-	private       JButton             buttonOK;
-	private       JButton             buttonCancel;
-	private       JCheckBox           informCheckbox;
-	private       JComboBox<String>   reviewerComboBox;
-	private       DragDropTextPane    messageContent;
-	private       JLabel              reviewerLbl;
 	private       int                 exitCode;
 	private       boolean             shouldDispose;
 	
 	public ImportantPreCommits(CheckinProjectPanel checkinProjectPanel) {
+		initComponents();
 		setContentPane(this.contentPane);
 		setModal(true);
 		getRootPane().setDefaultButton(this.buttonOK);
@@ -137,20 +137,28 @@ public class ImportantPreCommits extends JDialog {
 		}
 	}
 	
+	private boolean hasLetterCode(){
+		String value = (String) this.reviewerComboBox.getSelectedItem();
+		return StringUtils.getInstance().isLetterCode(value);
+	}
+	
+	private boolean hasNoReview(){
+		return NO_REVIEW.equalsIgnoreCase((String)this.reviewerComboBox.getSelectedItem());
+	}
+	
 	private void validateReviewerCombobox() {
 		this.exitCode = DialogWrapper.OK_EXIT_CODE;
 		if (this.reviewerComboBox.isVisible()) {
-			if (this.reviewerComboBox.getSelectedItem() == null
-			    || this.reviewerComboBox.getSelectedIndex() == 0) {
-				Messages.showErrorDialog("Please select a reviewer first", "Error");
+			if (!hasLetterCode() && !hasNoReview()) {
+				Messages.showErrorDialog("Please select a reviewer, type a valid 4LC or type 'NO REVIEW'", "Error");
 				this.shouldDispose = false;
 				this.exitCode = DialogWrapper.CANCEL_EXIT_CODE;
 			} else {
-				String reviewerLetterCode = (String) this.reviewerComboBox.getSelectedItem();
+				String reviewText = (String) this.reviewerComboBox.getSelectedItem();
 				String commitMessage = this.checkinProjectPanel.getCommitMessage();
-				if (!commitMessage.toUpperCase().contains(reviewerLetterCode)) {
+				if(hasLetterCode() && !commitMessage.toUpperCase().contains(reviewText)) {
 					this.checkinProjectPanel
-							.setCommitMessage(commitMessage + " reviewed by " + reviewerLetterCode);
+							.setCommitMessage(commitMessage + " reviewed by " + reviewText);
 				}
 			}
 		}
@@ -252,6 +260,7 @@ public class ImportantPreCommits extends JDialog {
 		this.informCheckbox.setEnabled(informOtherPeopleNeeded);
 		this.reviewerComboBox.removeAllItems();
 		this.reviewerComboBox.addItem(SELECT_SOMEONE);
+		this.reviewerComboBox.getEditor().selectAll();
 		SwissAsStorage.getInstance().getMyTeamMembers().forEach(this.reviewerComboBox::addItem);
 		if (reviewNeeded) {
 			Matcher matcher = REVIEWER.matcher(this.checkinProjectPanel.getCommitMessage());
@@ -259,6 +268,8 @@ public class ImportantPreCommits extends JDialog {
 				String reviewerInCommitMessage = matcher.group(1).toUpperCase();
 				boolean hasReviewer = SwissAsStorage.getInstance().getMyTeamMembers().contains(reviewerInCommitMessage);
 				this.reviewerComboBox.setSelectedItem(hasReviewer ? reviewerInCommitMessage : SELECT_SOMEONE);
+			}else if(this.checkinProjectPanel.getCommitMessage().toUpperCase().contains(NO_REVIEW)){
+				this.reviewerComboBox.setSelectedItem(NO_REVIEW);
 			}
 			this.reviewerLbl.setVisible(true);
 			this.reviewerComboBox.setVisible(true);
@@ -267,4 +278,137 @@ public class ImportantPreCommits extends JDialog {
 			this.reviewerComboBox.setVisible(false);
 		}
 	}
+	
+
+	private void initComponents() {
+		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
+		// Generated using JFormDesigner Evaluation license - unknown
+		ResourceBundle bundle = ResourceBundle.getBundle("texts");
+		this.contentPane = new JPanel();
+		var panel1 = new JPanel();
+		this.informCheckbox = new JCheckBox();
+		this.reviewerComboBox = new JComboBox<>();
+		this.reviewerLbl = new JLabel();
+		var scrollPane1 = new JScrollPane();
+		this.messageContent = new DragDropTextPane();
+		var panel2 = new JPanel();
+		var hSpacer1 = new Spacer();
+		var panel3 = new JPanel();
+		this.buttonOK = new JButton();
+		this.buttonCancel = new JButton();
+
+		//======== contentPane ========
+		{
+//			this.contentPane
+//					.setBorder(new javax. swing. border. CompoundBorder(new javax .swing .border .TitledBorder (new javax. swing. border. EmptyBorder(0
+//			, 0, 0, 0) , "JF\u006frmD\u0065sig\u006eer \u0045val\u0075ati\u006fn", javax. swing. border. TitledBorder. CENTER, javax. swing. border. TitledBorder. BOTTOM
+//			, new java .awt .Font ("Dia\u006cog" ,java .awt .Font .BOLD ,12 ), java. awt. Color. red) ,
+//					                                                    this.contentPane
+//							                                                    . getBorder()));
+			this.contentPane. addPropertyChangeListener(new java. beans. PropertyChangeListener( ){ @Override public void propertyChange(java .beans .PropertyChangeEvent e
+			                                                                                                                            ) {if ("\u0062ord\u0065r" .equals (e .getPropertyName () )) throw new RuntimeException( ); }});
+			this.contentPane
+					.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+
+			//======== panel1 ========
+			{
+				panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+
+				//---- informCheckbox ----
+				this.informCheckbox.setText(bundle.getString("precommit.checkbox.inform"));
+				panel1.add(this.informCheckbox, new GridConstraints(1, 0, 1, 1,
+				                                                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+					                                                GridConstraints.SIZEPOLICY_WANT_GROW,
+					                                                null, new Dimension(149, 303), null));
+
+				//---- reviewerComboBox ----
+				this.reviewerComboBox.setModel(new DefaultComboBoxModel<>(new String[] {
+
+				}));
+				this.reviewerComboBox.setEditable(true);
+				panel1.add(this.reviewerComboBox, new GridConstraints(0, 1, 1, 1,
+				                                                      GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+					GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+					                                                  GridConstraints.SIZEPOLICY_FIXED,
+					                                                  null, new Dimension(509, 30), null));
+
+				//---- reviewerLbl ----
+				this.reviewerLbl.setText(bundle.getString("precommit.label.reviewer"));
+				panel1.add(this.reviewerLbl, new GridConstraints(0, 0, 1, 1,
+				                                                 GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+				                                                 GridConstraints.SIZEPOLICY_FIXED,
+				                                                 GridConstraints.SIZEPOLICY_FIXED,
+				                                                 null, null, null));
+
+				//======== scrollPane1 ========
+				{
+					scrollPane1.setViewportView(this.messageContent);
+				}
+				panel1.add(scrollPane1, new GridConstraints(1, 1, 1, 1,
+					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+					null, null, null));
+			}
+			this.contentPane.add(panel1, new GridConstraints(0, 0, 1, 1,
+			                                                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+				                                             null, null, null));
+
+			//======== panel2 ========
+			{
+				panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+				panel2.add(hSpacer1, new GridConstraints(0, 0, 1, 1,
+					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+					GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK,
+					null, null, null));
+
+				//======== panel3 ========
+				{
+					panel3.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1, true, false));
+
+					//---- buttonOK ----
+					this.buttonOK.setText("OK");
+					panel3.add(this.buttonOK, new GridConstraints(0, 0, 1, 1,
+					                                              GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+						                                          GridConstraints.SIZEPOLICY_FIXED,
+						                                          null, null, null));
+
+					//---- buttonCancel ----
+					this.buttonCancel.setText("Cancel");
+					panel3.add(this.buttonCancel, new GridConstraints(0, 1, 1, 1,
+					                                                  GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+						                                              GridConstraints.SIZEPOLICY_FIXED,
+						                                              null, null, null));
+				}
+				panel2.add(panel3, new GridConstraints(0, 1, 1, 1,
+					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+					null, null, null));
+			}
+			this.contentPane.add(panel2, new GridConstraints(1, 0, 1, 1,
+			                                                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+				                                             GridConstraints.SIZEPOLICY_CAN_SHRINK,
+				                                             null, null, null));
+		}
+		// JFormDesigner - End of component initialization  //GEN-END:initComponents
+	}
+
+	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
+	// Generated using JFormDesigner Evaluation license - unknown
+	private JPanel contentPane;
+	private JCheckBox informCheckbox;
+	private JComboBox<String> reviewerComboBox;
+	private JLabel reviewerLbl;
+	private DragDropTextPane messageContent;
+	private JButton buttonOK;
+	private JButton buttonCancel;
+	// JFormDesigner - End of variables declaration  //GEN-END:variables
 }

@@ -1,6 +1,10 @@
 package com.swissas.toolwindow;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.Timer;
@@ -50,6 +54,9 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	
 	private static final String COMPILER = "compiler";
 	private static final String SONAR    = "sonar";
+	private static final String MOVE_TO_SERVER = "Move to Server";
+	private static final String MOVE_TO_SERVER_TEAM = "Move to Server (team)";
+	private static final String MOVE_TO_SERVER_ATTRIBUTE = "\"Move this code to the server\"";
 	
 	
 	private static final String MESSAGE_URL = ResourceBundle.getBundle("urls").getString("url.warnings");
@@ -59,7 +66,9 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	
 	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
-	private Project project;
+	private Project                    project;
+	private List<Element>              moveToServerModules;
+	private List<Element>              moveToServerModulesMeOnly;
 	
 	public WarningContent() {
 		this.criticalActionToggle = new CriticalActionToggle();
@@ -113,6 +122,18 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			for (Element type : typesDifferentThanCodeCheck) {
 				this.types.add(generateTypeFromElementType(type));
 			}
+			this.moveToServerModules = new ArrayList<>();
+			this.moveToServerModulesMeOnly = new ArrayList<>();
+			for (String member : this.swissAsStorage.getMyTeamMembers(true)) {
+				Elements sonarMoveToServer = Jsoup
+						.connect(MESSAGE_URL + member).get()
+						.select("module:has(file > message[description=" 
+						        + MOVE_TO_SERVER_ATTRIBUTE  + "])");
+				this.moveToServerModules.addAll(sonarMoveToServer);
+				if(member.equals(this.swissAsStorage.getFourLetterCode())) {
+					this.moveToServerModulesMeOnly.addAll(sonarMoveToServer);
+				}
+			}
 		}
 	}
 	
@@ -122,6 +143,21 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			type.addChildren(generateModuleFromModuleNodeAndType(moduleNode, type));
 		}
 		return type;
+	}
+	private void generateMoveToServerModuleFromElement(Element elementNode, Map<String, Module> modulesByName){
+		Module tmpModule =  new Module(elementNode);
+		Module module = modulesByName.getOrDefault(tmpModule.getMainAttribute(), tmpModule);
+		for(Element fileElement : elementNode.select("file:has(message[description="
+		                                             + MOVE_TO_SERVER_ATTRIBUTE + "])")){
+			File file = new File(fileElement);
+			for(Element messageElement : fileElement.select("message[description="
+			                                                + MOVE_TO_SERVER_ATTRIBUTE + "]")){
+				Message message = new Message(messageElement);
+				file.addChildren(message);
+			}
+			module.addChildren(file);
+		}
+		modulesByName.put(module.getMainAttribute(), module);
 	}
 	
 	private Module generateModuleFromModuleNodeAndType(Node moduleNode, Type type) {
@@ -160,6 +196,23 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				}
 			}
 		}
+		WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
+		fillMoveToServerRoot(root, true);
+		addMoveToServerTeamTree(root);
+		
+		root = new WarningContentTreeNode(ROOT);
+		fillMoveToServerRoot(root, false);
+		addMoveToServerTree(root);
+	}
+	
+	private void fillMoveToServerRoot(WarningContentTreeNode root, boolean entireTeam) {
+		List<Element> elements = entireTeam ? this.moveToServerModules : this.moveToServerModulesMeOnly;
+		Map<String,Module> modulesByName = new HashMap<>();
+		for (Element elementNode : elements) {
+			generateMoveToServerModuleFromElement(elementNode, modulesByName);
+		}
+		modulesByName.values().forEach(module ->
+				                               addModuleNodeToRootIfHasChildren(root, module));
 	}
 	
 	private void addModuleNodeToRootIfHasChildren(WarningContentTreeNode root, Module module) {
@@ -200,7 +253,19 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		}
 	}
 	
+	private void addMoveToServerTeamTree(WarningContentTreeNode root){
+		addTreeWithTitleAndRoot(MOVE_TO_SERVER_TEAM, root);
+	}
+	
+	private void addMoveToServerTree(WarningContentTreeNode root){
+		addTreeWithTitleAndRoot(MOVE_TO_SERVER, root);
+	}
+	
 	private void createAndAddTreeForTypeAndRootNode(Type type, WarningContentTreeNode root) {
+		addTreeWithTitleAndRoot(type.getMainAttribute(), root);
+	}
+	
+	private void addTreeWithTitleAndRoot(String title, WarningContentTreeNode root) {
 		Tree tree = new Tree(root);
 		tree.setCellRenderer(new WarningContentTreeCellRender());
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -208,6 +273,6 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		tree.setRootVisible(false);
 		tree.addMouseListener(new WarningContentMouseAdapter(this.project, tree));
 		tree.addKeyListener(new WarningContentKeyAdapter(tree));
-		add(type.getMainAttribute(), new JBScrollPane(tree));
+		add(title, new JBScrollPane(tree));
 	}
 }

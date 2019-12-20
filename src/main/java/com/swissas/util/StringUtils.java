@@ -38,5 +38,9 @@ public class StringUtils {
 		return i >= 0;
 	}
 	
+	public boolean isValidLetterCode(String potentialLetterCode) {
+		return SwissAsStorage.getInstance().getUserMap().containsKey(potentialLetterCode);
+	}
+	
 	
 }

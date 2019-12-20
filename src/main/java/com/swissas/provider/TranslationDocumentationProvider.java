@@ -1,14 +1,10 @@
 package com.swissas.provider;
 
-import java.awt.Window;
-import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.intellij.lang.java.JavaDocumentationProvider;
 import com.intellij.lang.properties.psi.impl.PropertyValueImpl;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.impl.source.PsiFieldImpl;
@@ -25,31 +21,17 @@ import org.jetbrains.annotations.Nullable;
  */
 
 public class TranslationDocumentationProvider extends JavaDocumentationProvider {
-	private static final List<String> MULTILANG_CLASSES = Arrays.asList("MultiLangText", "MultiLangToolTip");
-	private Project activeProject = null;
+	private static final List<String> MULTILANG_CLASSES = List.of("MultiLangText", "MultiLangToolTip");
+	private static final Pattern POSSIBLE_MULTILANG = Pattern.compile("[A-Z0-9_]+_TX?T(_\\d+)?");
 
 
 	@Override
 	@Nullable
 	public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-		if(isSasMultiLang(originalElement) && element instanceof PropertyValueImpl) {
-			getNeededVariables();
+		if(element instanceof PropertyValueImpl && isSasMultiLang(originalElement)) {
 			return replaceReferences(((PropertyValueImpl)element).getText());
 		}
 		return super.getQuickNavigateInfo(element, originalElement);
-	}
-	
-	private void getNeededVariables(){
-		if(this.activeProject == null){
-			Project[] projects = ProjectManager.getInstance().getOpenProjects();
-			for (Project project : projects) {
-				Window window = WindowManager.getInstance().suggestParentWindow(project);
-				if (window != null && window.isActive()) {
-					this.activeProject = project;
-					break;
-				}
-			}
-		}
 	}
 	
 	private String replaceReferences(String phrase) {
@@ -58,7 +40,6 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 		}
 
 		int index = 0;
-		StringBuilder sb = new StringBuilder();
 		while ((index = phrase.indexOf('@', index)) != -1) {
 			int index2 = phrase.indexOf('@', index + 1);
 			if (index2 == -1) {
@@ -73,23 +54,24 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 				//do something else
 				repl = "<i>special case for key: "+ link + "not implemented yet</i>";
 			}
-			sb.append(phrase, 0, index).append(repl).append(phrase.substring(index2 + 1));
+			phrase = phrase.substring(0, index) + repl + phrase.substring(index2 + 1);
 			
 		}
-		return sb.toString();
+		return phrase;
 	}		
 	
 	
 	public static boolean isSasMultiLang(PsiElement element){
 		boolean result = false;
 		PsiElement elementToCheck = element;
-		if(elementToCheck.getText() != null && elementToCheck.getText().matches("[A-Z0-9_]+_TX?T(_\\d+)?")){
+		String text = element.getText();
+		if(text != null && POSSIBLE_MULTILANG.matcher(text).find()){
 			PsiFieldImpl field = null;
 			if(elementToCheck instanceof PsiIdentifierImpl){
 				elementToCheck = PsiTreeUtil.getParentOfType(elementToCheck, PsiReferenceExpression.class);
 			}
 			if(elementToCheck instanceof PsiReferenceExpressionImpl) {
-				field = ((PsiFieldImpl) ((PsiReferenceExpressionImpl) elementToCheck).resolve());
+				field = (PsiFieldImpl) ((PsiReferenceExpressionImpl) elementToCheck).resolve();
 			}
 			if(field != null) {
 				result = MULTILANG_CLASSES.contains(field.getType().getPresentableText());

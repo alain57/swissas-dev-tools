@@ -122,7 +122,7 @@ class ConfigPanel {
 		for (User user : SwissAsStorage.getInstance().getUserMap().values()) {
 			allUsers.add(user.getLc());
 			String lcAndName = user.getLCAndName();
-			if(user.isInTeam("QA")){
+			if(user.isInTeam("QC")){
 				qaUsersLcAndNames.add(lcAndName);
 			}else if(user.isInTeam("SUP")){
 				supportUsersLcAndNames.add(lcAndName);

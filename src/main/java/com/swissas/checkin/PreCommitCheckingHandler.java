@@ -4,6 +4,7 @@ package com.swissas.checkin;
 import java.io.File;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -18,6 +19,7 @@ import com.intellij.util.PairConsumer;
 import com.swissas.dialog.ConfirmationDialog;
 import com.swissas.dialog.ImportantPreCommits;
 import com.swissas.util.ProjectUtil;
+import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
@@ -63,9 +65,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	@Override
 	public ReturnResult beforeCheckin(CommitExecutor executor,
 	                                  PairConsumer<Object, Object> additionalDataConsumer) {
-		if (DumbService.getInstance(this.project).isDumb()) {
-			Messages.showErrorDialog(this.project,  ResourceBundle.getBundle("texts").getString("commit.not.possible"),
-			                         TITLE);
+		if (warnIfIndexInProgress() || warnIfCommitMessageEmpty()){
 			return ReturnResult.CANCEL;
 		}
 		
@@ -92,13 +92,53 @@ class PreCommitCheckingHandler extends CheckinHandler {
 		return result;
 	}
 	
+	private boolean warnIfIndexInProgress() {
+		boolean result = false;
+		if (DumbService.getInstance(this.project).isDumb()) {
+			Messages.showErrorDialog(this.project, ResourceBundle.getBundle("texts")
+			                                                     .getString("commit.not.possible"),
+			                         TITLE);
+			result = true;
+		}
+		return result;
+	}
+	
+	private boolean warnIfCommitMessageEmpty() {
+		boolean result = false;
+		if (this.checkinProjectPanel.getCommitMessage().trim().isEmpty()) {
+			Messages.showDialog(this.project,
+			                    EMPTY_COMMIT_MSG,
+			                    TITLE,
+			                    new String[]{ ResourceBundle.getBundle("texts").getString("ok") },
+			                    1,
+			                    null);
+			result = true;
+		}
+		return result;
+	}
+	
+	private boolean isCodeReviewRequired() {
+		boolean result = false;
+		if(SwissAsStorage.getInstance().isPreCommitCodeReview()) {
+			Matcher matcher = ImportantPreCommits.REVIEWER
+					.matcher(this.checkinProjectPanel.getCommitMessage());
+			if(matcher.find()){
+				String potentialReviewer = matcher.group(1);
+				result = !StringUtils.getInstance().isLetterCode(potentialReviewer);
+			}else {
+				result = true;
+			}
+		}
+		return result;
+	}
+	
 	
 	private boolean displayPreCommitChecksIfNeeded() {
 		boolean result = true;
 		this.importantPreCommitsDialog = new ImportantPreCommits(this.checkinProjectPanel);
 		if (ProjectUtil.getInstance().isAmosProject(this.project)) {
 		    boolean informOther = informOtherPeopleNeeded(); 
-			if(informOther || SwissAsStorage.getInstance().isPreCommitCodeReview()) {
+			if(informOther || isCodeReviewRequired()) {
 				this.importantPreCommitsDialog.refreshContent(informOther);
 				this.importantPreCommitsDialog.setVisible(true);
 				result = this.importantPreCommitsDialog.getExitCode() != DialogWrapper.CANCEL_EXIT_CODE;
