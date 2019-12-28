@@ -87,7 +87,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			Project project = holder.getProject();
 			LineStatusTracker lineStatusTracker = LineStatusTrackerManager.getInstance(project).getLineStatusTracker(virtualFile);
 			this.rangesToCheck = Optional.ofNullable(lineStatusTracker).map(LineStatusTrackerI::getRanges).orElse(new ArrayList<>());
-			this.rangesToCheck.removeIf(e -> e.getType() != Range.DELETED);
+			this.rangesToCheck.removeIf(e -> e.getType() == Range.DELETED);
 			this.noSvn = this.rangesToCheck.isEmpty();
 		}
 		
@@ -96,7 +96,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			super.visitLiteralExpression(expression);
 			if(ProjectUtil.getInstance().isAmosProject(expression.getProject())) {
 				int minSize = Integer.parseInt(
-						SwissAsStorage.getInstance().getMinWarningSize()) + 2; //psiStringElements are withing double quotes
+						SwissAsStorage.getInstance().getMinWarningSize());
 				int textOffset = expression.getTextOffset();
 				int lineNumber = StringUtil.offsetToLineNumber(
 						expression.getContainingFile().getText(), textOffset);
@@ -104,7 +104,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 						r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
 				if (shouldCheckFile) {
 					Object expressionValue = expression.getValue();
-					if (expressionValue instanceof String && ((String) expressionValue).length() > minSize &&
+					if (expressionValue instanceof String && ((String) expressionValue).length() >= minSize &&
 							!this.filenamePattern.matcher((String) expressionValue).matches()) {
 						if (this.sqlPattern.matcher((String) expressionValue).matches()) {
 							checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);

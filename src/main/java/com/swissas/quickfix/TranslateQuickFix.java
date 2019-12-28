@@ -17,15 +17,12 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiImportList;
 import com.intellij.psi.PsiImportStaticStatement;
 import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiPolyadicExpression;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SwissAsStorage;
@@ -83,43 +80,55 @@ public class TranslateQuickFix implements LocalQuickFix {
         PropertiesFile properties = getOrCreateProperties();
         PsiFile currentTranslationJavaFile = getOrCreateMessageFile();
         PsiElement element = descriptor.getPsiElement();
-        
-        
-        String propertyValue = getPropertyValue(element);
+        String tmpPropertyValue = getPropertyValue(element);
+        String propertyValue = replaceWithKnownKeys(tmpPropertyValue);
         List<String> valuesInProperties = new ArrayList<>(properties.getNamesMap().values());
         String fullKey = properties.getNamesMap().entrySet().stream().filter(e -> e.getValue().equals(propertyValue)).map(Entry::getKey).findFirst().orElse(null);
         if(fullKey == null){
-            String translatedKey = getPropertyKey(element);
-            int numberInCaseOfDuplicateKey = 0;
-            fullKey = translatedKey + this.ending;
-            while(valuesInProperties.contains(fullKey)) {
-                numberInCaseOfDuplicateKey++;
-                fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
-            }
-            properties.addProperty(fullKey, propertyValue);
-            PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + fullKey + " = new " + this.className + "(INSTANCE);\n", null);
-            PsiField latestField = PsiTreeUtil.collectElementsOfType(currentTranslationJavaFile, PsiField.class).stream().reduce((a, b) -> b).get();
-            latestField.getParent().addAfter(javaTranslation, latestField);
+            fullKey = generateFullKeyForAlreadyAssignedKey(valuesInProperties, tmpPropertyValue);
+            fillPropertiesAndMessageWith(project, properties, currentTranslationJavaFile,
+                                         propertyValue, fullKey);
         }
-
-
-        StringBuilder replacement = new StringBuilder(fullKey);
-        if(element instanceof PsiPolyadicExpression) {
-            List<PsiElement> elementsToFormat = Stream.of(element.getChildren()).filter(e ->
-                                                    !(e instanceof PsiWhiteSpace) &&
-                                                    !(e instanceof PsiJavaToken) &&
-                                                    !(e instanceof PsiLiteralExpressionImpl && ((PsiLiteralExpressionImpl)e).getLiteralElementType().equals(
-                                    JavaTokenType.STRING_LITERAL))
-            ).collect(Collectors.toList());
-            replacement.append(".format(");
-            String collect = elementsToFormat.stream().map(PsiElement::getText).collect(Collectors.joining(", "));
-            replacement.append(collect);
-            replacement.append(")");
-        }
-        PsiExpression expressionFromText = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createExpressionFromText(replacement.toString(), null);
-        element.replace(expressionFromText);
+        replaceTextWithTranslation(element, fullKey);
         PsiClass messageClass = PsiTreeUtil.getChildOfType(currentTranslationJavaFile.getContainingFile(), PsiClass.class);
         addImport(messageClass, fullKey);
+    }
+    
+    public void replaceTextWithTranslation(PsiElement elementToReplace, String translationKey) {
+        StringBuilder replacement = new StringBuilder(translationKey);
+        if(elementToReplace instanceof PsiPolyadicExpression) {
+            List<PsiElement> psiElements = getElementsToFormat(elementToReplace);
+            replacement.append(".format(");
+            replacement.append(psiElements.stream().map(PsiElement::getText).collect(Collectors.joining(", ")));
+            replacement.append(")");
+        }
+        PsiExpression expressionFromText = JavaPsiFacade
+                .getElementFactory(this.javaPsiPointer.getProject()).createExpressionFromText(replacement.toString(), null);
+        elementToReplace.replace(expressionFromText);
+    }
+    
+    public void fillPropertiesAndMessageWith(@NotNull Project project,
+                                             PropertiesFile properties, PsiFile messageFile,
+                                             String propertyValue, String propertyKey) {
+        properties.addProperty(propertyKey, propertyValue);
+        PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + propertyKey
+                                                                                                  + " = new " + this.className + "(INSTANCE);\n", null);
+        PsiField latestField = PsiTreeUtil.collectElementsOfType(messageFile, PsiField.class).stream().reduce((a, b) -> b).get();
+        latestField.getParent().addAfter(javaTranslation, latestField);
+    }
+    
+    @NotNull
+    public String generateFullKeyForAlreadyAssignedKey(List<String> valuesInProperties,
+                                                       String propertyValue) {
+        String translatedKey = convertPropertyStringToKey(propertyValue);
+        String fullKey;
+        int numberInCaseOfDuplicateKey = 0;
+        fullKey = translatedKey + this.ending;
+        while(valuesInProperties.contains(fullKey)) {
+            numberInCaseOfDuplicateKey++;
+            fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
+        }
+        return fullKey;
     }
     
     
@@ -173,38 +182,51 @@ public class TranslateQuickFix implements LocalQuickFix {
         String result;
         if(element instanceof PsiPolyadicExpression){
             StringBuilder stringBuilder = new StringBuilder();
-            //with something like getMethod1().getMethod2() psiMethodCallExpress will see 2 results. One containing the full stuff, and one only the ending. We don't need the last one, so we remote it.
-            Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
-            List<PsiElement> psiElements = Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression
-                                                                                               || e instanceof PsiMethodCallExpression
-                                                                                               || e instanceof PsiReferenceExpression)).
-                    filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
+            List<PsiElement> psiElements = getElementsItemsToTranslate(element);
             for (PsiElement psiElement : psiElements) {
                 if(psiElement instanceof PsiLiteralExpressionImpl){
                     PsiLiteralExpressionImpl psiLiteralExpression = (PsiLiteralExpressionImpl)psiElement;
                     if(JavaTokenType.STRING_LITERAL.equals(psiLiteralExpression.getLiteralElementType())){
                         stringBuilder.append(psiLiteralExpression.getInnerText());
-                        continue;
+                    }else {
+                        stringBuilder.append("%s");
                     }
+                } else {
+                    stringBuilder.append("%s");
                 }
-                stringBuilder.append("%s");
             }
             result = stringBuilder.toString();
         }else {
             result = ((PsiLiteralExpressionImpl) element).getInnerText();
         }
         result = StringEscapeUtils.unescapeJava(result);
-        result = autoCorrectCommonMistakes(result);
-        return replaceWithKnownKeys(result);
-        
+        return autoCorrectCommonMistakes(result);
     }
+    
+    @NotNull
+    private List<PsiElement> getElementsItemsToTranslate(PsiElement element) {
+        Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
+        return Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression
+                                                                   || e instanceof PsiMethodCallExpression
+                                                                   || e instanceof PsiReferenceExpression)).
+                filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
+    }
+    
+    private List<PsiElement> getElementsToFormat(PsiElement element) {
+        Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
+        return Stream.of(PsiTreeUtil.collectElements(element, e ->    e instanceof PsiMethodCallExpression
+                                                                   || e instanceof PsiReferenceExpression
+                                                                   || e instanceof PsiLiteralExpression && !JavaTokenType.STRING_LITERAL.equals(((PsiLiteralExpressionImpl)e).getLiteralElementType()))).
+                             filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
+    }
+    
 
-    private String getPropertyKey(PsiElement element){
-        PsiLiteralExpressionImpl stringElement = PsiTreeUtil.collectElementsOfType(element, PsiLiteralExpressionImpl.class).stream()
-                .filter(e -> ((PsiJavaTokenImpl)e.getFirstChild()).getTokenType().equals(JavaTokenType.STRING_LITERAL)).findFirst().get();
-        String capitalizeFully = Objects.requireNonNull(StringEscapeUtils.unescapeJava(stringElement.getInnerText())).toUpperCase().replaceAll("[^A-Z0-9 ]", "").replaceAll(" ", "_");
+    private String convertPropertyStringToKey(@NotNull String properpertyString) {
+        String withoutPercent = properpertyString.replaceAll("(%s)+", "_");
+        String capitalizeFully = StringEscapeUtils.unescapeJava(withoutPercent)
+                                        .toUpperCase().replaceAll("[^A-Z0-9 ]", "")
+                                        .replaceAll(" ", "_");
         capitalizeFully = StringUtils.removeEnd(capitalizeFully, "_");
-
         if(capitalizeFully.length() > 36){
             capitalizeFully = capitalizeFully.substring(0, 36);
         }
