@@ -10,22 +10,24 @@ import com.intellij.psi.util.InheritanceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class GenerateDtoFromCurrentBo extends AnAction {
-    private boolean isVisible = false;
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        checkStatus(e);
-        Presentation presentation = e.getPresentation();
-        presentation.setVisible(this.isVisible);
-        super.update(e);
-    }
-
-    private void checkStatus(AnActionEvent e) {
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
+        boolean isVisible = false;
+        Presentation presentation = e.getPresentation();
         if(psiFile instanceof PsiJavaFile){
             PsiJavaFile javaFile = (PsiJavaFile)psiFile;
-            this.isVisible = InheritanceUtil.isInheritor(javaFile.getClasses()[0], "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
+            if(javaFile.getClasses().length > 0) {
+                isVisible = InheritanceUtil.isInheritor(javaFile.getClasses()[0],
+                                                        "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
+                String name = javaFile.getName();
+                name = name.substring(0, name.indexOf(".java"));
+                presentation.setText("Generate DTO for " + name);
+            }
         }
+        presentation.setVisible(isVisible);
+        super.update(e);
     }
 
     @Override
