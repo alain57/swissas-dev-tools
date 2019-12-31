@@ -39,6 +39,7 @@
             <action class="com.swissas.action.ShowClassOwnerAction" text="Information About Class Owner" id="com.swissas.action.ShowClassOwnerAction"/>
             <action class="com.swissas.action.WhoIsThisAction"  text="Information About a Letter Code" id="com.swissas.action.WhoIsThisAction" />
             <action class="com.swissas.action.GenerateDtoFromCurrentBo" text="Generate DTO for BOName"  id="com.swissas.action.GenerateDtoFromCurrentBo" />
+            <action class="com.swissas.action.GenerateDtoFromBo" text="Generate DTO" id="com.swissas.action.GenerateDtoFromBo" />
         </group>
     </actions>
     

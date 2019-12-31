@@ -282,7 +282,6 @@ public class ImportantPreCommits extends JDialog {
 
 	private void initComponents() {
 		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
-		// Generated using JFormDesigner Evaluation license - unknown
 		ResourceBundle bundle = ResourceBundle.getBundle("texts");
 		this.contentPane = new JPanel();
 		var panel1 = new JPanel();
@@ -297,51 +296,36 @@ public class ImportantPreCommits extends JDialog {
 		this.buttonOK = new JButton();
 		this.buttonCancel = new JButton();
 
-		//======== contentPane ========
 		{
-//			this.contentPane
-//					.setBorder(new javax. swing. border. CompoundBorder(new javax .swing .border .TitledBorder (new javax. swing. border. EmptyBorder(0
-//			, 0, 0, 0) , "JF\u006frmD\u0065sig\u006eer \u0045val\u0075ati\u006fn", javax. swing. border. TitledBorder. CENTER, javax. swing. border. TitledBorder. BOTTOM
-//			, new java .awt .Font ("Dia\u006cog" ,java .awt .Font .BOLD ,12 ), java. awt. Color. red) ,
-//					                                                    this.contentPane
-//							                                                    . getBorder()));
-			this.contentPane. addPropertyChangeListener(new java. beans. PropertyChangeListener( ){ @Override public void propertyChange(java .beans .PropertyChangeEvent e
-			                                                                                                                            ) {if ("\u0062ord\u0065r" .equals (e .getPropertyName () )) throw new RuntimeException( ); }});
-			this.contentPane
-					.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+			this.contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
 
-			//======== panel1 ========
 			{
 				panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
 
-				//---- informCheckbox ----
 				this.informCheckbox.setText(bundle.getString("precommit.checkbox.inform"));
 				panel1.add(this.informCheckbox, new GridConstraints(1, 0, 1, 1,
-				                                                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+					GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
 					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-					                                                GridConstraints.SIZEPOLICY_WANT_GROW,
-					                                                null, new Dimension(149, 303), null));
+					GridConstraints.SIZEPOLICY_WANT_GROW,
+					null, new Dimension(149, 303), null));
 
-				//---- reviewerComboBox ----
 				this.reviewerComboBox.setModel(new DefaultComboBoxModel<>(new String[] {
 
 				}));
 				this.reviewerComboBox.setEditable(true);
 				panel1.add(this.reviewerComboBox, new GridConstraints(0, 1, 1, 1,
-				                                                      GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+					GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
 					GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-					                                                  GridConstraints.SIZEPOLICY_FIXED,
-					                                                  null, new Dimension(509, 30), null));
+					GridConstraints.SIZEPOLICY_FIXED,
+					null, new Dimension(509, 30), null));
 
-				//---- reviewerLbl ----
 				this.reviewerLbl.setText(bundle.getString("precommit.label.reviewer"));
 				panel1.add(this.reviewerLbl, new GridConstraints(0, 0, 1, 1,
-				                                                 GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-				                                                 GridConstraints.SIZEPOLICY_FIXED,
-				                                                 GridConstraints.SIZEPOLICY_FIXED,
-				                                                 null, null, null));
+					GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+					GridConstraints.SIZEPOLICY_FIXED,
+					GridConstraints.SIZEPOLICY_FIXED,
+					null, null, null));
 
-				//======== scrollPane1 ========
 				{
 					scrollPane1.setViewportView(this.messageContent);
 				}
@@ -352,12 +336,11 @@ public class ImportantPreCommits extends JDialog {
 					null, null, null));
 			}
 			this.contentPane.add(panel1, new GridConstraints(0, 0, 1, 1,
-			                                                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+				GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
 				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
 				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-				                                             null, null, null));
+				null, null, null));
 
-			//======== panel2 ========
 			{
 				panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
 				panel2.add(hSpacer1, new GridConstraints(0, 0, 1, 1,
@@ -366,25 +349,22 @@ public class ImportantPreCommits extends JDialog {
 					GridConstraints.SIZEPOLICY_CAN_SHRINK,
 					null, null, null));
 
-				//======== panel3 ========
 				{
 					panel3.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1, true, false));
 
-					//---- buttonOK ----
 					this.buttonOK.setText("OK");
 					panel3.add(this.buttonOK, new GridConstraints(0, 0, 1, 1,
-					                                              GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
 						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						                                          GridConstraints.SIZEPOLICY_FIXED,
-						                                          null, null, null));
+						GridConstraints.SIZEPOLICY_FIXED,
+						null, null, null));
 
-					//---- buttonCancel ----
 					this.buttonCancel.setText("Cancel");
 					panel3.add(this.buttonCancel, new GridConstraints(0, 1, 1, 1,
-					                                                  GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
 						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						                                              GridConstraints.SIZEPOLICY_FIXED,
-						                                              null, null, null));
+						GridConstraints.SIZEPOLICY_FIXED,
+						null, null, null));
 				}
 				panel2.add(panel3, new GridConstraints(0, 1, 1, 1,
 					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -393,16 +373,15 @@ public class ImportantPreCommits extends JDialog {
 					null, null, null));
 			}
 			this.contentPane.add(panel2, new GridConstraints(1, 0, 1, 1,
-			                                                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+				GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
 				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-				                                             GridConstraints.SIZEPOLICY_CAN_SHRINK,
-				                                             null, null, null));
+				GridConstraints.SIZEPOLICY_CAN_SHRINK,
+				null, null, null));
 		}
 		// JFormDesigner - End of component initialization  //GEN-END:initComponents
 	}
 
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-	// Generated using JFormDesigner Evaluation license - unknown
 	private JPanel contentPane;
 	private JCheckBox informCheckbox;
 	private JComboBox<String> reviewerComboBox;
