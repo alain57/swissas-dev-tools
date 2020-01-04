@@ -32,7 +32,7 @@ public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionPro
 		private int lineNumber;
 		
 		public WhoIsThisRightClickAction(@NotNull FileAnnotation annotation){
-			super("Who Wrote This", "Display information about the letter code", SwissAsIcons.AMOS);
+			super("Who Wrote This", "Display information about the letter code", SwissAsIcons.AUTHOR);
 			
 			this.annotation = annotation;
 		}

@@ -59,4 +59,12 @@ public class StringUtils {
 	}
 	
 	
+	public void addSetOfGetter(StringBuilder sb, String getterName, String variableToSet, String variableToGet) {
+		String variable = StringUtils.getInstance().removeGetterPrefix(getterName);
+		String setterName = "set" + variable.substring(0, 1).toUpperCase() + variable.substring(1);
+		sb.append("\t").append(variableToSet).append(".")
+		  .append(setterName).append("(").append(variableToGet).append(".")
+		  .append(getterName).append("()").append(");\n");
+	}
+	
 }

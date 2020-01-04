@@ -1,159 +1,164 @@
 package com.swissas.dialog;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
+import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
-import com.intellij.util.Query;
-import com.intellij.util.textCompletion.TextFieldWithCompletion;
+import com.swissas.editor.JavaEditorTextField;
+import com.swissas.util.PsiHelper;
 import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
  * The form of the BO to DTO generator
  * @author Tavan Alain
  */
-public class DtoGeneratorForm extends JDialog {
+public class DtoGeneratorForm extends DialogWrapper {
 	
 	private final List<JCheckBox>                 getterCheckboxes = new ArrayList<>();
-	private final List<PsiMethod>                 getters;
-	private final PsiJavaFile                     boFile;
 	private       PsiJavaFile                     dtoFile;
-	private final SmartPsiElementPointer<PsiFile> javaPsiPointer;
-	private final PsiDocumentManager              documentManager;
-	private final Project                         project;
-	private       Map<String, PsiClass>           allRpcInterfaces;
-	private       PsiClass                        selectedRpcInterface;
+	private       PsiJavaFile                     rpcFile;
+	private final JavaCodeStyleManager  codeStyleManager;
+	private final PsiDocumentManager    documentManager;
+	private final Project               project;
+	private final PsiFileFactory        psiFileFactory;
+	private       Map<String, PsiClass> allRpcInterfaces;
+	private       PsiClass              selectedRpcInterfaceClass;
+	private       List<PsiMethod>       getters;
+	private       PsiJavaFile           boFile;
+	private       List<String>          selectedGetters;
+	private       PsiDirectory          rpcDir;
+	private final Map<String, PsiClass> boMap;  
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-	private JPanel contentPane;
+	private JSplitPane splitPane;
+	private EditorTextField boSourceFile;
 	private JCheckBox generateMappersCheckBox;
 	private JCheckBox entityTagCheckbox;
 	private JCheckBox selectAllGettersCheckBox;
 	private JPanel getterPanel;
 	private JBTextField nameTextField;
 	private EditorTextField rpcImplementation;
-	private JTabbedPane tabbedPane;
-	private EditorTextField editor;
+	private JBTabbedPane tabbedPane;
+	private EditorTextField dtoEditor;
 	private EditorTextField rpcEditor;
-	private JButton buttonOK;
-	private JButton buttonCancel;
 	// JFormDesigner - End of variables declaration  //GEN-END:variables
 	
-	public DtoGeneratorForm(Project project, PsiJavaFile boFile, List<PsiMethod> getters) {
+	public DtoGeneratorForm(Project project, Map<String, PsiClass> boMap) {
+		super(project, false);
+		this.boMap = boMap;
 		this.project = project;
-		this.javaPsiPointer = SmartPointerManager.getInstance(this.project)
-		                                         .createSmartPsiElementPointer(boFile);
+		this.psiFileFactory = PsiFileFactory.getInstance(this.project);
+		this.codeStyleManager = JavaCodeStyleManager.getInstance(this.project);
+		this.documentManager = PsiDocumentManager.getInstance(this.project);
+		initUI();
+	}
+	
+	public DtoGeneratorForm(PsiJavaFile boFile, List<PsiMethod> getters) {
+		super(boFile.getProject(), false);
+		this.boMap = null;
+		this.project = boFile.getProject();
+		this.psiFileFactory = PsiFileFactory.getInstance(this.project);
+		this.codeStyleManager = JavaCodeStyleManager.getInstance(this.project);
 		this.documentManager = PsiDocumentManager.getInstance(this.project);
 		this.boFile = boFile;
 		this.getters = Collections.unmodifiableList(getters);
-		initComponents();
-		setContentPane(this.contentPane);
-		setModal(true);
+		initUI();
+	}
+	
+	public void initUI() {
 		setTitle("Create Dto From Bo");
-		getRootPane().setDefaultButton(this.buttonOK);
-		
-		this.buttonOK.addActionListener(e -> onOK());
-		
-		this.buttonCancel.addActionListener(e -> onCancel());
-		
-		// call onCancel() when cross is clicked
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				onCancel();
-			}
-		});
-		
-		// call onCancel() on ESCAPE
-		this.contentPane.registerKeyboardAction(e -> onCancel(),
-		                                        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-		                                        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		setResizable(false);
+		setSize(705, 435);
+		initComponents();
 		initFurtherUIComponents();
 		this.entityTagCheckbox.addActionListener(
 				e -> WriteCommandAction.runWriteCommandAction(this.project,
 				                                              this::refreshPreview));
-		this.selectAllGettersCheckBox.addActionListener(e ->
-				                                                this.getterCheckboxes.forEach(
-						                                                checkBox -> checkBox
-								                                                .setSelected(
-										                                                this.selectAllGettersCheckBox
-												                                                .isSelected())));
-	}
-	
-	private void onOK() {
-		// add your code here
-		dispose();
-	}
-	
-	private void onCancel() {
-		dispose();
+		this.selectAllGettersCheckBox.addActionListener(e -> {
+			    boolean isSelected = this.selectAllGettersCheckBox.isSelected();
+			    this.getterCheckboxes.forEach(checkBox -> checkBox.setSelected(isSelected));
+				WriteCommandAction.runWriteCommandAction(this.project,
+			                                         this::refreshPreview);
+		});
+		init();
 	}
 	
 	private void initFurtherUIComponents() {
-		String dtoName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName())
-		                            .replace("BO", "").concat("Dto");
-		this.nameTextField.setText(dtoName);
+		if(this.boMap != null) {
+			this.boSourceFile.setVisible(true);
+			this.boSourceFile.getDocument().addDocumentListener(new DocumentListener() {
+				@Override
+				public void documentChanged(
+						@NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
+					if(DtoGeneratorForm.this.boMap
+							.containsKey(DtoGeneratorForm.this.boSourceFile.getText())){
+						
+						PsiClass psiClass = DtoGeneratorForm.this.boMap
+								.get(DtoGeneratorForm.this.boSourceFile.getText());
+						DtoGeneratorForm.this.boFile = (PsiJavaFile) psiClass.getContainingFile();
+						DtoGeneratorForm.this.getters = PsiHelper.getInstance()
+						                                         .getGettersForPsiClass(psiClass);
+						fillNameField();
+						fillGetterPanel();
+					}else if(DtoGeneratorForm.this.boSourceFile.getText().isEmpty()){
+						DtoGeneratorForm.this.nameTextField.setText("");
+						clearGetterList();
+					}
+					repaint();
+				}
+			});
+		}else {
+			fillNameField();
+			this.boSourceFile.setVisible(false);
+			fillGetterPanel();
+		}
 		this.nameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
 			@Override
 			protected void textChanged(@NotNull DocumentEvent e) {
@@ -161,8 +166,16 @@ public class DtoGeneratorForm extends JDialog {
 				                                         () -> refreshPreview());
 			}
 		});
-		this.editor.setFileType(StdFileTypes.JAVA);
-		this.rpcEditor.setFileType(StdFileTypes.JAVA);
+	}
+	
+	private void fillNameField() {
+		String dtoName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName())
+		                            .replace("BO", "").concat("Dto");
+		this.nameTextField.setText(dtoName);
+	}
+	
+	private void fillGetterPanel() {
+		clearGetterList();
 		this.getters.forEach(getter -> {
 			JBCheckBox checkBox = new JBCheckBox(getter.getName());
 			checkBox.addActionListener(
@@ -176,6 +189,11 @@ public class DtoGeneratorForm extends JDialog {
 			this.getterPanel.add(checkBox);
 			this.getterCheckboxes.add(checkBox);
 		});
+	}
+	
+	private void clearGetterList() {
+		this.getterPanel.removeAll();
+		this.getterCheckboxes.clear();
 	}
 	
 	private boolean isBoReturned(PsiMethod getterMethod) {
@@ -201,120 +219,85 @@ public class DtoGeneratorForm extends JDialog {
 		                      + " implements AmosDto {"
 		                      + "}";
 		
-		this.dtoFile = (PsiJavaFile) PsiFileFactory.getInstance(this.project)
+		this.dtoFile = (PsiJavaFile) this.psiFileFactory
 		                                           .createFileFromText(
 				                                           this.nameTextField.getText() + ".java",
 				                                           JavaLanguage.INSTANCE, classContent);
-		this.editor.setDocument(this.documentManager.getDocument(this.dtoFile));
-		if(this.selectedRpcInterface != null) {
-			this.tabbedPane.setEnabledAt(1, true);
-			this.rpcEditor.setDocument(this.documentManager.getDocument(this.selectedRpcInterface.getContainingFile()));
-		}else {
-			this.tabbedPane.setEnabledAt(1, false);
-		}
+		
+		
 		addSelectedCheckboxesToDto();
+		this.codeStyleManager.shortenClassReferences(this.dtoFile);
+		this.dtoEditor.setDocument(this.documentManager.getDocument(this.dtoFile));
+		if(this.selectedRpcInterfaceClass != null) {
+			this.rpcDir = this.selectedRpcInterfaceClass.getContainingFile().getContainingDirectory();
+			addMapperToRpcInterface();
+			this.codeStyleManager.shortenClassReferences(this.rpcFile);
+			this.rpcEditor.setDocument(this.documentManager.getDocument(this.rpcFile));
+		}
 	}
+	
+	private void addMapperToRpcInterface() {
+		this.rpcFile  =
+				(PsiJavaFile) PsiFileFactory.getInstance(this.project)
+				                            .createFileFromText(this.selectedRpcInterfaceClass.getContainingFile().getName(),
+			JavaLanguage.INSTANCE,  this.selectedRpcInterfaceClass.getContainingFile().getText());
+		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
+		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
+		
+		List<PsiMethod> gettersToInclude = this.getters.stream().filter(getter -> this.selectedGetters
+				.contains(getter.getName())).collect(Collectors.toList());
+		PsiHelper.getInstance().addStaticInnerMappingClass(this.rpcFile.getClasses()[0], gettersToInclude, boName, dtoName,
+		                                                   SwissAsStorage.getInstance().getFourLetterCode(), this.entityTagCheckbox.isSelected());
+	}
+	
 	
 	private void addSelectedCheckboxesToDto() {
+		PsiClass dtoClass = this.dtoFile.getClasses()[0];
 		if (this.entityTagCheckbox.isSelected()) {
-			addField("EntityTag", "getEntityTag", false);
+			PsiHelper.getInstance().addFieldGetterAndSetter(this.project, dtoClass,
+			                                                "amos.share.databaseAccess.occ.EntityTag",
+			                                                "getEntityTag", false);
 		}
-		List<String> selectedGetters = this.getterCheckboxes.stream().filter(
-				AbstractButton::isSelected)
-		                                                    .map(AbstractButton::getText)
-		                                                    .collect(Collectors.toList());
+		this.selectedGetters = this.getterCheckboxes.stream().filter(
+				AbstractButton::isSelected).map(AbstractButton::getText).collect(Collectors.toList());
 		for (PsiMethod getter : this.getters) {
-			if (selectedGetters.contains(getter.getName())) {
-				addField(getter.getReturnType().getCanonicalText(), getter.getName(),
-				         isBoReturned(getter));
-				
+			if (this.selectedGetters.contains(getter.getName())) {
+				PsiHelper.getInstance().addFieldGetterAndSetter(this.project, dtoClass,
+				                                                getter.getReturnType().getCanonicalText(),
+				                                                getter.getName(),
+				                                                isBoReturned(getter));
 			}
 		}
-		JavaCodeStyleManager.getInstance(this.project)
-		                    .shortenClassReferences(this.dtoFile);
-		PsiDocumentManager.getInstance(this.project)
-		                  .doPostponedOperationsAndUnblockDocument(this.editor.getDocument());
-	}
-	
-	
-	private void addField(String objectType, String getterName, boolean addTodo) {
-		String variable = StringUtils.getInstance().removeGetterPrefix(getterName);
-		
-		PsiElementFactory factory = JavaPsiFacade.getElementFactory(this.project);
-		PsiComment todoComment = factory
-				.createCommentFromText("//TODO: remove the BO here !!!", null);
-		PsiField field = factory
-				.createFieldFromText("private " + objectType + " " + variable + ";", null);
-		if (addTodo) {
-			field.add(todoComment);
-		}
-		PsiClass parent = this.dtoFile.getClasses()[0];
-		
-		parent.add(field);
-		
-		String setterName = "set" + variable.substring(0, 1).toUpperCase() + variable.substring(1);
-		PsiMethod getter = factory
-				.createMethodFromText("public " + objectType + " " + getterName + "() {"
-				                      + "return " + variable + ";"
-				                      + "}", null);
-		PsiMethod setter = factory.createMethodFromText("public void " + setterName + "("
-		                                                + objectType + " " + variable + "){"
-		                                                + "this." + variable + " = " + variable
-		                                                + ";"
-		                                                + "}", null);
-		if (addTodo) {
-			getter.add(todoComment);
-			setter.add(todoComment);
-		}
-		parent.add(getter);
-		parent.add(setter);
-	}
-	
-	public static DtoGeneratorForm showDialog(Project project, PsiJavaFile boFile,
-	                                          List<PsiMethod> getters) {
-		DtoGeneratorForm dialog = new DtoGeneratorForm(project, boFile, getters);
-		dialog.setPreferredSize(new Dimension(600, 500));
-		dialog.refreshPreview();
-		dialog.pack();
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
-		return dialog;
 	}
 	
 	private void createUIComponents() {
 		// TODO: place custom component creation code here
 		this.getterPanel = new JPanel();
 		this.getterPanel.setLayout(new BoxLayout(this.getterPanel, BoxLayout.Y_AXIS));
-		JavaPsiFacade instance = JavaPsiFacade.getInstance(this.project);
-		PsiPackage aPackage = instance.findPackage("amos.share.system.transport.rpc");
-		PsiClass rpcInterface = Stream.of(aPackage.getClasses())
-		                        .filter(psiClass -> "RpcInterface".equals(psiClass.getName()))
-		                        .findFirst().orElseThrow();
-		Query<PsiClass> search = ClassInheritorsSearch
-				.search(rpcInterface, GlobalSearchScope.projectScope(this.project), true);
-		this.allRpcInterfaces = search.findAll().stream()
-		                              .filter(e -> !e.isInterface())
-		                              .collect(Collectors.toMap(PsiNamedElement::getName, Function
-				                              .identity()));
-		List<String> rpcNames = this.allRpcInterfaces.values().stream().map(PsiNamedElement::getName)
-		                                             .collect(Collectors.toList());
-		StringsCompletionProvider rpcInterfaceCompletionProvider = new StringsCompletionProvider(rpcNames, null);
+		this.allRpcInterfaces = PsiHelper.getInstance().getRpcImplementationMapForProjectUp(this.project);
+		Set<String> rpcNames = this.allRpcInterfaces.keySet();
+		Set<String> boNames = this.boMap == null ? Collections.emptySet() : this.boMap.keySet();
+		this.rpcImplementation = TextFieldWithAutoCompletion.create(this.project, rpcNames, false, null);
+		this.rpcImplementation.setEnabled(false);
+		this.boSourceFile = TextFieldWithAutoCompletion.create(this.project, boNames, null, false, null);
 		
-		this.rpcImplementation = new TextFieldWithCompletion(this.project, rpcInterfaceCompletionProvider
-		,"", false, true, true,  false);
 		this.rpcImplementation.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void documentChanged(
 					@NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
 				String selectedValue = DtoGeneratorForm.this.rpcImplementation.getText();
 				if(rpcNames.contains(selectedValue)){
-					DtoGeneratorForm.this.selectedRpcInterface = DtoGeneratorForm.this.allRpcInterfaces
+					DtoGeneratorForm.this.selectedRpcInterfaceClass = DtoGeneratorForm.this.allRpcInterfaces
 							.get(selectedValue);
+					DtoGeneratorForm.this.tabbedPane.setEnabledAt(1, true);
+					WriteCommandAction.runWriteCommandAction(DtoGeneratorForm.this.project,
+					                                         () -> refreshPreview());
+				}else {
+					DtoGeneratorForm.this.selectedRpcInterfaceClass = null;
+					DtoGeneratorForm.this.tabbedPane.setEnabledAt(1, false);
 				}
 			}
 		});
-		
-		//VirtualFile virtualFile = LocalFileSystem.getInstance().f.findFileByPath("amos.share.system.transport.rpc.RpcInterface");
 		
 	}
 
@@ -325,6 +308,8 @@ public class DtoGeneratorForm extends JDialog {
 			this.rpcImplementation.setText("");
 			this.rpcImplementation.setEnabled(false);
 		}
+		WriteCommandAction.runWriteCommandAction(this.project,
+		                                         this::refreshPreview);
 	}
 	
 
@@ -332,167 +317,109 @@ public class DtoGeneratorForm extends JDialog {
 		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
 		createUIComponents();
 
-		this.contentPane = new JPanel();
-		var splitPane1 = new JSplitPane();
+		this.splitPane = new JSplitPane();
 		var panel1 = new JPanel();
 		this.generateMappersCheckBox = new JCheckBox();
 		this.entityTagCheckbox = new JCheckBox();
 		this.selectAllGettersCheckBox = new JCheckBox();
-		var scrollPane1 = new JScrollPane();
+		var scrollPane1 = new JBScrollPane();
 		this.nameTextField = new JBTextField();
 		var label1 = new JLabel();
-		this.tabbedPane = new JTabbedPane();
-		var panel2 = new JPanel();
-		this.editor = new EditorTextField();
-		var panel3 = new JPanel();
-		this.rpcEditor = new EditorTextField();
-		var panel4 = new JPanel();
-		var hSpacer1 = new Spacer();
-		var panel5 = new JPanel();
-		this.buttonOK = new JButton();
-		this.buttonCancel = new JButton();
+		this.tabbedPane = new JBTabbedPane();
+		this.dtoEditor = new JavaEditorTextField(this.project);
+		this.dtoEditor.setOneLineMode(false);
+		this.rpcEditor = new JavaEditorTextField(this.project);
+		this.rpcEditor.setOneLineMode(false);
 
-		{
-			this.contentPane.setMinimumSize(new Dimension(234, 267));
-			this.contentPane.setPreferredSize(new Dimension(234, 267));
-			this.contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+		this.splitPane.setDividerLocation(154);
+		this.splitPane.setDividerSize(0);
+		this.splitPane.setMaximumSize(new Dimension(682, 364));
+		this.splitPane.setDoubleBuffered(true);
+		this.splitPane.setBorder(null);
 
-			{
-				splitPane1.setDividerLocation(154);
-				splitPane1.setDividerSize(0);
+		panel1.setLayout(new MigLayout(
+			"insets 0,hidemode 3,gap 10 5",
+			// columns
+			"[grow,fill]",
+			// rows
+			"[fill]" +
+			"[fill]" +
+			"[fill]" +
+			"[fill]" +
+			"[fill]" +
+			"[fill]" +
+			"[fill]" +
+			"[grow,fill]"));
 
-				{
-					panel1.setLayout(new GridLayoutManager(7, 1, new Insets(0, 0, 0, 0), -1, -1));
+		this.boSourceFile.setBackground(new Color(69, 73, 74));
+		panel1.add(this.boSourceFile, "pad 0,cell 0 0,aligny center,grow 100 0");
 
-					this.generateMappersCheckBox.setText("Generate Mappers");
-					this.generateMappersCheckBox.addActionListener(
-							this::generateMappersCheckBoxActionPerformed);
-					panel1.add(this.generateMappersCheckBox, new GridConstraints(1, 0, 1, 1,
-						GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
+		this.generateMappersCheckBox.setText("Generate Mappers");
+		this.generateMappersCheckBox.addActionListener(e -> generateMappersCheckBoxActionPerformed(e));
+		panel1.add(this.generateMappersCheckBox, "cell 0 2,align left center,grow 0 0");
 
-					this.entityTagCheckbox.setText("EntityTag");
-					panel1.add(this.entityTagCheckbox, new GridConstraints(3, 0, 1, 1,
-						GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
+		this.entityTagCheckbox.setText("EntityTag");
+		panel1.add(this.entityTagCheckbox, "cell 0 4,align left center,grow 0 0");
 
-					this.selectAllGettersCheckBox.setText("Select all getters");
-					panel1.add(this.selectAllGettersCheckBox, new GridConstraints(4, 0, 1, 1,
-						GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
+		this.selectAllGettersCheckBox.setText("Select all getters");
+		panel1.add(this.selectAllGettersCheckBox, "cell 0 5,align left center,grow 0 0");
 
-					{
+		scrollPane1.setBorder(null);
 
-						{
-							this.getterPanel.setLayout(new BoxLayout(this.getterPanel, BoxLayout.Y_AXIS));
-						}
-						scrollPane1.setViewportView(this.getterPanel);
-					}
-					panel1.add(scrollPane1, new GridConstraints(6, 0, 1, 1,
-						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-						null, null, null));
+		this.getterPanel.setLayout(new BoxLayout(this.getterPanel, BoxLayout.Y_AXIS));
+		scrollPane1.setViewportView(this.getterPanel);
+		panel1.add(scrollPane1, "cell 0 7,grow");
 
-					this.nameTextField.setToolTipText("Name of the Dto");
-					panel1.add(this.nameTextField, new GridConstraints(0, 0, 1, 1,
-						GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-						GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
+		this.nameTextField.setToolTipText("Name of the Dto");
+		panel1.add(this.nameTextField, "cell 0 1,aligny center,grow 100 0");
 
-					this.rpcImplementation.setEnabled(false);
-					panel1.add(this.rpcImplementation, new GridConstraints(2, 0, 1, 1,
-						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						null, null, null));
+		this.rpcImplementation.setBackground(new Color(69, 73, 74));
+		panel1.add(this.rpcImplementation, "cell 0 3,aligny center,grow 100 0");
 
-					label1.setFont(label1.getFont().deriveFont(Font.BOLD));
-					label1.setText("Getters");
-					panel1.add(label1, new GridConstraints(5, 0, 1, 1,
-						GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-						GridConstraints.SIZEPOLICY_FIXED,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
-				}
-				splitPane1.setLeftComponent(panel1);
+		label1.setFont(label1.getFont().deriveFont(Font.BOLD));
+		label1.setText("Getters");
+		panel1.add(label1, "cell 0 6,align left center,grow 0 0");
+		this.splitPane.setLeftComponent(panel1);
 
-				{
+		this.tabbedPane.setAutoscrolls(true);
+		this.tabbedPane.setTabComponentInsets(new Insets(0, 0, 0, 0));
+		this.tabbedPane.setBorder(null);
 
-					{
-						panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-						panel2.add(this.editor, new GridConstraints(0, 0, 1, 1,
-							GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-							GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-							GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-							null, null, null));
-					}
-					this.tabbedPane.addTab("Dto", panel2);
+		this.dtoEditor.setPreferredSize(null);
+		this.dtoEditor.setMinimumSize(null);
+		this.dtoEditor.setMaximumSize(null);
+		this.dtoEditor.setInheritsPopupMenu(true);
+		this.dtoEditor.setBorder(BorderFactory.createEmptyBorder());
+		this.tabbedPane.addTab("dto", this.dtoEditor);
 
-					{
-						panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-						panel3.add(this.rpcEditor, new GridConstraints(0, 0, 1, 1,
-							GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-							GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-							GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-							null, null, null));
-					}
-					this.tabbedPane.addTab("Mapper", panel3);
-				}
-				splitPane1.setRightComponent(this.tabbedPane);
-			}
-			this.contentPane.add(splitPane1, new GridConstraints(0, 0, 1, 1,
-				GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-				null, new Dimension(200, 200), null));
-
-			{
-				panel4.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-				panel4.add(hSpacer1, new GridConstraints(0, 0, 1, 1,
-					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-					GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-					GridConstraints.SIZEPOLICY_CAN_SHRINK,
-					null, null, null));
-
-				{
-					panel5.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1, true, false));
-
-					this.buttonOK.setText("OK");
-					panel5.add(this.buttonOK, new GridConstraints(0, 0, 1, 1,
-						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
-
-					this.buttonCancel.setText("Cancel");
-					panel5.add(this.buttonCancel, new GridConstraints(0, 1, 1, 1,
-						GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-						GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-						GridConstraints.SIZEPOLICY_FIXED,
-						null, null, null));
-				}
-				panel4.add(panel5, new GridConstraints(0, 1, 1, 1,
-					GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-					GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-					null, null, null));
-			}
-			this.contentPane.add(panel4, new GridConstraints(1, 0, 1, 1,
-				GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-				GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-				GridConstraints.SIZEPOLICY_CAN_SHRINK,
-				null, null, null));
-		}
+		this.rpcEditor.setPreferredSize(new Dimension(520, 330));
+		this.rpcEditor.setMinimumSize(new Dimension(520, 330));
+		this.rpcEditor.setAutoscrolls(true);
+		this.rpcEditor.setBorder(null);
+		this.tabbedPane.addTab("mapper", this.rpcEditor);
+		this.splitPane.setRightComponent(this.tabbedPane);
 		// JFormDesigner - End of component initialization  //GEN-END:initComponents
 	}
-
 	
+	
+	@Nullable
+	@Override
+	protected JComponent createCenterPanel() {
+		return this.splitPane;
+	}
+	
+	public void saveFiles() {
+		if(!this.nameTextField.getText().isEmpty() && !this.selectedGetters.isEmpty()) { 
+			Module shared = Stream.of(ModuleManager.getInstance(this.project).getModules())
+			                      .filter(e -> e.getName().contains("shared")).findFirst()
+			                      .orElseThrow();
+			PsiDirectory dtoDir = PsiHelper.getInstance()
+			                               .findOrCreateDirectory(this.project, shared,
+			                                                      this.dtoFile.getPackageName());
+			PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
+			if (this.rpcFile != null) {
+				PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.rpcFile);
+			}
+		}
+	}
 }

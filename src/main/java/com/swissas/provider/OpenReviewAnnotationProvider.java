@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.swissas.action.OpenCaseOrReviewAction;
+import icons.SwissAsIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,6 +26,6 @@ public class OpenReviewAnnotationProvider implements AnnotationGutterActionProvi
 		                                  "Open Review",
 		                                  "Display the review contained in the annotation",
 		                                  "https://sas-srv-release.swiss-as.com/review_board/r/",
-		                                  REVIEW_FINDER);
+		                                  REVIEW_FINDER, SwissAsIcons.REVIEW);
 	}
 }

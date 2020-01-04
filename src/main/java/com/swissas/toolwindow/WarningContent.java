@@ -99,42 +99,63 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	}
 	
 	public void refresh() {
-		try {
 			if (!"".equals(this.swissAsStorage.getFourLetterCode())) {
 				int selectedTab = this.getSelectedIndex() == -1 ? 0 : this.getSelectedIndex();
-				readURL();
-				fillView();
-				if (this.getTabCount() > selectedTab) {
-					this.setSelectedIndex(selectedTab);
+				if(readURL()) {
+					fillView();
+					if (this.getTabCount() > selectedTab) {
+						this.setSelectedIndex(selectedTab);
+					}
 				}
 			}
-		} catch (IOException e) {
-			Logger.getInstance("Swiss-as").error(e);
-		}
 	}
 	
-	private void readURL() throws IOException {
+	private Elements readUrlAndUseCssSelector(String url, String cssSelector, boolean logToError){
+		Elements result = null;
+		try{
+			result = Jsoup.connect(url).get().select(cssSelector);
+		}catch (IOException e){
+			if(logToError){
+				Logger.getInstance("Swiss-as").error(e);
+			}else {
+				Logger.getInstance("Swiss-as").info(e);
+			}
+		}
+		
+		return result;
+	}
+	
+	private boolean readURL() {
 		if (!this.swissAsStorage.getFourLetterCode().isEmpty()) {
 			this.types.clear();
-			Elements typesDifferentThanCodeCheck = Jsoup
-					.connect(MESSAGE_URL + this.swissAsStorage.getFourLetterCode()).get()
-					.select("type[ident~=[^CODE_CHECK]]");
+			Elements typesDifferentThanCodeCheck = readUrlAndUseCssSelector(MESSAGE_URL + this.swissAsStorage.getFourLetterCode()
+			                                                                ,"type[ident~=[^CODE_CHECK]]", true);
+			if(typesDifferentThanCodeCheck == null) {
+				return false;	
+			}
+			Elements typesDifferentThanCodeCheckForTeam = readUrlAndUseCssSelector(MESSAGE_URL + this.swissAsStorage.getMyTeam()
+			                                                                       ,"type[ident~=[^CODE_CHECK]]", false);
+			if(typesDifferentThanCodeCheckForTeam != null) {
+				typesDifferentThanCodeCheck.addAll(typesDifferentThanCodeCheckForTeam);
+			}
 			for (Element type : typesDifferentThanCodeCheck) {
 				this.types.add(generateTypeFromElementType(type));
 			}
 			this.moveToServerModules = new ArrayList<>();
 			this.moveToServerModulesMeOnly = new ArrayList<>();
 			for (String member : this.swissAsStorage.getMyTeamMembers(true)) {
-				Elements sonarMoveToServer = Jsoup
-						.connect(MESSAGE_URL + member).get()
-						.select("module:has(file > message[description=" 
-						        + MOVE_TO_SERVER_ATTRIBUTE  + "])");
-				this.moveToServerModules.addAll(sonarMoveToServer);
-				if(member.equals(this.swissAsStorage.getFourLetterCode())) {
-					this.moveToServerModulesMeOnly.addAll(sonarMoveToServer);
+				Elements sonarMoveToServer = readUrlAndUseCssSelector(MESSAGE_URL + member
+						, "module:has(file > message[description="
+						  + MOVE_TO_SERVER_ATTRIBUTE  + "])", false);
+				if(sonarMoveToServer != null) {
+					this.moveToServerModules.addAll(sonarMoveToServer);
+					if(member.equals(this.swissAsStorage.getFourLetterCode())) {
+						this.moveToServerModulesMeOnly.addAll(sonarMoveToServer);
+					}
 				}
 			}
 		}
+		return true;
 	}
 	
 	private Type generateTypeFromElementType(Element elementType) {

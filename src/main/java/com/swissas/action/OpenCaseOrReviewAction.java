@@ -3,14 +3,16 @@ package com.swissas.action;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.Icon;
+
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.intellij.openapi.vcs.annotate.UpToDateLineNumberListener;
-import icons.SwissAsIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Action class which is opening a support case, or the review.
@@ -26,9 +28,9 @@ public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumb
 	private final        String         urlPrefix;
 	
 	public OpenCaseOrReviewAction(@NotNull FileAnnotation annotation, String text,
-	                              String description, String urlPrefix, Pattern searchPattern) {
+	                              String description, String urlPrefix, Pattern searchPattern, @Nullable Icon icon) {
 		super(text, description,
-		      SwissAsIcons.AMOS);
+		      icon);
 		this.searchPattern = searchPattern;
 		this.annotation = annotation;
 		this.urlPrefix = urlPrefix;

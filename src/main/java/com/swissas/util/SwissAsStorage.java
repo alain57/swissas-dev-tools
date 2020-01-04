@@ -129,13 +129,18 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public Set<String> getMyTeamMembers(boolean includeMyself) {
-		if (!this.myTeam.isEmpty()) {
-			return this.userMap.values().stream().filter(user -> user.isInTeam(this.myTeam))
-                               .map(User::getLc).filter(lc -> includeMyself || !lc.equalsIgnoreCase(this.fourLetterCode))
-			                   .collect(Collectors.toCollection(TreeSet::new));
+		if(this.myTeam.isEmpty()){
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
-		
+		Set<String> result = this.userMap.values().stream().filter(user -> user.isInTeam(this.myTeam))
+                           .map(User::getLc).filter(lc -> includeMyself || !lc.equalsIgnoreCase(this.fourLetterCode))
+		                   .collect(Collectors.toCollection(TreeSet::new));
+		result.add(getMyTeam());
+		return result;
+	}
+	
+	public String getMyTeam() {
+		return "T_" + this.myTeam;
 	}
 	
 	public boolean isHorizontalOrientation() {
