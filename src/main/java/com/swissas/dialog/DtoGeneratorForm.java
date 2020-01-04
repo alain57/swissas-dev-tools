@@ -151,7 +151,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 						DtoGeneratorForm.this.nameTextField.setText("");
 						clearGetterList();
 					}
-					repaint();
+					getContentPanel().revalidate();
+					
 				}
 			});
 		}else {
@@ -322,7 +323,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.generateMappersCheckBox = new JCheckBox();
 		this.entityTagCheckbox = new JCheckBox();
 		this.selectAllGettersCheckBox = new JCheckBox();
-		var scrollPane1 = new JBScrollPane();
+		var getterScrollPane = new JBScrollPane();
 		this.nameTextField = new JBTextField();
 		var label1 = new JLabel();
 		this.tabbedPane = new JBTabbedPane();
@@ -364,11 +365,11 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.selectAllGettersCheckBox.setText("Select all getters");
 		panel1.add(this.selectAllGettersCheckBox, "cell 0 5,align left center,grow 0 0");
 
-		scrollPane1.setBorder(null);
+		getterScrollPane.setBorder(null);
 
 		this.getterPanel.setLayout(new BoxLayout(this.getterPanel, BoxLayout.Y_AXIS));
-		scrollPane1.setViewportView(this.getterPanel);
-		panel1.add(scrollPane1, "cell 0 7,grow");
+		getterScrollPane.setViewportView(this.getterPanel);
+		panel1.add(getterScrollPane, "cell 0 7,grow");
 
 		this.nameTextField.setToolTipText("Name of the Dto");
 		panel1.add(this.nameTextField, "cell 0 1,aligny center,grow 100 0");

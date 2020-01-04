@@ -181,10 +181,9 @@ public class PsiHelper {
 		PsiFile existingFile = directory.findFile(fileInMemory.getName());
 		if(existingFile == null) {
 			existingFile = directory.createFile(fileInMemory.getName());
-		}else {
-			existingFile
-					.deleteChildRange(existingFile.getFirstChild(), existingFile.getLastChild());
 		}
+		existingFile
+					.deleteChildRange(existingFile.getFirstChild(), existingFile.getLastChild());
 		Stream.of(fileInMemory.getChildren()).forEachOrdered(existingFile::add);
 	}
 	

@@ -49,7 +49,7 @@ new FormModel {
 					"value": "cell 0 5,align left center,grow 0 0"
 				} )
 				add( new FormContainer( "com.intellij.ui.components.JBScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
-					name: "scrollPane1"
+					name: "getterScrollPane"
 					"border": sfield com.jformdesigner.model.FormObject NULL_VALUE
 					auxiliary() {
 						"JavaCodeGenerator.variableLocal": true
