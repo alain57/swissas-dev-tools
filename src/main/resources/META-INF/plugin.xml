@@ -20,6 +20,7 @@
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckingFactory"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
+        <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />

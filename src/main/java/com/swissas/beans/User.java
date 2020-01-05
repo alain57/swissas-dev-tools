@@ -36,7 +36,7 @@ public class User implements Serializable {
 	}
 
 	public void setLc(String lc) {
-		this.lc = lc;
+		this.lc = lc.toUpperCase();
 		readPicture();
 	}
 	

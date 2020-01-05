@@ -53,6 +53,7 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.getPreCommitInformOtherPersonCheckbox().setSelected(this.swissAsStorage.isPreCommitInformOther());
             this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
             this.configPanel.enableOrDisableOtherPersonFields();
+            this.configPanel.getConvertToTeamCheckbox().setSelected(this.swissAsStorage.isConvertToTeam());
         }
     }
     
@@ -85,7 +86,8 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
                 this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected() ||
                 this.swissAsStorage.isPreCommitCodeReview() != this.configPanel.getPreCommitCodeReviewCheckbox().isSelected() ||
-                this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected()
+                this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected() ||
+                this.swissAsStorage.isConvertToTeam() != this.configPanel.getConvertToTeamCheckbox().isSelected()
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
@@ -106,6 +108,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setTranslationOnlyCheckChangedLine(this.configPanel.getChkTranslateOnlyModifiedLines().isSelected());
         this.swissAsStorage.setPreCommitCodeReview(this.configPanel.getPreCommitCodeReviewCheckbox().isSelected());
         this.swissAsStorage.setPreCommitInformOther(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected());
+        this.swissAsStorage.setConvertToTeam(this.configPanel.getConvertToTeamCheckbox().isSelected());
         refreshWarningContent();
     }
     

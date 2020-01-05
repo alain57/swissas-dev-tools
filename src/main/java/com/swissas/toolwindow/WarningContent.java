@@ -6,10 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeSet;
+import java.util.TreeMap;
 
 import javax.swing.JTabbedPane;
 import javax.swing.tree.TreeSelectionModel;
@@ -62,7 +61,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private static final String MESSAGE_URL = ResourceBundle.getBundle("urls").getString("url.warnings");
 	public static final  String ID          = "SAS Warnings";
 	
-	private final Set<Type> types = new TreeSet<>();
+	private final Map<String, Type> types = new TreeMap<>();
 	
 	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
@@ -139,7 +138,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				typesDifferentThanCodeCheck.addAll(typesDifferentThanCodeCheckForTeam);
 			}
 			for (Element type : typesDifferentThanCodeCheck) {
-				this.types.add(generateTypeFromElementType(type));
+				generateTypeFromElementType(type);
 			}
 			this.moveToServerModules = new ArrayList<>();
 			this.moveToServerModulesMeOnly = new ArrayList<>();
@@ -158,12 +157,14 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		return true;
 	}
 	
-	private Type generateTypeFromElementType(Element elementType) {
-		Type type = new Type(elementType);
+	private void generateTypeFromElementType(Element elementType) {
+		Type tmpType = new Type(elementType);
+		String typeName = tmpType.getMainAttribute();
+		Type type = this.types.getOrDefault(typeName, tmpType);
 		for (Node moduleNode : elementType.childNodes()) {
 			type.addChildren(generateModuleFromModuleNodeAndType(moduleNode, type));
 		}
-		return type;
+		this.types.putIfAbsent(typeName, type);
 	}
 	private void generateMoveToServerModuleFromElement(Element elementNode, Map<String, Module> modulesByName){
 		Module tmpModule =  new Module(elementNode);
@@ -206,7 +207,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private void fillView() {
 		removeAll();
 		if (!this.types.isEmpty()) {
-			for (Type type : this.types) {
+			for (Type type : this.types.values()) {
 				if (!type.getMainAttribute().equalsIgnoreCase(
 						CODE_CHECK)) { //code check has no use in the eclipse plugin, therefore get rid of useless stuff
 					WarningContentTreeNode root = new WarningContentTreeNode(ROOT);

@@ -13,7 +13,9 @@ public enum InspectionAction {
 	UNQUALIFIED_FIELD_ACCESS("Add this to field access"),
 	MISSING_OVERRIDE_ANNOTATION("Add missing @Override annotations"),
 	MISSING_AUTHOR("add missing @Author"),
-	SUPPRESS_ANNOTATION("Remove unused suppress warning annotation");
+	SUPPRESS_ANNOTATION("Remove unused suppress warning annotation"),
+	USE_TEAM_AUTHOR("Replace Author with team author")
+	;
 	
 	private final String text;
 	private final SwissAsStorage storage;
@@ -37,6 +39,8 @@ public enum InspectionAction {
 				return this.storage.isFixMissingThis();
 			case SUPPRESS_ANNOTATION:
 				return this.storage.isFixUnusedSuppressWarning();
+			case USE_TEAM_AUTHOR:
+				return this.storage.isConvertToTeam();
 			default:
 				throw new IllegalArgumentException("case not defined");
 		}

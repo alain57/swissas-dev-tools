@@ -33,10 +33,6 @@ public abstract class SaveCommand {
 		return this.project;
 	}
 	
-	public Set<PsiFile> getPsiFiles() {
-		return this.psiFiles;
-	}
-	
 	public PsiFile[] getPsiFilesAsArray() {
 		return this.psiFiles.toArray(new PsiFile[0]);
 	}
