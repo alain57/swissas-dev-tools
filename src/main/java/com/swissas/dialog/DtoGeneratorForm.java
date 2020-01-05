@@ -46,7 +46,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.swissas.editor.JavaEditorTextField;
+import com.swissas.ui.JavaEditorTextField;
 import com.swissas.util.PsiHelper;
 import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
@@ -61,9 +61,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DtoGeneratorForm extends DialogWrapper {
 	
-	private final List<JCheckBox>                 getterCheckboxes = new ArrayList<>();
-	private       PsiJavaFile                     dtoFile;
-	private       PsiJavaFile                     rpcFile;
+	private final List<JCheckBox>       getterCheckboxes = new ArrayList<>();
+	private       PsiJavaFile           dtoFile;
+	private       PsiJavaFile           rpcFile;
 	private final JavaCodeStyleManager  codeStyleManager;
 	private final PsiDocumentManager    documentManager;
 	private final Project               project;
@@ -279,9 +279,10 @@ public class DtoGeneratorForm extends DialogWrapper {
 		Set<String> rpcNames = this.allRpcInterfaces.keySet();
 		Set<String> boNames = this.boMap == null ? Collections.emptySet() : this.boMap.keySet();
 		this.rpcImplementation = TextFieldWithAutoCompletion.create(this.project, rpcNames, false, null);
+		this.rpcImplementation.setToolTipText("Type the RPC implementation where the mapper will be added");
 		this.rpcImplementation.setEnabled(false);
 		this.boSourceFile = TextFieldWithAutoCompletion.create(this.project, boNames, null, false, null);
-		
+		this.boSourceFile.setToolTipText("Type the BO used to create a DTO");
 		this.rpcImplementation.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void documentChanged(
@@ -343,7 +344,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 			// columns
 			"[grow,fill]",
 			// rows
-			"[fill]" +
+			"[]" +
 			"[fill]" +
 			"[fill]" +
 			"[fill]" +

@@ -1,4 +1,4 @@
-package com.swissas.editor;
+package com.swissas.ui;
 
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.ex.EditorEx;
