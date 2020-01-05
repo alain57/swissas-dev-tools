@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.3'
+version '1.6.4'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,12 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.6.4<b/><pre>
+Add BO to DTO generators with inner class mapper
+Adapt the code to work for Team class owner
+Add an option to automatically change the author to the team when modifying a class of my team members
+Add some Icons
+</pre>
 <b>V1.6.3</b><pre>
 Fixed a memory leak that happened on some usecases for CTRL + mouse over a translation
 Prevent generating translation with too many "%s"

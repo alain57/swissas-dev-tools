@@ -17,4 +17,10 @@ public interface SwissAsIcons {
 	Icon SONAR = IconLoader.getIcon("/icons/sonar.png");
 	Icon WARNING = IconLoader.getIcon("/icons/warning.png");
 	Icon AMOS = IconLoader.getIcon("/icons/amos.png");
+	Icon DTO = IconLoader.getIcon("/icons/dto.png");
+	Icon GENERICDTO = IconLoader.getIcon("/icons/genericdto.png");
+	Icon WHOIS = IconLoader.getIcon("/icons/whois.png");
+	Icon AUTHOR = IconLoader.getIcon("/icons/author.png");
+	Icon SUPPORT = IconLoader.getIcon("/icons/support.png");
+	Icon REVIEW = IconLoader.getIcon("/icons/review.png");
 }

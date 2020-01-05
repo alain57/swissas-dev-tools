@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.swissas.action.OpenCaseOrReviewAction;
+import icons.SwissAsIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,7 +27,7 @@ public class OpenCaseAnnotationProvider implements AnnotationGutterActionProvide
 		return new OpenCaseOrReviewAction(annotation, "Show Support Case",
 		                                  "Show the support written in the annotation in AMOS",
 		                                  "amos://SUP.",
-		                                  SUPPORT_FINDER);
+		                                  SUPPORT_FINDER, SwissAsIcons.SUPPORT);
 	}
 	
 	

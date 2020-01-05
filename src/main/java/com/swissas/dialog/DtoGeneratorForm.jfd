@@ -1,0 +1,136 @@
+JFDML JFormDesigner: "7.0.0.6.255" Java: "11.0.5" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormContainer( "javax.swing.JSplitPane", new FormLayoutManager( class javax.swing.JSplitPane ) ) {
+			name: "splitPane"
+			"dividerLocation": 154
+			"dividerSize": 0
+			"maximumSize": new java.awt.Dimension( 682, 364 )
+			"doubleBuffered": true
+			"border": sfield com.jformdesigner.model.FormObject NULL_VALUE
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"
+				"$columnConstraints": "[grow,fill]"
+				"$rowConstraints": "[][fill][fill][fill][fill][fill][fill][grow,fill]"
+			} ) {
+				name: "panel1"
+				auxiliary() {
+					"JavaCodeGenerator.variableLocal": true
+				}
+				add( new FormComponent( "com.intellij.ui.EditorTextField" ) {
+					name: "textField1"
+					"background": new java.awt.Color( 69, 73, 74, 255 )
+					auxiliary() {
+						"JavaCodeGenerator.variableName": "boSourceFile"
+						"JavaCodeGenerator.customCreate": true
+					}
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "pad 0,cell 0 0,aligny center,grow 100 0"
+				} )
+				add( new FormComponent( "javax.swing.JCheckBox" ) {
+					name: "generateMappersCheckBox"
+					"text": "Generate Mappers"
+					addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "generateMappersCheckBoxActionPerformed", true ) )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 2,align left center,grow 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JCheckBox" ) {
+					name: "entityTagCheckbox"
+					"text": "EntityTag"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 4,align left center,grow 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JCheckBox" ) {
+					name: "selectAllGettersCheckBox"
+					"text": "Select all getters"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 5,align left center,grow 0 0"
+				} )
+				add( new FormContainer( "com.intellij.ui.components.JBScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+					name: "getterScrollPane"
+					"border": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class javax.swing.BoxLayout ) {
+						"axis": 1
+					} ) {
+						name: "getterPanel"
+						auxiliary() {
+							"JavaCodeGenerator.customCreate": true
+						}
+					} )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 7,grow"
+				} )
+				add( new FormComponent( "com.intellij.ui.components.JBTextField" ) {
+					name: "nameTextField"
+					"toolTipText": "Name of the Dto"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 1,aligny center,grow 100 0"
+				} )
+				add( new FormComponent( "com.intellij.ui.EditorTextField" ) {
+					name: "rpcImplementation"
+					"background": new java.awt.Color( 69, 73, 74, 255 )
+					auxiliary() {
+						"JavaCodeGenerator.customCreate": true
+					}
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 3,aligny center,grow 100 0"
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label1"
+					"font": new com.jformdesigner.model.SwingDerivedFont( null, 131073, 0, true )
+					"text": "Getters"
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 6,align left center,grow 0 0"
+				} )
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "left"
+			} )
+			add( new FormContainer( "com.intellij.ui.components.JBTabbedPane", new FormLayoutManager( class javax.swing.JTabbedPane ) ) {
+				name: "tabbedPane"
+				"autoscrolls": true
+				"tabComponentInsets": new java.awt.Insets( 0, 0, 0, 0 )
+				"border": sfield com.jformdesigner.model.FormObject NULL_VALUE
+				add( new FormComponent( "com.intellij.ui.EditorTextField" ) {
+					name: "dtoEditor"
+					"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					"minimumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					"maximumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					"inheritsPopupMenu": true
+					"border": new javax.swing.border.EmptyBorder( 0, 0, 0, 0 )
+					auxiliary() {
+						"JavaCodeGenerator.customCreateCode": "new JavaEditorTextField(this.project);"
+						"JavaCodeGenerator.postCreateCode": "${field}.setOneLineMode(false);"
+					}
+				}, new FormLayoutConstraints( null ) {
+					"title": "dto"
+				} )
+				add( new FormComponent( "com.intellij.ui.EditorTextField" ) {
+					name: "rpcEditor"
+					"preferredSize": new java.awt.Dimension( 520, 330 )
+					"minimumSize": new java.awt.Dimension( 520, 330 )
+					"autoscrolls": true
+					"border": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					auxiliary() {
+						"JavaCodeGenerator.customCreateCode": "new JavaEditorTextField(this.project);"
+						"JavaCodeGenerator.postCreateCode": "${field}.setOneLineMode(false);"
+					}
+				}, new FormLayoutConstraints( null ) {
+					"title": "mapper"
+				} )
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "right"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 85, 180 )
+			"size": new java.awt.Dimension( 685, 400 )
+		} )
+	}
+}

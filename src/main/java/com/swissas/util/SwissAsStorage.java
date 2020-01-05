@@ -46,6 +46,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private              boolean translationOnlyCheckChangedLine = false;
 	private              boolean preCommitInformOther            = false;
 	private              boolean preCommitCodeReview             = true;
+	private              boolean convertToTeam                   = false;
 	
 	private       boolean           showIgnoredValues = false;
 	private final List<String>      ignoredValues;
@@ -102,7 +103,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	private void setLetterCodeToFunction(String letterCode, Consumer<String> consumer) {
-		String valueToPass =  letterCode.isEmpty() ? null : letterCode.substring(0, letterCode.indexOf(' ')) + MAIL_SUFFIX;
+		String valueToPass = letterCode.isEmpty() ? null
+		                                          : letterCode.substring(0, letterCode.indexOf(' '))
+		                                            + MAIL_SUFFIX;
 		consumer.consume(valueToPass);
 	}
 	
@@ -129,13 +132,20 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public Set<String> getMyTeamMembers(boolean includeMyself) {
-		if (!this.myTeam.isEmpty()) {
-			return this.userMap.values().stream().filter(user -> user.isInTeam(this.myTeam))
-                               .map(User::getLc).filter(lc -> includeMyself || !lc.equalsIgnoreCase(this.fourLetterCode))
-			                   .collect(Collectors.toCollection(TreeSet::new));
+		if (this.myTeam.isEmpty()) {
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
-		
+		Set<String> result = this.userMap.values().stream()
+		                                 .filter(user -> user.isInTeam(this.myTeam))
+		                                 .map(User::getLc).filter(lc -> includeMyself || !lc
+						.equalsIgnoreCase(this.fourLetterCode))
+		                                 .collect(Collectors.toCollection(TreeSet::new));
+		result.add(getMyTeam());
+		return result;
+	}
+	
+	public String getMyTeam() {
+		return "T_" + this.myTeam;
 	}
 	
 	public boolean isHorizontalOrientation() {
@@ -287,5 +297,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public void setPreCommitCodeReview(boolean preCommitCodeReview) {
 		this.preCommitCodeReview = preCommitCodeReview;
+	}
+	
+	public boolean isConvertToTeam() {
+		return this.convertToTeam;
+	}
+	
+	public void setConvertToTeam(boolean convertToTeam) {
+		this.convertToTeam = convertToTeam;
 	}
 }

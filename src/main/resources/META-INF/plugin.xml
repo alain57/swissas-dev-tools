@@ -20,6 +20,7 @@
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckingFactory"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
+        <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
@@ -36,8 +37,10 @@
                popup="true"
                icon="SwissAsIcons.AMOS">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorToggleColumnMode"/>
-            <action class="com.swissas.action.ShowClassOwnerAction" text="Information About Class Owner" id="com.swissas.action.ShowClassOwnerAction"/>
-            <action class="com.swissas.action.WhoIsThisAction"  text="Information About a Letter Code" id="com.swissas.action.WhoIsThisAction" />
+            <action class="com.swissas.action.ShowClassOwnerAction" icon="SwissAsIcons.AUTHOR" text="Information About Class Owner" id="com.swissas.action.ShowClassOwnerAction"/>
+            <action class="com.swissas.action.WhoIsThisAction" icon="SwissAsIcons.WHOIS" text="Information About a Letter Code" id="com.swissas.action.WhoIsThisAction" />
+            <action class="com.swissas.action.GenerateDtoFromCurrentBo" icon="SwissAsIcons.DTO" text="Generate DTO for BOName"  id="com.swissas.action.GenerateDtoFromCurrentBo" />
+            <action class="com.swissas.action.GenerateDtoFromBo" icon="SwissAsIcons.GENERICDTO" text="Generate a DTO from a BO" id="com.swissas.action.GenerateDtoFromBo" />
         </group>
     </actions>
     

@@ -12,6 +12,7 @@ import com.siyeh.ig.inheritance.MissingOverrideAnnotationInspection;
 import com.siyeh.ig.maturity.SuppressionAnnotationInspection;
 import com.siyeh.ig.style.UnqualifiedFieldAccessInspection;
 import com.swissas.inspection.MissingAuthorInspection;
+import com.swissas.inspection.ReplaceWithTeamAuthorInspection;
 
 /**
  * Available processors for java.
@@ -33,7 +34,9 @@ public enum Processor {
 			}),
 	SUPPRESS_ANNOTATION(InspectionAction.SUPPRESS_ANNOTATION,
 	                    SuppressionAnnotationInspection::new),
-	MISSING_AUTHOR(InspectionAction.MISSING_AUTHOR, MissingAuthorInspection::new);
+	MISSING_AUTHOR(InspectionAction.MISSING_AUTHOR, MissingAuthorInspection::new),
+	USE_TEAM_AUTHOR(InspectionAction.USE_TEAM_AUTHOR, ReplaceWithTeamAuthorInspection::new)
+	;
 	
 	private final InspectionAction inspectionAction;
 	private final LocalInspectionTool inspection;
