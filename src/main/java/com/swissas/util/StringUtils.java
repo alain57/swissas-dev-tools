@@ -49,11 +49,19 @@ public class StringUtils {
 	}
 	
 	public String removeGetterPrefix(String name) {
+		return removeGetterPrefix(name, true);
+	}
+	
+	public String removeGetterPrefix(String name, boolean firstChatLowerCase) {
 		String result = null;
 		Matcher matcher = GETTER_PREFIX_PATTERN.matcher(name);
 		if(matcher.find()) {
 			String match = matcher.group(2);
-			result = match.substring(0, 1).toLowerCase() + match.substring(1); 
+			result = match.substring(0, 1);
+			if(firstChatLowerCase) {
+				result = result.toLowerCase();
+			}
+			result+= match.substring(1); 
 		}
 		return result;
 	}

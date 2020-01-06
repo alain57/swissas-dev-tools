@@ -128,10 +128,18 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public Set<String> getMyTeamMembers() {
-		return getMyTeamMembers(false);
+		return getMyTeamMembers(false, true);
 	}
 	
 	public Set<String> getMyTeamMembers(boolean includeMyself) {
+		return getMyTeamMembers(includeMyself, true);
+	}
+	
+	public Set<String> getMyTeamMembersForReview() {
+		return getMyTeamMembers(false, false);	
+	}
+	
+	public Set<String> getMyTeamMembers(boolean includeMyself, boolean addTeamAccount) {
 		if (this.myTeam.isEmpty()) {
 			return Collections.emptySet();
 		}
@@ -140,7 +148,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		                                 .map(User::getLc).filter(lc -> includeMyself || !lc
 						.equalsIgnoreCase(this.fourLetterCode))
 		                                 .collect(Collectors.toCollection(TreeSet::new));
-		result.add(getMyTeam());
+		if(addTeamAccount) {
+			result.add(getMyTeam());
+		}
 		return result;
 	}
 	

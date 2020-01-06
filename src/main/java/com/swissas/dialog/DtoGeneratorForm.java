@@ -61,20 +61,21 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DtoGeneratorForm extends DialogWrapper {
 	
-	private final List<JCheckBox>       getterCheckboxes = new ArrayList<>();
-	private       PsiJavaFile           dtoFile;
-	private       PsiJavaFile           rpcFile;
-	private final JavaCodeStyleManager  codeStyleManager;
-	private final PsiDocumentManager    documentManager;
-	private final Project               project;
-	private final PsiFileFactory        psiFileFactory;
-	private       Map<String, PsiClass> allRpcInterfaces;
-	private       PsiClass              selectedRpcInterfaceClass;
-	private       List<PsiMethod>       getters;
-	private       PsiJavaFile           boFile;
-	private       List<String>          selectedGetters;
-	private       PsiDirectory          rpcDir;
-	private final Map<String, PsiClass> boMap;  
+	private final List<JCheckBox>                getterCheckboxes = new ArrayList<>();
+	private       PsiJavaFile                    dtoFile;
+	private       PsiJavaFile                    rpcFile;
+	private final JavaCodeStyleManager           codeStyleManager;
+	private final PsiDocumentManager             documentManager;
+	private final Project                        project;
+	private final PsiFileFactory                 psiFileFactory;
+	private       Map<String, PsiClass>          allRpcInterfaces;
+	private       PsiClass                       selectedRpcInterfaceClass;
+	private       List<PsiMethod>                getters;
+	private       PsiJavaFile                    boFile;
+	private       List<String>                   selectedGetters;
+	private       PsiDirectory                   rpcDir;
+	private final Map<String, PsiClass>          boMap;  
+	private       JBCheckBox                     pkGetter;
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JSplitPane splitPane;
@@ -92,7 +93,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	public DtoGeneratorForm(Project project, Map<String, PsiClass> boMap) {
 		super(project, false);
-		this.boMap = boMap;
+		this.boMap = Collections.unmodifiableMap(boMap);
 		this.project = project;
 		this.psiFileFactory = PsiFileFactory.getInstance(this.project);
 		this.codeStyleManager = JavaCodeStyleManager.getInstance(this.project);
@@ -173,6 +174,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName())
 		                            .replace("BO", "").concat("Dto");
 		this.nameTextField.setText(dtoName);
+		setTitle("Create Dto for " + dtoName);
 	}
 	
 	private void fillGetterPanel() {
@@ -182,14 +184,23 @@ public class DtoGeneratorForm extends DialogWrapper {
 			checkBox.addActionListener(
 					e -> WriteCommandAction.runWriteCommandAction(this.project,
 					                                              this::refreshPreview));
-			if (isBoReturned(getter)) {
-				checkBox.setForeground(JBColor.ORANGE);
-				checkBox.setToolTipText(
-						"<html>Warning this getter return a BO<br>Some TODO will be added to the generated code");
+			if(PsiHelper.getInstance().isPrimaryGetter(getter)) {
+				checkBox.setForeground(JBColor.GREEN);
+				checkBox.setToolTipText("PrimaryKey getter (mandatory in case of mapping)");
+				this.getterPanel.add(checkBox);
+				this.getterCheckboxes.add(0, checkBox);
+				this.pkGetter = checkBox;
+			}else {
+				if (isBoReturned(getter)) {
+					checkBox.setForeground(JBColor.ORANGE);
+					checkBox.setToolTipText(
+							"<html>Warning this getter return a BO<br>Some TODO will be added to the generated code");
+				}
+				this.getterCheckboxes.add(checkBox);	
 			}
-			this.getterPanel.add(checkBox);
-			this.getterCheckboxes.add(checkBox);
 		});
+		
+		this.getterCheckboxes.forEach(this.getterPanel::add);
 	}
 	
 	private void clearGetterList() {
@@ -203,6 +214,12 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	private void refreshPreview() {
+		if(this.selectedRpcInterfaceClass != null) {
+			this.pkGetter.setSelected(true);
+			this.pkGetter.setEnabled(false);
+		}else {
+			this.pkGetter.setEnabled(true);
+		}
 		String classContent = "package " + this.boFile.getPackageName()
 		                                              .replace("share.bo.", "share.dto.") + ";\n\n"
 		                      + "import amos.share.system.transport.rpc.AmosDto;\n"
@@ -245,10 +262,15 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
 		
+		PsiMethod findBy = PsiHelper.getInstance().getFindByIdMethod(this.project, this.boFile.getClasses()[0], this.pkGetter.getText());
+		
+		
 		List<PsiMethod> gettersToInclude = this.getters.stream().filter(getter -> this.selectedGetters
 				.contains(getter.getName())).collect(Collectors.toList());
-		PsiHelper.getInstance().addStaticInnerMappingClass(this.rpcFile.getClasses()[0], gettersToInclude, boName, dtoName,
-		                                                   SwissAsStorage.getInstance().getFourLetterCode(), this.entityTagCheckbox.isSelected());
+		PsiHelper.getInstance().addStaticInnerMappingClass(this.rpcFile.getClasses()[0], gettersToInclude, 
+		                                                   findBy, this.pkGetter.getText() , boName,
+		                                                   dtoName, SwissAsStorage.getInstance().getFourLetterCode(),
+		                                                   this.entityTagCheckbox.isSelected());
 	}
 	
 	

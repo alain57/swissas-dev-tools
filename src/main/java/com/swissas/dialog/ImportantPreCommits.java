@@ -7,8 +7,6 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,15 +28,6 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.PreencodedMimeBodyPart;
 import javax.mail.util.ByteArrayDataSource;
 import javax.swing.*;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -261,7 +250,7 @@ public class ImportantPreCommits extends JDialog {
 		this.reviewerComboBox.removeAllItems();
 		this.reviewerComboBox.addItem(SELECT_SOMEONE);
 		this.reviewerComboBox.getEditor().selectAll();
-		SwissAsStorage.getInstance().getMyTeamMembers().forEach(this.reviewerComboBox::addItem);
+		SwissAsStorage.getInstance().getMyTeamMembersForReview().forEach(this.reviewerComboBox::addItem);
 		if (reviewNeeded) {
 			Matcher matcher = REVIEWER.matcher(this.checkinProjectPanel.getCommitMessage());
 			if (matcher.find()) {

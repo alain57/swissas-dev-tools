@@ -18,11 +18,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassObjectAccessExpression;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
@@ -30,6 +32,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -39,6 +42,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper for some specific tasks needed in the plugin
@@ -161,6 +165,29 @@ public class PsiHelper {
 	}
 	
 	@NotNull
+	private PsiElement generateSaveToBo(@NotNull Project project, @Nullable PsiMethod findBy, 
+	                                    @NotNull String pkGetter, String boName, String dtoName) {
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+		
+		String findByString = findBy != null ?  findBy.getContainingClass().getQualifiedName() + "." + findBy.getName()
+		                                        + "(dto." + pkGetter + "());\n"
+											: "null; //Could not generate the findBy. The BO or BOHome should have a findById or findBy" 
+											  + StringUtils.getInstance().removeGetterPrefix(pkGetter, false) + " method.\n";
+		
+		String content = "public " + boName + " saveToBo(" + dtoName + " dto){\n"
+		                 + "if (dto == null ) {\n"
+		                 + "return null;\n"
+		                 + "}\n"
+		                 + boName + " bo = " + dtoName + "." + pkGetter + "() == null ? new "
+		                 + boName + "() : "
+		                 + findByString
+		                 + "copyToBo(dto, bo);\n"
+		                 + " return bo;\n"
+		                 + "}";
+		return elementFactory.createMethodFromText(content, null);
+	}
+	
+	@NotNull
 	public PsiMethod generateCopyToBoMethod(@NotNull Project project,@NotNull  List<PsiMethod> gettersToInclude,
 	                                         @NotNull String boName,@NotNull  String dtoName,
 	                                         boolean useEntityTag) {
@@ -177,6 +204,7 @@ public class PsiHelper {
 		return elementFactory.createMethodFromText(toBoContent.toString(), null);
 	}
 	
+	
 	public void addFileInDirectory(@NotNull PsiDirectory directory,@NotNull PsiJavaFile fileInMemory) {
 		PsiFile existingFile = directory.findFile(fileInMemory.getName());
 		if(existingFile == null) {
@@ -189,7 +217,9 @@ public class PsiHelper {
 	
 	public void addStaticInnerMappingClass(@NotNull PsiClass upperClass,
 	                                       @NotNull List<PsiMethod> gettersToInclude,
-	                                       @NotNull String boName, @NotNull String dtoName, 
+	                                       @Nullable PsiMethod findByMethod,
+	                                       @NotNull String pkGetterName,
+	                                       @NotNull String boName, @NotNull String dtoName,
 	                                       @NotNull String letterCode, boolean hasEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(upperClass.getProject());
 		String javaDocTxt = "/**\n"
@@ -208,6 +238,9 @@ public class PsiHelper {
 		                         .generateToDtoMethod(upperClass.getProject(), gettersToInclude, 
 		                                              boName, dtoName, hasEntityTag));
 		mapperClass.add(PsiHelper.getInstance()
+		                .generateSaveToBo(upperClass.getProject(), findByMethod, pkGetterName, boName, dtoName));
+		               
+		mapperClass.add(PsiHelper.getInstance()
 		                         .generateCopyToBoMethod(upperClass.getProject(), gettersToInclude, 
 		                                                 boName, dtoName, hasEntityTag));
 		upperClass.addBefore(mapperClass, upperClass.getLastChild());
@@ -224,6 +257,13 @@ public class PsiHelper {
 		
 	}
 	
+	public boolean isPrimaryGetter(PsiMethod getter){
+		PsiModifierList list = getter.getModifierList();
+		PsiAnnotation annotation = list
+				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
+		return annotation != null && annotation.hasAttribute("primaryKey");
+	}
+	
 	private boolean isGetter(PsiMethod psiMethod) {
 		boolean result = false;
 		if(psiMethod != null && psiMethod.hasModifier(JvmModifier.PUBLIC) &&
@@ -236,4 +276,42 @@ public class PsiHelper {
 		return result;
 	}
 	
+	@Nullable
+	public PsiMethod getFindByIdMethod(@NotNull Project project, @NotNull PsiClass boClass, @NotNull String pkName) {
+		List<PsiMethod> psiMethods = new ArrayList<>(
+				PsiTreeUtil.collectElementsOfType(boClass, PsiMethod.class));
+		String findByPk = "findBy" + StringUtils.getInstance().removeGetterPrefix(pkName, false);
+		boolean hasFindMethods = psiMethods.stream().map(PsiMethod::getName).anyMatch(
+				name -> name.toLowerCase().startsWith("findby"));
+		PsiMethod result = null;
+		if (hasFindMethods) {
+			result = psiMethods.stream()
+			                   .filter(method -> method.getName().toLowerCase().equals(findByPk))
+			                   .findFirst().orElse(null);
+			if (result == null) {
+				result = psiMethods.stream().filter(method -> method.getName().toLowerCase()
+				                                                    .startsWith("findbyid"))
+				                   .findFirst().orElse(null);
+			}
+		} else {
+			JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+			PsiClass homeClass = javaPsiFacade.findClass(boClass.getQualifiedName() + "Home",
+			                                             GlobalSearchScope.allScope(project));
+			psiMethods = new ArrayList<>(
+					PsiTreeUtil.collectElementsOfType(homeClass, PsiMethod.class));
+			hasFindMethods = psiMethods.stream().map(PsiMethod::getName)
+			                           .anyMatch(name -> name.toLowerCase().startsWith("findby"));
+			if (hasFindMethods) {
+				result = psiMethods.stream().filter(method -> method.getName()
+				                                                    .equalsIgnoreCase(findByPk)).findFirst()
+				                   .orElse(null);
+				if (result == null) {
+					result = psiMethods.stream().filter(method -> method.getName().toLowerCase()
+					                                                    .startsWith("findbyid"))
+					                   .findFirst().orElse(null);
+				}
+			}
+		}
+		return result;
+	}
 }
