@@ -1,6 +1,7 @@
 package com.swissas.util;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,12 +66,10 @@ public class PsiHelper {
 	public PsiDirectory findOrCreateDirectoryInShared(@NotNull Project project,
 	                                                  @NotNull String packageName) {
 		PsiDirectory result = null;
-		//project is an xml file. first parent is .idea folder, second parent is the real top folder of project
-		String dirPath = Stream.of(project.getProjectFile().getParent().getParent().getChildren()) 
-			      .filter(e -> e.isDirectory() && e.getName().contains("share"))
-			      .map(e -> e.getPath()).findFirst().orElseThrow();
-	
-		
+		String dirPath = Stream.of(VfsUtil.findFile(Paths.get(project.getBasePath()), false)
+		                                  .getChildren())
+		                       .filter(e -> e.isDirectory() && e.getName().contains("share"))
+		                       .map(e -> e.getPath()).findFirst().orElseThrow();
 		dirPath += "/" + "src" + "/" +
 		                 packageName.replaceAll("\\.", "/");
 		try {
@@ -256,7 +255,9 @@ public class PsiHelper {
 		if(psiClass == null) {
 			return Collections.emptyList();
 		}
-		List<PsiMethod> psiMethods = new ArrayList<>(PsiTreeUtil.collectElementsOfType(psiClass, PsiMethod.class));
+		List<PsiMethod> psiMethods = Stream.of(psiClass.getChildren()).filter(PsiMethod.class::isInstance)
+		      .map(PsiMethod.class::cast).collect(Collectors.toList());
+		      
 		return psiMethods.stream().filter(this::isGetter).sorted(
 				Comparator.comparing(PsiMethod::getName)).collect(Collectors.toList());
 		
