@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -63,10 +62,16 @@ public class PsiHelper {
 		return INSTANCE;
 	}
 	
-	public PsiDirectory findOrCreateDirectory(@NotNull Project project, @NotNull Module module, 
-	                                          @NotNull String packageName) {
+	public PsiDirectory findOrCreateDirectoryInShared(@NotNull Project project,
+	                                                  @NotNull String packageName) {
 		PsiDirectory result = null;
-		String dirPath = module.getModuleFile().getParent().getPath() + "/" + "src" + "/" +
+		//project is an xml file. first parent is .idea folder, second parent is the real top folder of project
+		String dirPath = Stream.of(project.getProjectFile().getParent().getParent().getChildren()) 
+			      .filter(e -> e.isDirectory() && e.getName().contains("share"))
+			      .map(e -> e.getPath()).findFirst().orElseThrow();
+	
+		
+		dirPath += "/" + "src" + "/" +
 		                 packageName.replaceAll("\\.", "/");
 		try {
 			VirtualFile vfsDir = VfsUtil.createDirectoryIfMissing(dirPath);
@@ -178,7 +183,7 @@ public class PsiHelper {
 		                 + "if (dto == null ) {\n"
 		                 + "return null;\n"
 		                 + "}\n"
-		                 + boName + " bo = " + dtoName + "." + pkGetter + "() == null ? new "
+		                 + boName + " bo = dto." + pkGetter + "() == null ? new "
 		                 + boName + "() : "
 		                 + findByString
 		                 + "copyToBo(dto, bo);\n"

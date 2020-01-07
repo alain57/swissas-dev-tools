@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -26,8 +25,6 @@ import javax.swing.event.DocumentEvent;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
@@ -246,7 +243,9 @@ public class DtoGeneratorForm extends DialogWrapper {
 		addSelectedCheckboxesToDto();
 		this.codeStyleManager.shortenClassReferences(this.dtoFile);
 		this.dtoEditor.setDocument(this.documentManager.getDocument(this.dtoFile));
-		if(this.selectedRpcInterfaceClass != null) {
+		if(this.selectedRpcInterfaceClass == null){
+			this.rpcEditor.setText("");
+		}else {
 			this.rpcDir = this.selectedRpcInterfaceClass.getContainingFile().getContainingDirectory();
 			addMapperToRpcInterface();
 			this.codeStyleManager.shortenClassReferences(this.rpcFile);
@@ -434,12 +433,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	public void saveFiles() {
 		if(!this.nameTextField.getText().isEmpty() && !this.selectedGetters.isEmpty()) { 
-			Module shared = Stream.of(ModuleManager.getInstance(this.project).getModules())
-			                      .filter(e -> e.getName().contains("shared")).findFirst()
-			                      .orElseThrow();
 			PsiDirectory dtoDir = PsiHelper.getInstance()
-			                               .findOrCreateDirectory(this.project, shared,
-			                                                      this.dtoFile.getPackageName());
+			                               .findOrCreateDirectoryInShared(this.project,			                                                              this.dtoFile.getPackageName());
 			PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
 			if (this.rpcFile != null) {
 				PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.rpcFile);
