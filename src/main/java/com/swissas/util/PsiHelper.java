@@ -39,6 +39,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
@@ -152,17 +153,18 @@ public class PsiHelper {
 	
 	@NotNull
 	public PsiMethod generateToDtoMethod(@NotNull Project project,@NotNull  List<PsiMethod> gettersToInclude,
+	                                      @NotNull String pkName,
 	                                      @NotNull String boName,@NotNull  String dtoName,
 	                                      boolean useEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-		StringBuilder toDtoContent = new StringBuilder("public ").append(dtoName)
+		StringBuilder toDtoContent = new StringBuilder("static ").append(dtoName)
 		                                                         .append(" toDto(").append(boName).append(" bo) {\n");
 		toDtoContent.append("\t").append(dtoName).append(" dto = new ").append(dtoName).append("();\n");
 		if(useEntityTag) {
-			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", "dto", "bo");
+			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", pkName, true);
 		}
 		for (PsiMethod getter : gettersToInclude) {
-			StringUtils.getInstance().addSetOfGetter(toDtoContent, getter.getName(), "dto", "bo");
+			StringUtils.getInstance().addSetOfGetter(toDtoContent, getter.getName(), pkName, true);
 		}
 		toDtoContent.append("\treturn dto;\n").append("}\n");
 		return elementFactory.createMethodFromText(toDtoContent.toString(), null);
@@ -178,7 +180,7 @@ public class PsiHelper {
 											: "null; //Could not generate the findBy. The BO or BOHome should have a findById or findBy" 
 											  + StringUtils.getInstance().removeGetterPrefix(pkGetter, false) + " method.\n";
 		
-		String content = "public " + boName + " saveToBo(" + dtoName + " dto){\n"
+		String content = "static " + boName + " saveToBo(" + dtoName + " dto){\n"
 		                 + "if (dto == null ) {\n"
 		                 + "return null;\n"
 		                 + "}\n"
@@ -196,13 +198,13 @@ public class PsiHelper {
 	                                         @NotNull String boName,@NotNull  String dtoName,
 	                                         boolean useEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-		StringBuilder toBoContent = new StringBuilder("public void copyToBo(").append(dtoName)
+		StringBuilder toBoContent = new StringBuilder("static void copyToBo(").append(dtoName)
 		                                                                      .append(" dto, ").append(boName).append(" bo) {\n");
 		if(useEntityTag) {
-			StringUtils.getInstance().addSetOfGetter(toBoContent, "getEntityTag", "bo", "dto");
+			StringUtils.getInstance().addSetOfGetter(toBoContent, "getEntityTag", null, false);
 		}
 		for (PsiMethod getter : gettersToInclude) {
-			StringUtils.getInstance().addSetOfGetter(toBoContent, getter.getName(), "bo", "dto");
+			StringUtils.getInstance().addSetOfGetter(toBoContent, getter.getName(), null, false);
 		}
 		toBoContent.append("}\n");
 		return elementFactory.createMethodFromText(toBoContent.toString(), null);
@@ -232,15 +234,15 @@ public class PsiHelper {
 		                    + " * @author " + letterCode + "\n"
 		                    + " */\n";
 		
-		PsiClass mapperClass = elementFactory.createClass(boName + dtoName + "Mapper");
+		PsiClass mapperClass = elementFactory.createClass(dtoName + "Mapper");
 		mapperClass.getModifierList().setModifierProperty(PsiModifier.PACKAGE_LOCAL, true);
 		mapperClass.getModifierList().setModifierProperty(PsiModifier.STATIC, true);
 		PsiDocComment javadoc = elementFactory.createDocCommentFromText(javaDocTxt);
 		mapperClass.addBefore(javadoc, mapperClass.getFirstChild());
 		
 		mapperClass.add(PsiHelper.getInstance()
-		                         .generateToDtoMethod(upperClass.getProject(), gettersToInclude, 
-		                                              boName, dtoName, hasEntityTag));
+		                         .generateToDtoMethod(upperClass.getProject(), gettersToInclude,
+		                                              pkGetterName, boName, dtoName, hasEntityTag));
 		mapperClass.add(PsiHelper.getInstance()
 		                .generateSaveToBo(upperClass.getProject(), findByMethod, pkGetterName, boName, dtoName));
 		               

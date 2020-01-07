@@ -3,6 +3,9 @@ package com.swissas.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 
 public class StringUtils {
 	private static final Pattern LETTER_CODE_PATTERN = Pattern.compile("^[A-Z]{3,4}$");
@@ -67,12 +70,22 @@ public class StringUtils {
 	}
 	
 	
-	public void addSetOfGetter(StringBuilder sb, String getterName, String variableToSet, String variableToGet) {
+	public void addSetOfGetter(@NotNull StringBuilder sb,@NotNull String getterName, @Nullable String pkgGetter, boolean isDtoToBo) {
+		String variableToSet = isDtoToBo ? "bo" : "dto";
+		String variableToGet = isDtoToBo ? "dto" : "bo";
+		
 		String variable = StringUtils.getInstance().removeGetterPrefix(getterName);
 		String setterName = "set" + variable.substring(0, 1).toUpperCase() + variable.substring(1);
+		boolean addIf = getterName.equals(pkgGetter) && !isDtoToBo;
+		if(addIf) {
+			sb.append("\tif(dto.").append(getterName).append("() != null ) {");
+		}
 		sb.append("\t").append(variableToSet).append(".")
 		  .append(setterName).append("(").append(variableToGet).append(".")
 		  .append(getterName).append("()").append(");\n");
+		if(addIf) {
+			sb.append("}\n");
+		}
 	}
 	
 }
