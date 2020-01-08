@@ -43,6 +43,7 @@ public class GenerateDtoFromCurrentBo extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         if(this.psiClass != null) {
+           
             DtoGeneratorForm generatorForm = new DtoGeneratorForm(this.javaFile, PsiHelper.getInstance().getGettersForPsiClass(this.psiClass));
             if(generatorForm.showAndGet()){
                 WriteCommandAction.runWriteCommandAction(this.javaFile.getProject(),

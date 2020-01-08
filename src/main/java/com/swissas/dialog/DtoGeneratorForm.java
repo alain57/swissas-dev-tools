@@ -73,6 +73,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private       PsiDirectory                   rpcDir;
 	private final Map<String, PsiClass>          boMap;  
 	private       JBCheckBox                     pkGetter;
+	private String ddPkColumn;
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JSplitPane splitPane;
@@ -112,7 +113,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	public void initUI() {
 		setTitle("Create Dto From Bo");
-		setResizable(false);
 		setSize(705, 435);
 		initComponents();
 		initFurtherUIComponents();
@@ -161,6 +161,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.nameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
 			@Override
 			protected void textChanged(@NotNull DocumentEvent e) {
+				//TODO check that no other dto has the same name
 				WriteCommandAction.runWriteCommandAction(DtoGeneratorForm.this.project,
 				                                         () -> refreshPreview());
 			}
@@ -186,6 +187,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 				checkBox.setToolTipText("PrimaryKey getter (mandatory in case of mapping)");
 				this.getterPanel.add(checkBox);
 				this.getterCheckboxes.add(0, checkBox);
+				this.ddPkColumn = PsiHelper.getInstance().getDDPkForPsiClass(this.boFile.getClasses()[0], getter.getName());
 				this.pkGetter = checkBox;
 			}else {
 				if (isBoReturned(getter)) {
@@ -266,10 +268,10 @@ public class DtoGeneratorForm extends DialogWrapper {
 		
 		List<PsiMethod> gettersToInclude = this.getters.stream().filter(getter -> this.selectedGetters
 				.contains(getter.getName())).collect(Collectors.toList());
-		PsiHelper.getInstance().addStaticInnerMappingClass(this.rpcFile.getClasses()[0], gettersToInclude, 
-		                                                   findBy, this.pkGetter.getText() , boName,
-		                                                   dtoName, SwissAsStorage.getInstance().getFourLetterCode(),
-		                                                   this.entityTagCheckbox.isSelected());
+		PsiHelper.getInstance().addMapplingClass(this.rpcFile, gettersToInclude,
+		                                         findBy, this.pkGetter.getText(), this.ddPkColumn , boName,
+		                                         dtoName, SwissAsStorage.getInstance().getFourLetterCode(),
+		                                         this.entityTagCheckbox.isSelected());
 	}
 	
 	

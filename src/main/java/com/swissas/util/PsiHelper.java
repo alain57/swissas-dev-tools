@@ -26,6 +26,7 @@ import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiExpressionList;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -34,6 +35,8 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -158,7 +161,7 @@ public class PsiHelper {
 	                                      boolean useEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
 		StringBuilder toDtoContent = new StringBuilder("static ").append(dtoName)
-		                                                         .append(" toDto(").append(boName).append(" bo) {\n");
+		                                                         .append(" toDto(@NotNull ").append(boName).append(" bo) {\n");
 		toDtoContent.append("\t").append(dtoName).append(" dto = new ").append(dtoName).append("();\n");
 		if(useEntityTag) {
 			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", pkName, true);
@@ -171,6 +174,66 @@ public class PsiHelper {
 	}
 	
 	@NotNull
+	private PsiElement generateListToDto(@NotNull Project project, @NotNull String boName, @NotNull String dtoName) {
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+		String content = "static List<" + dtoName +"> toDtos(@NotNull Collection<" + boName + "> bos) {\n"
+		+ "\treturn ListUtils.map(bos, PriorityDtoMapper::toDto);\n"
+		+ "}\n";
+		return elementFactory.createMethodFromText(content, null);
+	}
+	
+	@NotNull
+	private PsiElement generateListToBo(@NotNull Project project, @NotNull String boName, 
+	                                    @NotNull String dtoName, @NotNull String pkGetterName,
+	                                    @NotNull String pkColumn) {
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+		String content = "static DefaultBOList<" + boName + "> toBos(@NotNull Collection<" + dtoName + "> dtos) {\n"
+		                 + "\tif(dtos.isEmpty()){\n"
+		                 + "\t\treturn new DefaultBOList<>();\n"
+		                 + "\t}\n"
+		                 + "\tList<Integer> existingDtoIds = dtos.stream().map(" + dtoName + "::" + pkGetterName + ")\n"
+		                 + "\t                            .filter(pk -> pk != null && pk > 0).collect(\n"
+		                 + "\t\t\t\t\tCollectors.toList());\n"
+		                 + "\tMap<Integer, " + boName + "> existingBoMap = existingDtoIds.isEmpty() ? Collections.emptyMap() :\n"
+		                 + "\t                                                 ListUtils.createMap(" + boName + "\n"
+		                 + "\t\t\t                                                           .findBySearchCond(\n"
+		                 + "\t\t\t\t\t                                                           IN("+ pkColumn + ",\n"
+		                 + "\t\t\t\t\t                                                              existingDtoIds)),\n"
+		                 + "\t                                                           " + boName + "::" + pkGetterName + ",\n"
+		                 + "\t                                                           Function.identity());\n"
+		                 + "\tDefaultBOList<" + boName + "> result = new DefaultBOList<>();\n"
+		                 + "\tfor (" + dtoName + " dto : dtos) {\n"
+		                 + "\t\t" + boName + " bo = existingBoMap.getOrDefault(dto." + pkGetterName + "(), new " + boName + "());\n"
+		                 + "\t\tcopyToBo(dto, bo);\n"
+		                 + "\t\tresult.add(bo);\n"
+		                 + "\t}\n"
+		                 + "\treturn result;\n"
+		                 + "}";
+		return elementFactory.createMethodFromText(content, null);
+	}
+	
+	@NotNull 
+	private PsiElement generateDeleteDtos(@NotNull Project project, @NotNull String boName, @NotNull String dtoName) {
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+		String content = "static void delete(@NotNull AmosTransaction transaction, @NotNull Set<" + dtoName +"> dtosToDelete){\n"
+		                 + "\tDefaultBOList<" + boName + "> toDelete = toBos(dtosToDelete);\n"
+		                 + "\ttoDelete.deleteToTransaction(transaction);\n"
+		                 + "}\n";
+		return elementFactory.createMethodFromText(content, null);
+	}
+	
+	@NotNull
+	private PsiElement generateSaveDtos(@NotNull Project project, @NotNull String boName, @NotNull String dtoName) {
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+		String content = "static DefaultBOList<" + boName + "> saveDtos(@NotNull AmosTransaction transaction, @NotNull Set<" + dtoName + "> dtosToSave){\n"
+		                 + "\tDefaultBOList<" + boName + "> bos = toBos(dtosToSave);\n"
+		                 + "\tbos.saveToTransaction(transaction);\n"
+		                 + "\treturn bos;\n"
+		                 + "}\n";
+		return elementFactory.createMethodFromText(content, null);
+	}
+	
+	@NotNull
 	private PsiElement generateSaveToBo(@NotNull Project project, @Nullable PsiMethod findBy, 
 	                                    @NotNull String pkGetter, String boName, String dtoName) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
@@ -180,7 +243,7 @@ public class PsiHelper {
 											: "null; //Could not generate the findBy. The BO or BOHome should have a findById or findBy" 
 											  + StringUtils.getInstance().removeGetterPrefix(pkGetter, false) + " method.\n";
 		
-		String content = "static " + boName + " saveToBo(" + dtoName + " dto){\n"
+		String content = "static " + boName + " saveToBo(@NotNull " + dtoName + " dto){\n"
 		                 + "if (dto == null ) {\n"
 		                 + "return null;\n"
 		                 + "}\n"
@@ -221,13 +284,14 @@ public class PsiHelper {
 		Stream.of(fileInMemory.getChildren()).forEachOrdered(existingFile::add);
 	}
 	
-	public void addStaticInnerMappingClass(@NotNull PsiClass upperClass,
-	                                       @NotNull List<PsiMethod> gettersToInclude,
-	                                       @Nullable PsiMethod findByMethod,
-	                                       @NotNull String pkGetterName,
-	                                       @NotNull String boName, @NotNull String dtoName,
-	                                       @NotNull String letterCode, boolean hasEntityTag) {
-		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(upperClass.getProject());
+	public void addMapplingClass(@NotNull PsiJavaFile rpcFile,
+	                             @NotNull List<PsiMethod> gettersToInclude,
+	                             @Nullable PsiMethod findByMethod,
+	                             @NotNull String pkGetterName, @NotNull String pkColumn,
+	                             @NotNull String boName, @NotNull String dtoName,
+	                             @NotNull String letterCode, boolean hasEntityTag) {
+		Project project = rpcFile.getProject();
+		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
 		String javaDocTxt = "/**\n"
 		                    + " * Auto generated DTO/BO Mapper\n"
 		                    + " *\n"
@@ -236,32 +300,46 @@ public class PsiHelper {
 		
 		PsiClass mapperClass = elementFactory.createClass(dtoName + "Mapper");
 		mapperClass.getModifierList().setModifierProperty(PsiModifier.PACKAGE_LOCAL, true);
-		mapperClass.getModifierList().setModifierProperty(PsiModifier.STATIC, true);
+		mapperClass.getModifierList().setModifierProperty(PsiModifier.FINAL, true);
 		PsiDocComment javadoc = elementFactory.createDocCommentFromText(javaDocTxt);
 		mapperClass.addBefore(javadoc, mapperClass.getFirstChild());
 		
-		mapperClass.add(PsiHelper.getInstance()
-		                         .generateToDtoMethod(upperClass.getProject(), gettersToInclude,
-		                                              pkGetterName, boName, dtoName, hasEntityTag));
-		mapperClass.add(PsiHelper.getInstance()
-		                .generateSaveToBo(upperClass.getProject(), findByMethod, pkGetterName, boName, dtoName));
-		               
-		mapperClass.add(PsiHelper.getInstance()
-		                         .generateCopyToBoMethod(upperClass.getProject(), gettersToInclude, 
-		                                                 boName, dtoName, hasEntityTag));
-		upperClass.addBefore(mapperClass, upperClass.getLastChild());
+		mapperClass.add(generateToDtoMethod(project, gettersToInclude,
+		                                    pkGetterName, boName, dtoName, hasEntityTag));
+		mapperClass.add(generateSaveToBo(project, findByMethod, pkGetterName, boName, dtoName));
+		mapperClass.add(generateCopyToBoMethod(project, gettersToInclude,
+		                                       boName, dtoName, hasEntityTag));
+		mapperClass.add(generateListToDto(project, boName, dtoName));
+		mapperClass.add(generateDeleteDtos(project, boName, dtoName));
+		mapperClass.add(generateSaveDtos(project, boName, dtoName));
+		mapperClass.add(generateListToBo(project, boName, dtoName, pkGetterName, pkColumn));
+		rpcFile.getContainingDirectory().add(mapperClass);
 	}
 	
 	
-	public List<PsiMethod> getGettersForPsiClass(PsiClass psiClass) {
-		if(psiClass == null) {
-			return Collections.emptyList();
-		}
+	public List<PsiMethod> getGettersForPsiClass(@NotNull PsiClass psiClass) {
 		List<PsiMethod> psiMethods = Stream.of(psiClass.getChildren()).filter(PsiMethod.class::isInstance)
 		      .map(PsiMethod.class::cast).collect(Collectors.toList());
 		      
 		return psiMethods.stream().filter(this::isGetter).sorted(
 				Comparator.comparing(PsiMethod::getName)).collect(Collectors.toList());
+	}
+	
+	public String getDDPkForPsiClass(@NotNull PsiClass psiClass, @NotNull String pkName) {
+		String result = null;
+		PsiParameter ddRowParam = Stream.of(psiClass.getConstructors())
+		                                        .filter(method -> method.hasParameters() && method.getParameterList().getParametersCount() == 1)
+		                                        .map(method -> method.getParameterList().getParameters()[0]).findFirst().orElseThrow();
+		PsiClass ddRowClass = PsiUtil.resolveClassInType(ddRowParam.getType());
+		PsiMethod pkMethod = Stream.of(ddRowClass.getMethods())
+		                          .filter(method -> method.getName().equals(pkName)).findFirst()
+		                          .orElse(null);
+		if(pkMethod != null) {
+			result = new ArrayList<>(PsiTreeUtil.collectElementsOfType(pkMethod.getBody(),
+			                                                                PsiReferenceExpression.class))
+					.get(1).getText();
+		}
+		return result;
 		
 	}
 	
