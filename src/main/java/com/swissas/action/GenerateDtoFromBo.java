@@ -21,8 +21,8 @@ public class GenerateDtoFromBo extends AnAction {
 		Map<String, PsiClass> boMapForProjectUp = PsiHelper.getInstance().getBoMapForProjectUp(e.getProject());
 		DtoGeneratorForm generatorForm = new DtoGeneratorForm(e.getProject(), boMapForProjectUp);
 		if(generatorForm.showAndGet()){
-			WriteCommandAction.runWriteCommandAction(e.getProject(),
-			                                         generatorForm::saveFiles);
+				WriteCommandAction.runWriteCommandAction(e.getProject(),
+				                                         generatorForm::saveFiles);
 		}
 		generatorForm.disposeIfNeeded();
 	}

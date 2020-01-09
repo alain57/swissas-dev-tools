@@ -43,7 +43,9 @@ publishPlugin {
 patchPluginXml {
     changeNotes """
 <b>V1.6.6</b><pre>
-Add futher methods to generator
+Add futher methods to generator : save/delete/list convert
+Add imports in the generated code
+Add customized equals/hashcode if the pk getter is selected
 </pre>
 <b>V1.6.5</b><pre>
 Remove team account from reviewer list

@@ -24,15 +24,15 @@ public class StringUtils {
 		return instance;
 	}
 	
-	public boolean isLetterCode(String text) {
-		return text != null && (text.isEmpty() || LETTER_CODE_PATTERN.matcher(text).find());
+	public boolean isLetterCode(@NotNull String text) {
+		return text.isEmpty() || LETTER_CODE_PATTERN.matcher(text).find();
 	}
 	
-	public boolean isLetterCodeWithName(String text) {
-		return text != null && (text.isEmpty() || LETTER_CODE_PATTERN_WITH_NAME.matcher(text).find());
+	public boolean isLetterCodeWithName(@NotNull String text) {
+		return text.isEmpty() || LETTER_CODE_PATTERN_WITH_NAME.matcher(text).find();
 	}
 	
-	public boolean isPositiveNumber(String text){
+	public boolean isPositiveNumber(@NotNull String text){
 		int i;
 		try {
 			i = Integer.parseInt(text);
@@ -47,15 +47,15 @@ public class StringUtils {
 		return SwissAsStorage.getInstance().getUserMap().containsKey(potentialLetterCode);
 	}
 	
-	public String removeJavaEnding(String name) {
-		return name.substring(0,name.indexOf(".java"));
+	public String removeJavaEnding(@NotNull String name) {
+		return name.indexOf('.') == -1 ? name :name.substring(0,name.indexOf(".java"));
 	}
 	
-	public String removeGetterPrefix(String name) {
+	public String removeGetterPrefix(@NotNull String name) {
 		return removeGetterPrefix(name, true);
 	}
 	
-	public String removeGetterPrefix(String name, boolean firstChatLowerCase) {
+	public String removeGetterPrefix(@NotNull String name, boolean firstChatLowerCase) {
 		String result = null;
 		Matcher matcher = GETTER_PREFIX_PATTERN.matcher(name);
 		if(matcher.find()) {

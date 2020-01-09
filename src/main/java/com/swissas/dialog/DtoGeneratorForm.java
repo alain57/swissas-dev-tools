@@ -26,7 +26,11 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComponentValidator;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
@@ -34,6 +38,7 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EditorTextField;
@@ -58,22 +63,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DtoGeneratorForm extends DialogWrapper {
 	
-	private final List<JCheckBox>                getterCheckboxes = new ArrayList<>();
-	private       PsiJavaFile                    dtoFile;
-	private       PsiJavaFile                    rpcFile;
-	private final JavaCodeStyleManager           codeStyleManager;
-	private final PsiDocumentManager             documentManager;
-	private final Project                        project;
-	private final PsiFileFactory                 psiFileFactory;
-	private       Map<String, PsiClass>          allRpcInterfaces;
-	private       PsiClass                       selectedRpcInterfaceClass;
-	private       List<PsiMethod>                getters;
-	private       PsiJavaFile                    boFile;
-	private       List<String>                   selectedGetters;
-	private       PsiDirectory                   rpcDir;
-	private final Map<String, PsiClass>          boMap;  
-	private       JBCheckBox                     pkGetter;
-	private String ddPkColumn;
+	private final List<JCheckBox>       getterCheckboxes = new ArrayList<>();
+	private       PsiJavaFile           dtoFile;
+	private       PsiJavaFile           mapperFile;
+	private final JavaCodeStyleManager  codeStyleManager;
+	private final PsiDocumentManager    documentManager;
+	private final Project                   project;
+	private final PsiFileFactory            psiFileFactory;
+	private       Map<String, PsiClass>     allRpcInterfaces;
+	private       PsiClass                  selectedRpcInterfaceClass;
+	private       List<PsiMethod>           getters;
+	private       PsiJavaFile               boFile;
+	private       List<String>              selectedGetters;
+	private       PsiDirectory              rpcDir;
+	private final Map<String, PsiClass>     boMap;  
+	private       JBCheckBox                pkGetter;
+	private       String                    ddPkColumn;
+	private       Pair<PsiClass, PsiMethod> finder;
+	private String lastFileExistCheck;
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JSplitPane splitPane;
@@ -126,6 +133,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 			                                         this::refreshPreview);
 		});
 		init();
+		setOKActionEnabled(false);
 	}
 	
 	private void initFurtherUIComponents() {
@@ -161,17 +169,24 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.nameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
 			@Override
 			protected void textChanged(@NotNull DocumentEvent e) {
-				//TODO check that no other dto has the same name
+				revalidateNameTextField();
 				WriteCommandAction.runWriteCommandAction(DtoGeneratorForm.this.project,
-				                                         () -> refreshPreview());
+					                                         () -> refreshPreview());
 			}
 		});
+	}
+	
+	private void revalidateNameTextField() {
+		ComponentValidator.getInstance(DtoGeneratorForm.this.nameTextField).ifPresent(
+				ComponentValidator::revalidate);
 	}
 	
 	private void fillNameField() {
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName())
 		                            .replace("BO", "").concat("Dto");
+		installValidator();
 		this.nameTextField.setText(dtoName);
+		revalidateNameTextField();
 		setTitle("Create Dto for " + dtoName);
 	}
 	
@@ -222,6 +237,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String classContent = "package " + this.boFile.getPackageName()
 		                                              .replace("share.bo.", "share.dto.") + ";\n\n"
 		                      + "import amos.share.system.transport.rpc.AmosDto;\n"
+		                      + "import java.util.Objects;\n"
 		                      + "/**\n"
 		                      + " * Auto generated DTO for " + StringUtils.getInstance()
 		                                                                  .removeJavaEnding(
@@ -240,43 +256,88 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                                           .createFileFromText(
 				                                           this.nameTextField.getText() + ".java",
 				                                           JavaLanguage.INSTANCE, classContent);
-		
-		
-		addSelectedCheckboxesToDto();
-		this.codeStyleManager.shortenClassReferences(this.dtoFile);
+		PsiClass dtoClass = this.dtoFile.getClasses()[0];
+		PsiClass boClass = this.boFile.getClasses()[0];
+		this.finder = PsiHelper.getInstance().getFinderClassAndLastFinder(
+				this.project, boClass);
+		addSelectedCheckboxesToDto(dtoClass);
+		if(this.pkGetter.isSelected()) {
+			dtoClass.add(PsiHelper.getInstance()
+			                      .generateEquals(this.project, this.nameTextField.getText(),
+			                                      this.pkGetter.getText()));
+			dtoClass.add(PsiHelper.getInstance()
+			                      .generateHashcode(this.project, this.pkGetter.getText()));
+		}
+		this.dtoFile = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(this.dtoFile);
 		this.dtoEditor.setDocument(this.documentManager.getDocument(this.dtoFile));
 		if(this.selectedRpcInterfaceClass == null){
 			this.rpcEditor.setText("");
 		}else {
 			this.rpcDir = this.selectedRpcInterfaceClass.getContainingFile().getContainingDirectory();
-			addMapperToRpcInterface();
-			this.codeStyleManager.shortenClassReferences(this.rpcFile);
-			this.rpcEditor.setDocument(this.documentManager.getDocument(this.rpcFile));
+			generateMapper();
+			this.mapperFile.importClass(boClass);
+			this.mapperFile.importClass(this.finder.getFirst());
+			this.mapperFile = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(this.mapperFile);
+			this.rpcEditor.setDocument(this.documentManager.getDocument(this.mapperFile));
 		}
+		setOKActionEnabled(!this.selectedGetters.isEmpty() && !this.nameTextField.getText().isEmpty() && !checkDtoNameExists());
 	}
 	
-	private void addMapperToRpcInterface() {
-		this.rpcFile  =
-				(PsiJavaFile) PsiFileFactory.getInstance(this.project)
-				                            .createFileFromText(this.selectedRpcInterfaceClass.getContainingFile().getName(),
-			JavaLanguage.INSTANCE,  this.selectedRpcInterfaceClass.getContainingFile().getText());
+	private boolean checkDtoNameExists() {
+		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(this.project);
+		String name = this.boFile.getPackageName()
+		                         .replace("share.bo.", "share.dto.") + "." +
+		              this.nameTextField.getText();
+		if(!name.equals(this.lastFileExistCheck)) {
+			this.lastFileExistCheck = name;
+			return javaPsiFacade.findClass(name, GlobalSearchScope.allScope(this.project)) != null;
+		}
+		return false;
+	}
+	
+	private void installValidator() {
+		new ComponentValidator(this.project).withValidator(v -> {
+			if(checkDtoNameExists()) {
+				v.updateInfo(new ValidationInfo("A Dto with the same name already exists", this.nameTextField));
+			}else {
+				v.updateInfo(null);
+			}
+		}).installOn(this.nameTextField);
+	}
+	
+	private void generateMapper() {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
+		String mapperClassContent = this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
+		                            + "import amos.share.databaseAccess.api.AmosTransaction;\n"
+		                            + "import amos.share.databaseAccess.bo.DefaultBOList;\n"
+		                            + "import amos.share.util.ListUtils;\n"
+		                            + "\n"
+		                            + "import javax.validation.constraints.NotNull;\n"
+		                            + "import java.util.Collections;\n"
+		                            + "import java.util.List;\n"
+		                            + "import java.util.Map;\n"
+		                            + "import java.util.function.Function;\n"
+		                            + "import java.util.stream.Collectors;\n"
+		                            + "import amos.share.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n"
+		                            + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
+		                            + "import " + this.finder.getFirst().getQualifiedName() + ";\n\n"
+									+ "import static amos.share.sol.util.SolHelperFunctions.IN;\n";
 		
-		PsiMethod findBy = PsiHelper.getInstance().getFindByIdMethod(this.project, this.boFile.getClasses()[0], this.pkGetter.getText());
-		
-		
+		this.mapperFile =
+				(PsiJavaFile) PsiFileFactory.getInstance(this.project)
+				                            .createFileFromText(dtoName + "Mapper.java", JavaLanguage.INSTANCE, mapperClassContent);
+
 		List<PsiMethod> gettersToInclude = this.getters.stream().filter(getter -> this.selectedGetters
 				.contains(getter.getName())).collect(Collectors.toList());
-		PsiHelper.getInstance().addMapplingClass(this.rpcFile, gettersToInclude,
-		                                         findBy, this.pkGetter.getText(), this.ddPkColumn , boName,
-		                                         dtoName, SwissAsStorage.getInstance().getFourLetterCode(),
+		PsiHelper.getInstance().addMapplingClass(this.mapperFile, gettersToInclude,
+		                                         this.pkGetter.getText(), this.ddPkColumn,
+		                                         this.finder, boName, dtoName,
 		                                         this.entityTagCheckbox.isSelected());
 	}
 	
 	
-	private void addSelectedCheckboxesToDto() {
-		PsiClass dtoClass = this.dtoFile.getClasses()[0];
+	private void addSelectedCheckboxesToDto(PsiClass dtoClass) {
 		if (this.entityTagCheckbox.isSelected()) {
 			PsiHelper.getInstance().addFieldGetterAndSetter(this.project, dtoClass,
 			                                                "amos.share.databaseAccess.occ.EntityTag",
@@ -434,13 +495,11 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	public void saveFiles() {
-		if(!this.nameTextField.getText().isEmpty() && !this.selectedGetters.isEmpty()) { 
-			PsiDirectory dtoDir = PsiHelper.getInstance()
-			                               .findOrCreateDirectoryInShared(this.project,			                                                              this.dtoFile.getPackageName());
-			PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
-			if (this.rpcFile != null) {
-				PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.rpcFile);
-			}
-		}
+		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
+		PsiDirectory dtoDir = PsiHelper.getInstance()
+		                       .findOrCreateDirectoryInShared(this.project,	this.dtoFile.getPackageName());
+		PsiHelper.getInstance().generateFindBySearchCondIfNeeded(this.project, this.finder, boName, this.ddPkColumn.split("\\.")[0]);
+		PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
+		PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.mapperFile);
 	}
 }
