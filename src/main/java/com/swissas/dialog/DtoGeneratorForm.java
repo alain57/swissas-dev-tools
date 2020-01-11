@@ -151,8 +151,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 						DtoGeneratorForm.this.boFile = (PsiJavaFile) psiClass.getContainingFile();
 						DtoGeneratorForm.this.getters = PsiHelper.getInstance()
 						                                         .getGettersForPsiClass(psiClass);
-						fillNameField();
 						fillGetterPanel();
+						fillNameField();
 					}else if(DtoGeneratorForm.this.boSourceFile.getText().isEmpty()){
 						DtoGeneratorForm.this.nameTextField.setText("");
 						clearGetterList();
@@ -316,6 +316,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                            + "import javax.validation.constraints.NotNull;\n"
 		                            + "import java.util.Collections;\n"
 		                            + "import java.util.List;\n"
+		                            + "import java.util.ArrayList;\n"
 		                            + "import java.util.Map;\n"
 		                            + "import java.util.function.Function;\n"
 		                            + "import java.util.stream.Collectors;\n"
@@ -498,7 +499,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		PsiDirectory dtoDir = PsiHelper.getInstance()
 		                       .findOrCreateDirectoryInShared(this.project,	this.dtoFile.getPackageName());
-		PsiHelper.getInstance().generateFindBySearchCondIfNeeded(this.project, this.finder, boName, this.ddPkColumn.split("\\.")[0]);
+		PsiHelper.getInstance().generateFindByIdsIfNeeded(this.project, this.finder, boName, this.pkGetter.getText(), this.ddPkColumn);
 		PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
 		PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.mapperFile);
 	}
