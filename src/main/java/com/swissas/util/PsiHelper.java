@@ -69,10 +69,15 @@ public class PsiHelper {
 	public PsiDirectory findOrCreateDirectoryInShared(@NotNull Project project,
 	                                                  @NotNull String packageName) {
 		PsiDirectory result = null;
+		LOGGER.error(project.getBasePath());
 		String dirPath = Stream.of(VfsUtil.findFile(Paths.get(project.getBasePath()), false)
 		                                  .getChildren())
 		                       .filter(e -> e.isDirectory() && e.getName().contains("share"))
-		                       .map(VirtualFile::getPath).findFirst().orElseThrow();
+		                       .map(VirtualFile::getPath).findFirst().orElse(null);
+		if(dirPath == null) {
+			LOGGER.error("your project is not correctly setup ! The project base path is : " + project.getBasePath());
+			return null;
+		}
 		dirPath += "/" + "src" + "/" +
 		                 packageName.replaceAll("\\.", "/");
 		try {
@@ -163,10 +168,10 @@ public class PsiHelper {
 		                                                         .append(" toDto(@NotNull ").append(boName).append(" bo) {\n");
 		toDtoContent.append("\t").append(dtoName).append(" dto = new ").append(dtoName).append("();\n");
 		if(useEntityTag) {
-			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", pkName, true);
+			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", pkName, false);
 		}
 		for (PsiMethod getter : gettersToInclude) {
-			StringUtils.getInstance().addSetOfGetter(toDtoContent, getter.getName(), pkName, true);
+			StringUtils.getInstance().addSetOfGetter(toDtoContent, getter.getName(), pkName, false);
 		}
 		toDtoContent.append("\treturn dto;\n").append("}\n");
 		return elementFactory.createMethodFromText(toDtoContent.toString(), null);
@@ -272,10 +277,10 @@ public class PsiHelper {
 		StringBuilder toBoContent = new StringBuilder("static void copyToBo(").append(dtoName)
 		                                                                      .append(" dto, ").append(boName).append(" bo) {\n");
 		if(useEntityTag) {
-			StringUtils.getInstance().addSetOfGetter(toBoContent, "getEntityTag", null, false);
+			StringUtils.getInstance().addSetOfGetter(toBoContent, "getEntityTag", null, true);
 		}
 		for (PsiMethod getter : gettersToInclude) {
-			StringUtils.getInstance().addSetOfGetter(toBoContent, getter.getName(), null, false);
+			StringUtils.getInstance().addSetOfGetter(toBoContent, getter.getName(), null, true);
 		}
 		toBoContent.append("}\n");
 		return elementFactory.createMethodFromText(toBoContent.toString(), null);
