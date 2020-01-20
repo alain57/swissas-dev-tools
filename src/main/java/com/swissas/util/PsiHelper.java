@@ -160,7 +160,7 @@ public class PsiHelper {
 	
 	@NotNull
 	public PsiMethod generateToDtoMethod(@NotNull Project project,@NotNull  List<PsiMethod> gettersToInclude,
-	                                      @NotNull String pkName,
+	                                      @Nullable String pkName,
 	                                      @NotNull String boName,@NotNull  String dtoName,
 	                                      boolean useEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
@@ -189,31 +189,42 @@ public class PsiHelper {
 	@NotNull
 	private PsiElement generateListToBo(@NotNull Project project, @NotNull String boName,
 	                                    @NotNull String boFinderClassName,
-	                                    @NotNull String dtoName, @NotNull String getter) {
+	                                    @NotNull String dtoName, @Nullable String pkGetter) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-		String methodEnding = StringUtils.getInstance().removeGetterPrefix(getter);
-		String content = "static List<" + boName + "> toBos(@NotNull List<" + dtoName + "> dtos) {\n"
-		                 + "\tif(dtos.isEmpty()) {\n"
-		                 + "\t\treturn Collections.emptyList();\n"
-		                 + "\t}\n"
-		                 + "\tList<Integer> existingDtoIds = dtos.stream().map(" + dtoName + "::" + getter + ")\n"
-		                 + "\t                            .filter(pk -> pk != null && pk > 0).collect(\n"
-		                 + "\t\t\t\t\tCollectors.toList());\n"
-		                 + "\tMap<Integer, " + boName + "> existingBoMap =\n"
-		                 + "\t\t\texistingDtoIds.isEmpty() ? Collections.emptyMap() :\n"
-		                 + "\t\t\t" + boFinderClassName + ".findBy" + methodEnding + "s(existingDtoIds)\n"
-		                 + "\t\t\t                  .stream().collect(Collectors.toMap(\n"
-		                 + "\t\t\t                  \t\t" + boName + "::" + getter + ", Function.identity()));\n"
-		                 + "\t\n"
-		                 + "\tList<" + boName + "> result = new ArrayList<>();\n"
-		                 + "\tfor (" + dtoName + " dto : dtos) {\n"
-		                 + "\t\t" + boName + " bo = existingBoMap\n"
-		                 + "\t\t\t\t.getOrDefault(dto." + getter + "(), new " + boName + "());\n"
-		                 + "\t\tcopyToBo(dto, bo);\n"
-		                 + "\tresult.add(bo);\n"
-		                 + "\t}\n"
-		                 + "\treturn result;\n"
-		                 + "}";
+		String content;
+		if(pkGetter == null) {
+			content = "static List<" + boName + "> toBos(@NotNull List<" + dtoName + "> dtos){\n"
+			          + "\t//The BO has no @AmosBeanInfo(primaryKey=true), can't auto generate this method !\n"
+			          + "\treturn Collections.emptyList();\n"
+			          + "}\n";
+		} else {
+			String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter);
+			content = "static List<" + boName + "> toBos(@NotNull List<" + dtoName + "> dtos) {\n"
+			          + "\tif(dtos.isEmpty()) {\n"
+			          + "\t\treturn Collections.emptyList();\n"
+			          + "\t}\n"
+			          + "\tList<Integer> existingDtoIds = dtos.stream().map(" + dtoName + "::"
+			          + pkGetter + ")\n"
+			          + "\t                            .filter(pk -> pk != null && pk > 0).collect(\n"
+			          + "\t\t\t\t\tCollectors.toList());\n"
+			          + "\tMap<Integer, " + boName + "> existingBoMap =\n"
+			          + "\t\t\texistingDtoIds.isEmpty() ? Collections.emptyMap() :\n"
+			          + "\t\t\t" + boFinderClassName + ".findBy" + methodEnding
+			          + "s(existingDtoIds)\n"
+			          + "\t\t\t                  .stream().collect(Collectors.toMap(\n"
+			          + "\t\t\t                  \t\t" + boName + "::" + pkGetter
+			          + ", Function.identity()));\n"
+			          + "\t\n"
+			          + "\tList<" + boName + "> result = new ArrayList<>();\n"
+			          + "\tfor (" + dtoName + " dto : dtos) {\n"
+			          + "\t\t" + boName + " bo = existingBoMap\n"
+			          + "\t\t\t\t.getOrDefault(dto." + pkGetter + "(), new " + boName + "());\n"
+			          + "\t\tcopyToBo(dto, bo);\n"
+			          + "\tresult.add(bo);\n"
+			          + "\t}\n"
+			          + "\treturn result;\n"
+			          + "}";
+		}
 		return elementFactory.createMethodFromText(content, null);
 	}
 	
@@ -232,22 +243,30 @@ public class PsiHelper {
 	}
 	
 	@NotNull
-	private PsiElement generateSaveDtos(@NotNull Project project,@NotNull String boFinderClassName,  @NotNull String boName, @NotNull String dtoName, @NotNull String pkGetter) {
+	private PsiElement generateSaveDtos(@NotNull Project project,@NotNull String boFinderClassName,  @NotNull String boName, @NotNull String dtoName, @Nullable String pkGetter) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-		String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter) + "s";
-		String methodName = "findBy" + methodEnding;
-		String content = "static List<" + boName + "> saveDtos(@NotNull List<" + dtoName + "> dtosToSave){\n"
-		                 + "\tList<" + boName + "> bos = toBos(dtosToSave);\n"
-		                 + "\tAmosTransaction transaction = new AmosTransaction();\n"
-		                 + "\tfor ("+ boName + " bo : bos) {\n"
-		                 + "\t\tbo.saveToTransaction(transaction);\n"
-		                 + "\t}\n"
-		                 + "\ttransaction.execute();\n"
-		                 + "\t//need to load them again to have the entityTag refreshed.\n"
-		                 + "\treturn "+ boFinderClassName + "." + methodName + "(bos.stream()\n"
-		                 + "\t                                                .map(" + boName + "::" + pkGetter + ")\n"
-		                 + "\t                                                .collect(Collectors.toList()));\n"
-				         + "}\n";
+		String content;
+		if(pkGetter == null) {
+			content = "static List<" + boName + "> saveDtos(@NotNull List<" + dtoName + "> dtosToSave){\n"
+					+ "\t//The BO has no @AmosBeanInfo(primaryKey=true), can't auto generate this method !\n"
+			        + "\treturn Collections.emptyList();\n"  
+					+ "}\n";
+		}else {
+			String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter) + "s";
+			String methodName = "findBy" + methodEnding;
+			content = "static List<" + boName + "> saveDtos(@NotNull List<" + dtoName + "> dtosToSave){\n"
+			                 + "\tList<" + boName + "> bos = toBos(dtosToSave);\n"
+			                 + "\tAmosTransaction transaction = new AmosTransaction();\n"
+			                 + "\tfor ("+ boName + " bo : bos) {\n"
+			                 + "\t\tbo.saveToTransaction(transaction);\n"
+			                 + "\t}\n"
+			                 + "\ttransaction.execute();\n"
+			                 + "\t//need to load them again to have the entityTag refreshed.\n"
+			                 + "\treturn "+ boFinderClassName + "." + methodName + "(bos.stream()\n"
+			                 + "\t                                                .map(" + boName + "::" + pkGetter + ")\n"
+			                 + "\t                                                .collect(Collectors.toList()));\n"
+			                 + "}\n";
+		}
 		return elementFactory.createMethodFromText(content, null);
 	}
 	
@@ -298,11 +317,11 @@ public class PsiHelper {
 	}
 	
 	public void addMapplingClass(@NotNull PsiJavaFile mapperFile,
-	                                 @NotNull List<PsiMethod> gettersToInclude,
-	                                 @NotNull String pkGetterName, @NotNull String pkColumn,
-	                                 @NotNull Pair<PsiClass, PsiMethod> finder,
-	                                 @NotNull String boName, @NotNull String dtoName,
-	                                 boolean hasEntityTag) {
+	                             @NotNull List<PsiMethod> gettersToInclude,
+	                             @Nullable String pkGetterName,
+	                             @NotNull Pair<PsiClass, PsiMethod> finder,
+	                             @NotNull String boName, @NotNull String dtoName,
+	                             boolean hasEntityTag) {
 		Project project = mapperFile.getProject();
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
 		String javaDocTxt = "/**\n"

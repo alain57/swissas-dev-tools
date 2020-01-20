@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +22,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 
 import com.intellij.lang.java.JavaLanguage;
@@ -91,6 +94,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private JPanel getterPanel;
 	private JBTextField nameTextField;
 	private EditorTextField rpcImplementation;
+	public JBTextField getterSearchField;
 	private JBTabbedPane tabbedPane;
 	private EditorTextField dtoEditor;
 	private EditorTextField rpcEditor;
@@ -174,6 +178,12 @@ public class DtoGeneratorForm extends DialogWrapper {
 					                                         () -> refreshPreview());
 			}
 		});
+		this.getterSearchField.getDocument().addDocumentListener(new DocumentAdapter() {
+			@Override
+			protected void textChanged(@NotNull DocumentEvent e) {
+				refreshGetterPanel();
+			}
+		});
 	}
 	
 	private void revalidateNameTextField() {
@@ -213,8 +223,19 @@ public class DtoGeneratorForm extends DialogWrapper {
 				this.getterCheckboxes.add(checkBox);	
 			}
 		});
-		
-		this.getterCheckboxes.forEach(this.getterPanel::add);
+		refreshGetterPanel();
+	}
+	
+	private void refreshGetterPanel() {
+		this.getterPanel.removeAll();
+		for (JCheckBox checkbox : this.getterCheckboxes) {
+			if(this.getterSearchField.getText().isEmpty() || checkbox.getText()
+			                      .toLowerCase().contains(this.getterSearchField.getText().toLowerCase())) {
+				this.getterPanel.add(checkbox);
+			}
+		}
+		this.getterPanel.validate();
+		this.getterPanel.repaint();
 	}
 	
 	private void clearGetterList() {
@@ -228,12 +249,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	private void refreshPreview() {
-		if(this.selectedRpcInterfaceClass != null) {
-			this.pkGetter.setSelected(true);
-			this.pkGetter.setEnabled(false);
-		}else {
-			this.pkGetter.setEnabled(true);
-		}
+		enablePkGetterIfNeeded();
 		String classContent = "package " + this.boFile.getPackageName()
 		                                              .replace("share.bo.", "share.dto.") + ";\n\n"
 		                      + "import amos.share.system.transport.rpc.AmosDto;\n"
@@ -261,13 +277,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.finder = PsiHelper.getInstance().getFinderClassAndLastFinder(
 				this.project, boClass);
 		addSelectedCheckboxesToDto(dtoClass);
-		if(this.pkGetter.isSelected()) {
-			dtoClass.add(PsiHelper.getInstance()
-			                      .generateEquals(this.project, this.nameTextField.getText(),
-			                                      this.pkGetter.getText()));
-			dtoClass.add(PsiHelper.getInstance()
-			                      .generateHashcode(this.project, this.pkGetter.getText()));
-		}
+		generateEqualsAndHashcodeIfNeeded(dtoClass);
 		this.dtoFile = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(this.dtoFile);
 		this.dtoEditor.setDocument(this.documentManager.getDocument(this.dtoFile));
 		if(this.selectedRpcInterfaceClass == null){
@@ -281,6 +291,27 @@ public class DtoGeneratorForm extends DialogWrapper {
 			this.rpcEditor.setDocument(this.documentManager.getDocument(this.mapperFile));
 		}
 		setOKActionEnabled(!this.selectedGetters.isEmpty() && !this.nameTextField.getText().isEmpty() && !checkDtoNameExists());
+	}
+	
+	private void enablePkGetterIfNeeded() {
+		if(this.pkGetter != null) {
+			if (this.selectedRpcInterfaceClass != null) {
+				this.pkGetter.setSelected(true);
+				this.pkGetter.setEnabled(false);
+			} else {
+				this.pkGetter.setEnabled(true);
+			}
+		}
+	}
+	
+	private void generateEqualsAndHashcodeIfNeeded(PsiClass dtoClass) {
+		if(this.pkGetter != null && this.pkGetter.isSelected()) {
+			dtoClass.add(PsiHelper.getInstance()
+			                      .generateEquals(this.project, this.nameTextField.getText(),
+			                                      this.pkGetter.getText()));
+			dtoClass.add(PsiHelper.getInstance()
+			                      .generateHashcode(this.project, this.pkGetter.getText()));
+		}
 	}
 	
 	private boolean checkDtoNameExists() {
@@ -308,6 +339,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private void generateMapper() {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
+		String ddColumnImport = this.ddPkColumn == null ? "" :
+		                        "import amos.share.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n";
 		String mapperClassContent = this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
 		                            + "import amos.share.databaseAccess.api.AmosTransaction;\n"
 		                            + "import amos.share.databaseAccess.bo.DefaultBOList;\n"
@@ -320,7 +353,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                            + "import java.util.Map;\n"
 		                            + "import java.util.function.Function;\n"
 		                            + "import java.util.stream.Collectors;\n"
-		                            + "import amos.share.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n"
+		                            + ddColumnImport
 		                            + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
 		                            + "import " + this.finder.getFirst().getQualifiedName() + ";\n\n"
 									+ "import static amos.share.sol.util.SolHelperFunctions.IN;\n";
@@ -331,8 +364,9 @@ public class DtoGeneratorForm extends DialogWrapper {
 
 		List<PsiMethod> gettersToInclude = this.getters.stream().filter(getter -> this.selectedGetters
 				.contains(getter.getName())).collect(Collectors.toList());
+		String getterName = this.pkGetter == null ? null : this.pkGetter.getText();
 		PsiHelper.getInstance().addMapplingClass(this.mapperFile, gettersToInclude,
-		                                         this.pkGetter.getText(), this.ddPkColumn,
+		                                         getterName,
 		                                         this.finder, boName, dtoName,
 		                                         this.entityTagCheckbox.isSelected());
 	}
@@ -385,7 +419,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 				}
 			}
 		});
-		
+		this.getterSearchField = new JBTextField();
+		this.getterSearchField.getEmptyText().setText("getter search filter");
 	}
 
 	private void generateMappersCheckBoxActionPerformed(ActionEvent e) {
@@ -436,6 +471,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 			"[fill]" +
 			"[fill]" +
 			"[fill]" +
+			"[]" +
 			"[grow,fill]"));
 
 		this.boSourceFile.setBackground(new Color(69, 73, 74));
@@ -455,7 +491,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 
 		this.getterPanel.setLayout(new BoxLayout(this.getterPanel, BoxLayout.Y_AXIS));
 		getterScrollPane.setViewportView(this.getterPanel);
-		panel1.add(getterScrollPane, "cell 0 7,grow");
+		panel1.add(getterScrollPane, "cell 0 8,grow");
 
 		this.nameTextField.setToolTipText("Name of the Dto");
 		panel1.add(this.nameTextField, "cell 0 1,aligny center,grow 100 0");
@@ -466,6 +502,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		label1.setFont(label1.getFont().deriveFont(Font.BOLD));
 		label1.setText("Getters");
 		panel1.add(label1, "cell 0 6,align left center,grow 0 0");
+		panel1.add(this.getterSearchField, "cell 0 7");
 		this.splitPane.setLeftComponent(panel1);
 
 		this.tabbedPane.setAutoscrolls(true);
@@ -499,7 +536,11 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		PsiDirectory dtoDir = PsiHelper.getInstance()
 		                       .findOrCreateDirectoryInShared(this.project,	this.dtoFile.getPackageName());
-		PsiHelper.getInstance().generateFindByIdsIfNeeded(this.project, this.finder, boName, this.pkGetter.getText(), this.ddPkColumn);
+		if(this.pkGetter != null) {
+			PsiHelper.getInstance().generateFindByIdsIfNeeded(this.project, this.finder, boName,
+			                                                  this.pkGetter.getText(),
+			                                                  this.ddPkColumn);
+		}
 		PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
 		PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.mapperFile);
 	}

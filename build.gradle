@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.6b'
+version '1.6.7'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -41,7 +41,11 @@ publishPlugin {
 }
 
 patchPluginXml {
-    changeNotes """<b>V1.6.6b</b><pre>
+    changeNotes """<b>V1.6.7</b><pre>
+Prevent NPE in case of strange BO (without PK)
+Add search feature for Generator to filter getters
+</pre>
+<b>V1.6.6b</b><pre>
 Fix a small bug that invert the toDto and copyToBo method
 Add a log in case of project wrongly setup</pre>
 <b>V1.6.6</b><pre>
