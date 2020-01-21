@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,6 +37,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -90,17 +93,28 @@ public class PsiHelper {
 	}
 	
 	public List<PsiClass> getRpcImplementationForProjectUp(@NotNull Project project) {
+		Set<PsiClass> result = new HashSet<>();
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-		PsiClass rpcRegistry = javaPsiFacade
-				.findClass("amos.server.system.transport.AmosApnRpcRegistry", GlobalSearchScope.allScope(project));
-		PsiCodeBlock constructorContent = rpcRegistry.getConstructors()[0].getBody();
-		PsiClassObjectAccessExpression[] expressions = PsiTreeUtil
-				.collectElementsOfType(constructorContent, PsiClassObjectAccessExpression.class)
-				.toArray(PsiClassObjectAccessExpression[]::new);
-		return IntStream.range(0, expressions.length).filter(i -> i % 2 != 0)
-		                                                        .mapToObj(i -> expressions[i])
-		                .map(e -> PsiUtil.resolveClassInType(e.getOperand().getType()))
-		                                                        .collect(Collectors.toList());
+		List<String> registries = List.of("AmosApnRpcRegistry", "AmosInstantInfoRpcRegistry", "AmosSelectionDialogRpcRegistry"
+				, "AmosContextProviderRpcRegistry", "AmosReportRpcRegistry", "AmosMobileSolDataProviderRpcRegistry");
+		for (String registry : registries) {
+			PsiClass rpcRegistry = javaPsiFacade
+					.findClass("amos.server.system.transport." + registry, GlobalSearchScope.allScope(project));
+			PsiCodeBlock constructorContent = rpcRegistry.getConstructors()[0].getBody();
+			PsiClassObjectAccessExpression[] expressions = PsiTreeUtil
+					.collectElementsOfType(constructorContent, PsiClassObjectAccessExpression.class)
+					.toArray(PsiClassObjectAccessExpression[]::new);
+			Set<PsiClass> psiClasses = IntStream.range(0, expressions.length).filter(i -> i % 2 != 0)
+			                                 .mapToObj(i -> expressions[i])
+			                                 .map(e -> PsiUtil
+					                                 .resolveClassInType(e.getOperand().getType()))
+			                                 .collect(
+					                                 Collectors.toSet());
+			result.addAll(psiClasses);
+		}
+		
+		return result.stream().sorted(Comparator.comparing(PsiNamedElement::getName)).collect(
+				Collectors.toList());
 		
 	}
 	
@@ -126,34 +140,68 @@ public class PsiHelper {
 		
 	}
 	
-	public void addFieldGetterAndSetter(Project project, PsiClass destinationClass, 
-	                                     String objectType, String getterName, boolean addTodo) {
-		String variable = StringUtils.getInstance().removeGetterPrefix(getterName);
-		PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(project);
+	public void addFieldGetterAndSetterFromPsiMethod(PsiMethod psiMethod, PsiClass destinationClass) {
+		String variable = StringUtils.getInstance().removeGetterPrefix(psiMethod.getName());
+		String objectType =  psiMethod.getReturnType().getCanonicalText();
+		String getterName = psiMethod.getName();
+		boolean isBoReturned = isBoReturned(psiMethod);
+		PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
 		PsiComment todoComment = psiElementFactory
 				.createCommentFromText("//TODO: remove the BO here !!!", null);
 		PsiField field = psiElementFactory
-				.createFieldFromText("private " + objectType + " " + variable + ";", null);
-		if (addTodo) {
+				.createFieldFromText("private " + objectType   + " " + variable + ";", null);
+		if (isBoReturned) {
 			field.add(todoComment);
 		}
 		destinationClass.add(field);
-		
 		String setterName = "set" + variable.substring(0, 1).toUpperCase() + variable.substring(1);
 		PsiMethod getter = psiElementFactory
 				.createMethodFromText("public " + objectType + " " + getterName + "() {"
 				                      + "return this." + variable + ";"
 				                      + "}", null);
+		PsiAnnotation annotation = getAmosBeanAnnoation(psiMethod);
+		if(annotation != null) {
+			PsiModifierList list = getter.getModifierList();
+			PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
+			                                         .createWhiteSpaceFromText("\n");
+			annotation.add(newLine);
+			list.addBefore(annotation, list);
+		}
 		PsiMethod setter = psiElementFactory
 				.createMethodFromText("public void " + setterName + "("
 				                      + objectType + " " + variable + "){"
 				                      + "this." + variable + " = " + variable
 				                      + ";"
 				                      + "}", null);
-		if (addTodo) {
+		if (isBoReturned) {
 			getter.add(todoComment);
 			setter.add(todoComment);
 		}
+		destinationClass.add(getter);
+		destinationClass.add(setter);
+	}
+	
+	public boolean isBoReturned(PsiMethod getterMethod) {
+		return InheritanceUtil.isInheritor(getterMethod.getReturnType(),
+		                                   "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
+	}
+	
+	public void addEntityTag(Project project, PsiClass destinationClass) {
+		String objectType = "amos.share.databaseAccess.occ.EntityTag";
+		PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(project);
+		PsiField field = psiElementFactory
+				.createFieldFromText("private amos.share.databaseAccess.occ.EntityTag entityTag;", null);
+		destinationClass.add(field);
+		
+		PsiMethod getter = psiElementFactory
+				.createMethodFromText("public " + objectType + " getEntityTag() {"
+				                      + "return this.entityTag;"
+				                      + "}", null);
+		PsiMethod setter = psiElementFactory
+				.createMethodFromText("public void setEntityTag("
+				                      + "amos.share.databaseAccess.occ.EntityTag entityTag){"
+				                      + "this.entityTag = entityTag;"
+				                      + "}", null);
 		destinationClass.add(getter);
 		destinationClass.add(setter);
 	}
@@ -361,7 +409,11 @@ public class PsiHelper {
 		String result = null;
 		PsiParameter ddRowParam = Stream.of(psiClass.getConstructors())
 		                                        .filter(method -> method.hasParameters() && method.getParameterList().getParametersCount() == 1)
-		                                        .map(method -> method.getParameterList().getParameters()[0]).findFirst().orElseThrow();
+		                                        .map(method -> method.getParameterList().getParameters()[0]).findFirst().orElse(null);
+		if(ddRowParam == null) {
+			LOGGER.error("could not find a constructor with one parameter (the DDRowObject) : for class " + psiClass.getName());
+			return null;
+		}
 		PsiClass ddRowClass = PsiUtil.resolveClassInType(ddRowParam.getType());
 		PsiMethod pkMethod = Stream.of(ddRowClass.getMethods())
 		                          .filter(method -> method.getName().equals(pkName)).findFirst()
@@ -375,16 +427,23 @@ public class PsiHelper {
 		
 	}
 	
-	public boolean isPrimaryGetter(PsiMethod getter){
+	@Nullable
+	private PsiAnnotation getAmosBeanAnnoation(@NotNull PsiMethod method){
+		PsiModifierList list = method.getModifierList();
+		return list
+				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
+	}
+	
+	public boolean isPrimaryGetter(@NotNull PsiMethod getter){
 		PsiModifierList list = getter.getModifierList();
 		PsiAnnotation annotation = list
 				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
 		return annotation != null && annotation.hasAttribute("primaryKey");
 	}
 	
-	private boolean isGetter(PsiMethod psiMethod) {
+	private boolean isGetter(@NotNull PsiMethod psiMethod) {
 		boolean result = false;
-		if(psiMethod != null && psiMethod.hasModifier(JvmModifier.PUBLIC) &&
+		if(psiMethod.hasModifier(JvmModifier.PUBLIC) &&
 		   !psiMethod.hasModifier(JvmModifier.STATIC) &&
 		   !PsiType.VOID.equals(psiMethod.getReturnType()) &&
 		   psiMethod.getParameterList().isEmpty()) {
@@ -424,8 +483,12 @@ public class PsiHelper {
 	public PsiMethod generateEquals(@NotNull Project project, @NotNull String dtoName, @NotNull String getterName) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
 		String content = "@Override\npublic boolean equals(Object o) {\n"
-		                 + "\tif (this == o) return true;\n"
-		                 + "\tif (o == null || getClass() != o.getClass()) return false;\n"
+		                 + "\tif (this == o) {\n"
+						 + "\t\treturn true;\n"
+		                 + "\t}\n"
+		                 + "\tif (o == null || getClass() != o.getClass()) {" 
+		                 + "\t\treturn false;\n" 
+		                 + "\t}\n"
 		                 + "\t" + dtoName + " that = (" + dtoName + ") o;\n"
 		                 + "\treturn Objects.equals(" + getterName + "(), that." + getterName
 		                 + "());\n"

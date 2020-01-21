@@ -78,7 +78,7 @@ public class StringUtils {
 		String setterName = "set" + variable.substring(0, 1).toUpperCase() + variable.substring(1);
 		boolean addIf = getterName.equals(pkgGetter) && !isDtoToBo;
 		if(addIf) {
-			sb.append("\tif(dto.").append(getterName).append("() != null ) {");
+			sb.append("\tif(bo.").append(getterName).append("() != null ) {");
 		}
 		sb.append("\t").append(variableToSet).append(".")
 		  .append(setterName).append("(").append(variableToGet).append(".")

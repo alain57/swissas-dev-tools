@@ -5,8 +5,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +20,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 
 import com.intellij.lang.java.JavaLanguage;
@@ -40,9 +37,9 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
@@ -124,6 +121,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	public void initUI() {
 		setTitle("Create Dto From Bo");
+		setModal(false);
 		setSize(705, 435);
 		initComponents();
 		initFurtherUIComponents();
@@ -138,6 +136,14 @@ public class DtoGeneratorForm extends DialogWrapper {
 		});
 		init();
 		setOKActionEnabled(false);
+	}
+	
+	@Override
+	public boolean isOK() {
+		WriteCommandAction.runWriteCommandAction(this.project,
+		                                         this::saveFiles);
+		disposeIfNeeded();
+		return super.isOK();
 	}
 	
 	private void initFurtherUIComponents() {
@@ -215,7 +221,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 				this.ddPkColumn = PsiHelper.getInstance().getDDPkForPsiClass(this.boFile.getClasses()[0], getter.getName());
 				this.pkGetter = checkBox;
 			}else {
-				if (isBoReturned(getter)) {
+				if (PsiHelper.getInstance().isBoReturned(getter)) {
 					checkBox.setForeground(JBColor.ORANGE);
 					checkBox.setToolTipText(
 							"<html>Warning this getter return a BO<br>Some TODO will be added to the generated code");
@@ -243,10 +249,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.getterCheckboxes.clear();
 	}
 	
-	private boolean isBoReturned(PsiMethod getterMethod) {
-		return InheritanceUtil.isInheritor(getterMethod.getReturnType(),
-		                                   "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
-	}
 	
 	private void refreshPreview() {
 		enablePkGetterIfNeeded();
@@ -278,8 +280,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 				this.project, boClass);
 		addSelectedCheckboxesToDto(dtoClass);
 		generateEqualsAndHashcodeIfNeeded(dtoClass);
-		this.dtoFile = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(this.dtoFile);
-		this.dtoEditor.setDocument(this.documentManager.getDocument(this.dtoFile));
+		cleanAndApplyFileToEditor(this.dtoFile, this.dtoEditor);
 		if(this.selectedRpcInterfaceClass == null){
 			this.rpcEditor.setText("");
 		}else {
@@ -287,10 +288,17 @@ public class DtoGeneratorForm extends DialogWrapper {
 			generateMapper();
 			this.mapperFile.importClass(boClass);
 			this.mapperFile.importClass(this.finder.getFirst());
-			this.mapperFile = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(this.mapperFile);
-			this.rpcEditor.setDocument(this.documentManager.getDocument(this.mapperFile));
+			cleanAndApplyFileToEditor(this.mapperFile, this.rpcEditor);
 		}
 		setOKActionEnabled(!this.selectedGetters.isEmpty() && !this.nameTextField.getText().isEmpty() && !checkDtoNameExists());
+	}
+	
+	
+	private void cleanAndApplyFileToEditor(@NotNull PsiJavaFile fileToCleanup, @NotNull EditorTextField editorToRefresh) {
+		fileToCleanup = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(fileToCleanup);
+		this.codeStyleManager.optimizeImports(fileToCleanup);
+		fileToCleanup = (PsiJavaFile)CodeStyleManager.getInstance(this.project).reformat(fileToCleanup);
+		editorToRefresh.setDocument(this.documentManager.getDocument(fileToCleanup));
 	}
 	
 	private void enablePkGetterIfNeeded() {
@@ -374,18 +382,13 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	private void addSelectedCheckboxesToDto(PsiClass dtoClass) {
 		if (this.entityTagCheckbox.isSelected()) {
-			PsiHelper.getInstance().addFieldGetterAndSetter(this.project, dtoClass,
-			                                                "amos.share.databaseAccess.occ.EntityTag",
-			                                                "getEntityTag", false);
+			PsiHelper.getInstance().addEntityTag(this.project, dtoClass);
 		}
 		this.selectedGetters = this.getterCheckboxes.stream().filter(
 				AbstractButton::isSelected).map(AbstractButton::getText).collect(Collectors.toList());
 		for (PsiMethod getter : this.getters) {
 			if (this.selectedGetters.contains(getter.getName())) {
-				PsiHelper.getInstance().addFieldGetterAndSetter(this.project, dtoClass,
-				                                                getter.getReturnType().getCanonicalText(),
-				                                                getter.getName(),
-				                                                isBoReturned(getter));
+				PsiHelper.getInstance().addFieldGetterAndSetterFromPsiMethod(getter, dtoClass);
 			}
 		}
 	}

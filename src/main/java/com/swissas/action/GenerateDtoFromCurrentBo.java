@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.swissas.dialog.DtoGeneratorForm;
@@ -43,13 +42,8 @@ public class GenerateDtoFromCurrentBo extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         if(this.psiClass != null) {
-           
             DtoGeneratorForm generatorForm = new DtoGeneratorForm(this.javaFile, PsiHelper.getInstance().getGettersForPsiClass(this.psiClass));
-            if(generatorForm.showAndGet()){
-                WriteCommandAction.runWriteCommandAction(this.javaFile.getProject(),
-                                                                      generatorForm::saveFiles);
-            }
-            generatorForm.disposeIfNeeded();
+            generatorForm.show();
         }
     }
 }

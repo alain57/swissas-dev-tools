@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.7'
+version '1.6.8'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -41,7 +41,16 @@ publishPlugin {
 }
 
 patchPluginXml {
-    changeNotes """<b>V1.6.7</b><pre>
+    changeNotes """
+<b>V1.6.8</b><pre>
+Check 6 RpcRegistries instead of one for the RPC implementation
+Fixed the primarykey check in toDto
+Make the Dto generator window non modal
+Automatically add annotation to Dto for the DataSourceDto
+Reformat and organize imports on the Dto/Mapping classes
+</pre>
+
+<b>V1.6.7</b><pre>
 Prevent NPE in case of strange BO (without PK)
 Add search feature for Generator to filter getters
 </pre>
