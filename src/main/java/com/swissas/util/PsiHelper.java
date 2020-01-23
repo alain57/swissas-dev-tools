@@ -40,6 +40,8 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -72,7 +74,6 @@ public class PsiHelper {
 	public PsiDirectory findOrCreateDirectoryInShared(@NotNull Project project,
 	                                                  @NotNull String packageName) {
 		PsiDirectory result = null;
-		LOGGER.error(project.getBasePath());
 		String dirPath = Stream.of(VfsUtil.findFile(Paths.get(project.getBasePath()), false)
 		                                  .getChildren())
 		                       .filter(e -> e.isDirectory() && e.getName().contains("share"))
@@ -159,13 +160,15 @@ public class PsiHelper {
 				.createMethodFromText("public " + objectType + " " + getterName + "() {"
 				                      + "return this." + variable + ";"
 				                      + "}", null);
-		PsiAnnotation annotation = getAmosBeanAnnoation(psiMethod);
+		PsiAnnotation annotation = getAmosBeanAnnotation(psiMethod);
 		if(annotation != null) {
 			PsiModifierList list = getter.getModifierList();
-			PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
-			                                         .createWhiteSpaceFromText("\n");
-			annotation.add(newLine);
-			list.addBefore(annotation, list);
+			if(!annotation.getText().endsWith("\n")) {
+				PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
+				                                            .createWhiteSpaceFromText("\n");
+				annotation.add(newLine);
+			}
+			list.getParent().addBefore(annotation, list);
 		}
 		PsiMethod setter = psiElementFactory
 				.createMethodFromText("public void " + setterName + "("
@@ -246,7 +249,7 @@ public class PsiHelper {
 			          + "\treturn Collections.emptyList();\n"
 			          + "}\n";
 		} else {
-			String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter);
+			String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter, false);
 			content = "static List<" + boName + "> toBos(@NotNull List<" + dtoName + "> dtos) {\n"
 			          + "\tif(dtos.isEmpty()) {\n"
 			          + "\t\treturn Collections.emptyList();\n"
@@ -319,7 +322,7 @@ public class PsiHelper {
 	}
 	
 	public void generateFindByIdsIfNeeded(@NotNull Project project, @NotNull Pair<PsiClass, PsiMethod> finder, @NotNull String boName, @NotNull String pkGetter, @NotNull String tableWithColumn) {
-		String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter) + "s";
+		String methodEnding = StringUtils.getInstance().removeGetterPrefix(pkGetter, false) + "s";
 		String methodName = "findBy" + methodEnding;
 		String table = tableWithColumn.split("\\.")[0];
 		if (Stream.of(finder.getFirst().getMethods()).noneMatch(method -> methodName.equals(method.getName()) &&
@@ -353,6 +356,15 @@ public class PsiHelper {
 		return elementFactory.createMethodFromText(toBoContent.toString(), null);
 	}
 	
+	@NotNull
+	public PsiJavaFile applyCodeStyleAndReformatImports(@NotNull PsiJavaFile fileToCleanup) {
+		Project project = fileToCleanup.getProject();
+		JavaCodeStyleManager instance = JavaCodeStyleManager
+				.getInstance(project);
+		PsiJavaFile cleaned = (PsiJavaFile)instance.shortenClassReferences(fileToCleanup);
+		instance.optimizeImports(cleaned);
+		return (PsiJavaFile) CodeStyleManager.getInstance(project).reformat(cleaned);
+	}
 	
 	public void addFileInDirectory(@NotNull PsiDirectory directory,@NotNull PsiJavaFile fileInMemory) {
 		PsiFile existingFile = directory.findFile(fileInMemory.getName());
@@ -408,7 +420,10 @@ public class PsiHelper {
 	public String getDDPkForPsiClass(@NotNull PsiClass psiClass, @NotNull String pkName) {
 		String result = null;
 		PsiParameter ddRowParam = Stream.of(psiClass.getConstructors())
-		                                        .filter(method -> method.hasParameters() && method.getParameterList().getParametersCount() == 1)
+		                                        .filter(method -> method.hasParameters() && 
+		                                                          method.getParameterList().getParametersCount() == 1 &&
+				                                                  method.getParameterList().getParameters()[0].getText().startsWith("DD")
+				                                        )
 		                                        .map(method -> method.getParameterList().getParameters()[0]).findFirst().orElse(null);
 		if(ddRowParam == null) {
 			LOGGER.error("could not find a constructor with one parameter (the DDRowObject) : for class " + psiClass.getName());
@@ -428,10 +443,12 @@ public class PsiHelper {
 	}
 	
 	@Nullable
-	private PsiAnnotation getAmosBeanAnnoation(@NotNull PsiMethod method){
+	private PsiAnnotation getAmosBeanAnnotation(@NotNull PsiMethod method){
 		PsiModifierList list = method.getModifierList();
-		return list
+		
+		PsiAnnotation originalAnnotation = list
 				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
+		return originalAnnotation == null ? null : (PsiAnnotation) originalAnnotation.copy();
 	}
 	
 	public boolean isPrimaryGetter(@NotNull PsiMethod getter){
@@ -447,8 +464,7 @@ public class PsiHelper {
 		   !psiMethod.hasModifier(JvmModifier.STATIC) &&
 		   !PsiType.VOID.equals(psiMethod.getReturnType()) &&
 		   psiMethod.getParameterList().isEmpty()) {
-			String name = psiMethod.getName();
-			result = name.matches("^(get|is|has).*$");
+			result = StringUtils.getInstance().isGetter(psiMethod.getName());
 		}
 		return result;
 	}

@@ -37,7 +37,6 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.DocumentAdapter;
@@ -139,11 +138,10 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	@Override
-	public boolean isOK() {
+	protected void doOKAction() {
 		WriteCommandAction.runWriteCommandAction(this.project,
 		                                         this::saveFiles);
-		disposeIfNeeded();
-		return super.isOK();
+		super.doOKAction();
 	}
 	
 	private void initFurtherUIComponents() {
@@ -295,9 +293,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	
 	private void cleanAndApplyFileToEditor(@NotNull PsiJavaFile fileToCleanup, @NotNull EditorTextField editorToRefresh) {
-		fileToCleanup = (PsiJavaFile)this.codeStyleManager.shortenClassReferences(fileToCleanup);
-		this.codeStyleManager.optimizeImports(fileToCleanup);
-		fileToCleanup = (PsiJavaFile)CodeStyleManager.getInstance(this.project).reformat(fileToCleanup);
+		fileToCleanup = PsiHelper.getInstance().applyCodeStyleAndReformatImports(fileToCleanup);
 		editorToRefresh.setDocument(this.documentManager.getDocument(fileToCleanup));
 	}
 	
@@ -349,6 +345,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
 		String ddColumnImport = this.ddPkColumn == null ? "" :
 		                        "import amos.share.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n";
+		String boFinderClass = this.finder.getFirst() == null ? "" : "import " + this.finder.getFirst().getQualifiedName() + ";\n";
 		String mapperClassContent = this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
 		                            + "import amos.share.databaseAccess.api.AmosTransaction;\n"
 		                            + "import amos.share.databaseAccess.bo.DefaultBOList;\n"
@@ -363,7 +360,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                            + "import java.util.stream.Collectors;\n"
 		                            + ddColumnImport
 		                            + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
-		                            + "import " + this.finder.getFirst().getQualifiedName() + ";\n\n"
+		                            + boFinderClass
 									+ "import static amos.share.sol.util.SolHelperFunctions.IN;\n";
 		
 		this.mapperFile =
