@@ -33,10 +33,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
@@ -160,15 +160,17 @@ public class PsiHelper {
 				.createMethodFromText("public " + objectType + " " + getterName + "() {"
 				                      + "return this." + variable + ";"
 				                      + "}", null);
-		PsiAnnotation annotation = getAmosBeanAnnotation(psiMethod);
-		if(annotation != null) {
-			PsiModifierList list = getter.getModifierList();
-			if(!annotation.getText().endsWith("\n")) {
-				PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
-				                                            .createWhiteSpaceFromText("\n");
-				annotation.add(newLine);
+		if(SwissAsStorage.getInstance().isUseAmosBeanAnnotationDto()) {
+			PsiAnnotation annotation = getAmosBeanAnnotation(psiMethod);
+			if (annotation != null) {
+				PsiModifierList list = getter.getModifierList();
+				if (!annotation.getText().endsWith("\n")) {
+					PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
+					                                            .createWhiteSpaceFromText("\n");
+					annotation.add(newLine);
+				}
+				list.getParent().addBefore(annotation, list);
 			}
-			list.getParent().addBefore(annotation, list);
 		}
 		PsiMethod setter = psiElementFactory
 				.createMethodFromText("public void " + setterName + "("
@@ -417,28 +419,16 @@ public class PsiHelper {
 				Comparator.comparing(PsiMethod::getName)).collect(Collectors.toList());
 	}
 	
-	public String getDDPkForPsiClass(@NotNull PsiClass psiClass, @NotNull String pkName) {
+	public String getDDPkForPsiClass(@NotNull PsiMethod pkGetter) {
 		String result = null;
-		PsiParameter ddRowParam = Stream.of(psiClass.getConstructors())
-		                                        .filter(method -> method.hasParameters() && 
-		                                                          method.getParameterList().getParametersCount() == 1 &&
-				                                                  method.getParameterList().getParameters()[0].getText().startsWith("DD")
-				                                        )
-		                                        .map(method -> method.getParameterList().getParameters()[0]).findFirst().orElse(null);
-		if(ddRowParam == null) {
-			LOGGER.error("could not find a constructor with one parameter (the DDRowObject) : for class " + psiClass.getName());
-			return null;
+		PsiMethodCallExpression expression = PsiTreeUtil
+				.collectElementsOfType(pkGetter.getBody(), PsiMethodCallExpression.class).stream()
+				.findFirst().orElse(null);
+		if(expression == null) {
+			LOGGER.error("could not find a method call in the pk getter");
 		}
-		PsiClass ddRowClass = PsiUtil.resolveClassInType(ddRowParam.getType());
-		PsiMethod pkMethod = Stream.of(ddRowClass.getMethods())
-		                          .filter(method -> method.getName().equals(pkName)).findFirst()
-		                          .orElse(null);
-		if(pkMethod != null) {
-			result = new ArrayList<>(PsiTreeUtil.collectElementsOfType(pkMethod.getBody(),
-			                                                                PsiReferenceExpression.class))
-					.get(1).getText();
-		}
-		return result;
+		PsiCodeBlock ddPkBody = ((PsiMethod) expression.getMethodExpression().resolve()).getBody();
+		return new ArrayList<>(PsiTreeUtil.collectElementsOfType(ddPkBody, PsiReferenceExpression.class)).get(1).getText();
 		
 	}
 	

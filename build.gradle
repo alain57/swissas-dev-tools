@@ -42,6 +42,9 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.6.8b</b><pre>
+Get the DDRow from the pk getter defined in the BO
+Set the AmosBeanInfo optional in the setting menu and disabled per default waiting to see how the DtoDataSource will be done</pre>
 <b>V1.6.8</b><pre>
 Check 6 RpcRegistries instead of one for the RPC implementation
 Fixed the primarykey check in toDto

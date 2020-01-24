@@ -3,7 +3,7 @@ package com.swissas.config;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -45,7 +45,7 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.getSupportLetterBox().setText(this.swissAsStorage.getSupportLetterCode());
             this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
             this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
-            this.configPanel.getChxFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
+            this.configPanel.getChkFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
             this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
             this.configPanel.getChkFixOverride().setSelected(this.swissAsStorage.isFixMissingOverride());
             this.configPanel.getChkFixUnused().setSelected(this.swissAsStorage.isFixUnusedSuppressWarning());
@@ -54,6 +54,7 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.getPreCommitCodeReviewCheckbox().setSelected(this.swissAsStorage.isPreCommitCodeReview());
             this.configPanel.enableOrDisableOtherPersonFields();
             this.configPanel.getConvertToTeamCheckbox().setSelected(this.swissAsStorage.isConvertToTeam());
+            this.configPanel.getChkAnnotation().setSelected(this.swissAsStorage.isUseAmosBeanAnnotationDto());
         }
     }
     
@@ -74,20 +75,21 @@ public class SwissAsConfig implements Configurable {
 
     @Override
     public boolean isModified() {
-        return  !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCode()) ||
-                !this.swissAsStorage.getQaLetterCode().equals(getQALetterCode()) ||
-                !this.swissAsStorage.getSupportLetterCode().equals(getSupportLetterCode()) ||
-                !this.swissAsStorage.getDocuLetterCode().equals(getDocuLetterCode()) ||
+        return !this.swissAsStorage.getFourLetterCode().equals(getFourLetterCode()) ||
+               !this.swissAsStorage.getQaLetterCode().equals(getQALetterCode()) ||
+               !this.swissAsStorage.getSupportLetterCode().equals(getSupportLetterCode()) ||
+               !this.swissAsStorage.getDocuLetterCode().equals(getDocuLetterCode()) ||
                 this.swissAsStorage.isHorizontalOrientation() == (this.configPanel.getOrientation().getSelectedIndex() == 1) ||
-                this.swissAsStorage.isFixMissingThis() != this.configPanel.getChxFixThis().isSelected() ||
+                this.swissAsStorage.isFixMissingThis() != this.configPanel.getChkFixThis().isSelected() ||
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
-                !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
+               !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
                 this.swissAsStorage.isFixMissingOverride() != this.configPanel.getChkFixOverride().isSelected() ||
                 this.swissAsStorage.isFixUnusedSuppressWarning() != this.configPanel.getChkFixUnused().isSelected() ||
                 this.swissAsStorage.isTranslationOnlyCheckChangedLine() != this.configPanel.getChkTranslateOnlyModifiedLines().isSelected() ||
                 this.swissAsStorage.isPreCommitCodeReview() != this.configPanel.getPreCommitCodeReviewCheckbox().isSelected() ||
                 this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected() ||
-                this.swissAsStorage.isConvertToTeam() != this.configPanel.getConvertToTeamCheckbox().isSelected()
+                this.swissAsStorage.isConvertToTeam() != this.configPanel.getConvertToTeamCheckbox().isSelected() ||
+                this.swissAsStorage.isUseAmosBeanAnnotationDto() != this.configPanel.getChkAnnotation().isSelected()
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
@@ -100,7 +102,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setDocuLetterCode(getDocuLetterCode());
         this.swissAsStorage.setSupportLetterCode(getSupportLetterCode());
         this.swissAsStorage.setHorizontalOrientation(this.configPanel.getOrientation().getSelectedIndex() == 0);
-        this.swissAsStorage.setFixMissingThis(this.configPanel.getChxFixThis().isSelected());
+        this.swissAsStorage.setFixMissingThis(this.configPanel.getChkFixThis().isSelected());
         this.swissAsStorage.setFixMissingOverride(this.configPanel.getChkFixOverride().isSelected());
         this.swissAsStorage.setFixUnusedSuppressWarning(this.configPanel.getChkFixUnused().isSelected());
         this.swissAsStorage.setFixMissingAuthor(this.configPanel.getChkFixAuthor().isSelected());
@@ -109,6 +111,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setPreCommitCodeReview(this.configPanel.getPreCommitCodeReviewCheckbox().isSelected());
         this.swissAsStorage.setPreCommitInformOther(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected());
         this.swissAsStorage.setConvertToTeam(this.configPanel.getConvertToTeamCheckbox().isSelected());
+        this.swissAsStorage.setUseAmosBeanAnnotationDto(this.configPanel.getChkAnnotation().isSelected());
         refreshWarningContent();
     }
     

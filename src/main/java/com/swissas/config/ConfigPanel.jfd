@@ -73,6 +73,12 @@ new FormModel {
 					"vSizePolicy": 0
 					"preferredSize": new java.awt.Dimension( 150, -1 )
 				} )
+				add( new FormComponent( "com.intellij.ui.components.JBCheckBox" ) {
+					name: "chkAnnotation"
+					"text": new FormMessage( null, "ConfigPanel.chkAnnotation.text" )
+				}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
+					"row": 2
+				} )
 			}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
 				"anchor": 1
 				"fill": 1
@@ -95,7 +101,7 @@ new FormModel {
 					"vSizePolicy": 0
 				} )
 				add( new FormComponent( "com.intellij.ui.components.JBCheckBox" ) {
-					name: "chxFixThis"
+					name: "chkFixThis"
 					"text": new FormMessage( null, "add.missing.this" )
 				}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
 					"row": 1

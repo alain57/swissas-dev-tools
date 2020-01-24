@@ -44,6 +44,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private              boolean fixUnusedSuppressWarning        = false;
 	private              boolean fixMissingAuthor                = true;
 	private              boolean translationOnlyCheckChangedLine = false;
+	private              boolean useAmosBeanAnnotationDto        = false;
 	private              boolean preCommitInformOther            = false;
 	private              boolean preCommitCodeReview             = true;
 	private              boolean convertToTeam                   = false;
@@ -194,6 +195,10 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		return this.fixMissingAuthor;
 	}
 	
+	public boolean isUseAmosBeanAnnotationDto() {
+		return this.useAmosBeanAnnotationDto;
+	}
+	
 	public boolean isShowIgnoredValues() {
 		return this.showIgnoredValues;
 	}
@@ -254,7 +259,10 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public void setFixMissingAuthor(boolean fixMissingAuthor) {
 		this.fixMissingAuthor = fixMissingAuthor;
-		
+	}
+	
+	public void setUseAmosBeanAnnotationDto(boolean useAmosBeanAnnotationDto) {
+		this.useAmosBeanAnnotationDto = useAmosBeanAnnotationDto;
 	}
 	
 	public void setShowIgnoredValues(boolean showIgnoredValues) {

@@ -5,8 +5,8 @@ import java.awt.Insets;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.swing.DefaultComboBoxModel;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,8 +42,9 @@ class ConfigPanel {
 	private JPanel mainPanel;
 	private ComboBox orientation;
 	private EditorTextField fourLetterCode;
+	private JBCheckBox chkAnnotation;
 	private JBCheckBox chkFixAuthor;
-	private JBCheckBox chxFixThis;
+	private JBCheckBox chkFixThis;
 	private JBCheckBox chkFixOverride;
 	private JBCheckBox convertToTeamCheckbox;
 	private JBCheckBox chkFixUnused;
@@ -102,8 +103,8 @@ class ConfigPanel {
 		return this.chkFixAuthor;
 	}
 
-	public JCheckBox getChxFixThis() {
-		return this.chxFixThis;
+	public JCheckBox getChkFixThis() {
+		return this.chkFixThis;
 	}
 
 	public JCheckBox getChkFixOverride() {
@@ -113,6 +114,8 @@ class ConfigPanel {
 	public JCheckBox getChkFixUnused() {
 		return this.chkFixUnused;
 	}
+	
+	public JCheckBox getChkAnnotation() { return this.chkAnnotation; }
 	
 	public JCheckBox getChkTranslateOnlyModifiedLines() {
 		return this.chkTranslateOnlyModifiedLines;
@@ -171,9 +174,10 @@ class ConfigPanel {
 		var label1 = new JLabel();
 		var label2 = new JLabel();
 		this.orientation = new ComboBox();
+		this.chkAnnotation = new JBCheckBox();
 		var panel2 = new JPanel();
 		this.chkFixAuthor = new JBCheckBox();
-		this.chxFixThis = new JBCheckBox();
+		this.chkFixThis = new JBCheckBox();
 		this.chkFixOverride = new JBCheckBox();
 		this.convertToTeamCheckbox = new JBCheckBox();
 		this.chkFixUnused = new JBCheckBox();
@@ -227,6 +231,13 @@ class ConfigPanel {
 			GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
 			GridConstraints.SIZEPOLICY_FIXED,
 			null, null, null));
+
+		this.chkAnnotation.setText(bundle.getString("ConfigPanel.chkAnnotation.text"));
+		panel1.add(this.chkAnnotation, new GridConstraints(2, 0, 1, 1,
+			GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+			GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+			GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+			null, null, null));
 		this.mainPanel.add(panel1, new GridConstraints(0, 0, 1, 1,
 			GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
 			GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -243,8 +254,8 @@ class ConfigPanel {
 			GridConstraints.SIZEPOLICY_FIXED,
 			null, null, null));
 
-		this.chxFixThis.setText(bundle.getString("add.missing.this"));
-		panel2.add(this.chxFixThis, new GridConstraints(1, 0, 1, 1,
+		this.chkFixThis.setText(bundle.getString("add.missing.this"));
+		panel2.add(this.chkFixThis, new GridConstraints(1, 0, 1, 1,
 			GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
 			GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
 			GridConstraints.SIZEPOLICY_FIXED,
