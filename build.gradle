@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.8b'
+version '1.6.9'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,10 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.6.9</b><pre>
+Higlight in red my assigned work on the team view for AMOSup
+Don't crash because people give the same RPC impl name to two different RPC :/ 
+</pre>
 <b>V1.6.8b</b><pre>
 Get the DDRow from the pk getter defined in the BO
 Set the AmosBeanInfo optional in the setting menu and disabled per default waiting to see how the DtoDataSource will be done</pre>

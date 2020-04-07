@@ -15,14 +15,29 @@ public class Message extends AttributeChildrenBean{
     private static final String CRITICAL = "critical";
     private Integer line;
     private String description;
+    
+    private boolean isMine;
 
-    public Message(Node message) {
+    public Message(Node message){
+        this(message, false);
+    }
+    
+    public Message(Node message, boolean isMine) {
         super(message, "severity");
         setLine(Integer.valueOf(message.attr("line")));
         setDescription(message.attr("description"));
+        setMine(isMine);
     }
-
-	public Integer getLine() {
+    
+    public boolean isMine() {
+        return this.isMine;
+    }
+    
+    public void setMine(boolean mine) {
+        this.isMine = mine;
+    }
+    
+    public Integer getLine() {
         return this.line;
     }
 

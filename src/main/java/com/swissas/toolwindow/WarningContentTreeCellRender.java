@@ -1,5 +1,6 @@
 package com.swissas.toolwindow;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.font.TextAttribute;
 import java.util.HashMap;
@@ -27,6 +28,8 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         WarningContentTreeNode node = (WarningContentTreeNode) value;
         Map<TextAttribute, Object>  attributes = new HashMap<>();
         attributes.put(TextAttribute.STRIKETHROUGH, node.isMarked());
+        attributes.put(TextAttribute.FOREGROUND, node.isMine() ? Color.RED : Color.LIGHT_GRAY);
+        attributes.put(TextAttribute.WEIGHT, node.isMine() ? TextAttribute.WEIGHT_BOLD : TextAttribute.WEIGHT_REGULAR);
         setFont(getFont().deriveFont(attributes));
         if(node.getChildCount() ==0){
             setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);

@@ -166,15 +166,18 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		}
 		this.types.putIfAbsent(typeName, type);
 	}
-	private void generateMoveToServerModuleFromElement(Element elementNode, Map<String, Module> modulesByName){
+	private void generateMoveToServerModuleFromElement(Element elementNode,
+	                                                   Map<String, Module> modulesByName,
+	                                                   boolean entireTeam){
 		Module tmpModule =  new Module(elementNode);
+		boolean isMine = entireTeam && this.moveToServerModulesMeOnly.contains(elementNode);
 		Module module = modulesByName.getOrDefault(tmpModule.getMainAttribute(), tmpModule);
 		for(Element fileElement : elementNode.select("file:has(message[description="
 		                                             + MOVE_TO_SERVER_ATTRIBUTE + "])")){
 			File file = new File(fileElement);
 			for(Element messageElement : fileElement.select("message[description="
 			                                                + MOVE_TO_SERVER_ATTRIBUTE + "]")){
-				Message message = new Message(messageElement);
+				Message message = new Message(messageElement, isMine);
 				file.addChildren(message);
 			}
 			module.addChildren(file);
@@ -231,7 +234,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		List<Element> elements = entireTeam ? this.moveToServerModules : this.moveToServerModulesMeOnly;
 		Map<String,Module> modulesByName = new HashMap<>();
 		for (Element elementNode : elements) {
-			generateMoveToServerModuleFromElement(elementNode, modulesByName);
+			generateMoveToServerModuleFromElement(elementNode, modulesByName, entireTeam);
 		}
 		modulesByName.values().forEach(module ->
 				                               addModuleNodeToRootIfHasChildren(root, module));
@@ -269,7 +272,8 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		for (AttributeChildrenBean childrenBean : file.getChildren()) {
 			Message message = (Message)childrenBean; 
 			WarningContentTreeNode messageNode = new WarningContentTreeNode(message.getLine(),
-			                                                                message.getDescription());
+			                                                                message.getDescription(),
+			                                                                message.isMine());
 			messageNode.setCritical(message.isCritical());
 			fileNode.add(messageNode);
 		}

@@ -96,11 +96,16 @@ public class PsiHelper {
 	public List<PsiClass> getRpcImplementationForProjectUp(@NotNull Project project) {
 		Set<PsiClass> result = new HashSet<>();
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-		List<String> registries = List.of("AmosApnRpcRegistry", "AmosInstantInfoRpcRegistry", "AmosSelectionDialogRpcRegistry"
-				, "AmosContextProviderRpcRegistry", "AmosReportRpcRegistry", "AmosMobileSolDataProviderRpcRegistry");
+		List<String> registries = List.of("AmosComponentRpcRegistry", "AmosApnRpcRegistry", "AmosInstantInfoRpcRegistry"
+				, "AmosSelectionDialogRpcRegistry", "AmosFilterSelectionDialogRpcRegistry", "AmosReportRpcRegistry"
+				, "AmosActionRpcRegistry", "AmosMobileSolDataProviderRpcRegistry");
 		for (String registry : registries) {
 			PsiClass rpcRegistry = javaPsiFacade
 					.findClass("amos.server.system.transport." + registry, GlobalSearchScope.allScope(project));
+			if(rpcRegistry == null || rpcRegistry.getConstructors().length == 0) {
+				LOGGER.error("there is no constructor found in " + registry);
+				continue;
+			}
 			PsiCodeBlock constructorContent = rpcRegistry.getConstructors()[0].getBody();
 			PsiClassObjectAccessExpression[] expressions = PsiTreeUtil
 					.collectElementsOfType(constructorContent, PsiClassObjectAccessExpression.class)
@@ -131,14 +136,13 @@ public class PsiHelper {
 	public Map<String, PsiClass> getRpcImplementationMapForProjectUp(@NotNull Project project) {
 		List<PsiClass> list = getRpcImplementationForProjectUp(project);
 		return list.stream().collect(Collectors.toMap(PsiNamedElement::getName, Function
-				.identity()));
+				.identity(), (a, b) -> b)); //don't care about duplicate, people should be smart and stop giving the same name for different objects ! 
 	}
 	
 	public Map<String, PsiClass> getBoMapForProjectUp(@NotNull Project project) {
 		List<PsiClass> list = getBoClassesForProjectUp(project);
 		return list.stream().collect(Collectors.toMap(PsiNamedElement::getName, Function
 				.identity(), (a, b) -> b)); //don't care about duplicate, people should be smart and stop giving the same name for different objects ! 
-		
 	}
 	
 	public void addFieldGetterAndSetterFromPsiMethod(PsiMethod psiMethod, PsiClass destinationClass) {
