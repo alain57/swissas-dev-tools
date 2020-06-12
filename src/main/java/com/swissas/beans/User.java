@@ -22,6 +22,7 @@ public class User implements Serializable {
 	private String lc;
 	private String team;
 	private String infos;
+	private String fullName;
 	
 	private transient ImageIcon picture;
 	
@@ -29,15 +30,23 @@ public class User implements Serializable {
 		
 	}
 	
-	public User(String lc, String team, String infos){
+	public User(String lc, String team, String fullName, String infos){
 		setLc(lc);
 		setTeam(team);
 		setInfos(infos);
+		setFullName(fullName);
 	}
 
 	public void setLc(String lc) {
 		this.lc = lc.toUpperCase();
-		readPicture();
+	}
+	
+	public String getFullName() {
+		return this.fullName;
+	}
+	
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 	
 	public void setInfos(String infos) {
@@ -61,6 +70,9 @@ public class User implements Serializable {
 	}
 	
 	public ImageIcon getPicture() {
+		if(this.picture == null) {
+			readPicture();
+		}
 		return this.picture;
 	}
 

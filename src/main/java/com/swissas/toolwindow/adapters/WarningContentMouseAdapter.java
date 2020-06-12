@@ -4,10 +4,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -37,13 +40,16 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 	public void mouseClicked(MouseEvent e) {
 		WarningContentTreeNode selectedNode = (WarningContentTreeNode) this.tree
 				.getLastSelectedPathComponent();
-		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2
-		    && this.tree.getSelectionPath() != null
-		    && this.tree.getSelectionPath().getPath().length > 3) {
+		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
 			if(ProjectUtil.getInstance().isPreviewProject()) {
-				Object[] path = this.tree.getSelectionPath().getPath();
-				int line = getLineFromObjectArray(path);
-				openFileAtLineIfPossible(line, path);
+				int line = 0;
+				String filePath = null;
+				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
+					Object[] path = this.tree.getSelectionPath().getPath();
+					line = getLineFromObjectArray(path);
+					filePath = findFilePath((WarningContentTreeNode) selectedNode.getParent());
+					openFileAtLineIfPossible(line, filePath);
+				}
 			}else {
 				Messages.showWarningDialog("You only need to fix warnings on Preview. No need to check them on other release", "Warning");
 			}
@@ -72,20 +78,23 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 	}
 	
 	private int getLineFromObjectArray(Object[] path) {
-		int line = 0;
-		if (path.length > 3) {
-			String lineAndDesc = path[3].toString();
-			line = Integer.parseInt(
-					lineAndDesc.substring(5, lineAndDesc.indexOf(" :"))) - 1;
-		}
-		return line;
+		return Integer.parseInt(path[path.length-1].toString().split(":")[1]) - 1;
 	}
 	
-	private void openFileAtLineIfPossible(int line, Object[] objectArray) {
+	
+	private String findFilePath(WarningContentTreeNode fileNode) {
+		return Stream.of(fileNode.getPath()).skip(1).map(WarningContentTreeNode.class::cast)
+		             .map(DefaultMutableTreeNode::getUserObject)
+		             .map(Object::toString).map(s -> s.substring(0, s.indexOf(" ("))).collect(Collectors.joining("/"));
+		
+	}
+	private void openFileAtLineIfPossible(int line, String projectFilePath) {
+		if(projectFilePath == null) {
+			return;
+		}
 		if(this.project != null) {
-			String pathAndAmountOfErrors = objectArray[2].toString();
-			String filepath = this.project.getBasePath() + "/" + pathAndAmountOfErrors
-					.substring(0, pathAndAmountOfErrors.indexOf(" ("));
+			String filepath = this.project.getBasePath() + "/" + projectFilePath;
+			
 			VirtualFile file = VfsUtil
 					.findFileByIoFile(new File(filepath), true);
 			if (file == null) {

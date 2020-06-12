@@ -1,5 +1,13 @@
 package com.swissas.util;
 
+import java.io.IOException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -10,12 +18,6 @@ import com.intellij.vcs.branch.BranchData;
 import com.intellij.vcs.branch.BranchStateProvider;
 import com.intellij.vcsUtil.VcsUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * The Project utility class
@@ -115,13 +117,32 @@ public class ProjectUtil {
 		return "preview".equalsIgnoreCase(convertToCorrectBranch(this.projectDefaultBranch));
 	}
 	
+	public boolean isGitProject() {
+		return this.shared.getModuleFilePath().toLowerCase().contains("git");
+	}
+	
 	String getProjectDefaultBranch() {
 		if (this.shouldSearchDefaultBranch) {
 			this.shouldSearchDefaultBranch = false;
-			Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
-					.matcher(this.shared.getModuleFilePath());
-			if (matcher.find()) {
-				this.projectDefaultBranch = matcher.group(1);
+			if(isGitProject()) {
+				VirtualFile propertiesFile = this.shared.getModuleFile()
+				                                        .getParent() //getDirectory of shared
+				                                        .getParent() //getDirectory of project
+				                               .findChild("amos.properties");
+				Properties prop = new Properties();
+				try {
+					prop.load(propertiesFile.getInputStream());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				this.projectDefaultBranch = prop.getProperty("target.branch");
+				
+			}else {
+				Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
+						.matcher(this.shared.getModuleFilePath());
+				if (matcher.find()) {
+					this.projectDefaultBranch = matcher.group(1);
+				}
 			}
 		}
 		return this.projectDefaultBranch;

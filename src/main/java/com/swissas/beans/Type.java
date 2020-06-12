@@ -9,6 +9,10 @@ import org.jsoup.nodes.Node;
 public class Type extends AttributeChildrenBean{
     
     public Type(Node type) {
-        super(type, "name");
+        this(type.attr( "name"));
+    }
+    
+    public Type(String name) {
+        super(name);
     }
 }

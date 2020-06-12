@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import com.intellij.icons.AllIcons;
 import icons.SwissAsIcons;
 
 /**
@@ -31,8 +32,15 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         attributes.put(TextAttribute.FOREGROUND, node.isMine() ? Color.RED : Color.LIGHT_GRAY);
         attributes.put(TextAttribute.WEIGHT, node.isMine() ? TextAttribute.WEIGHT_BOLD : TextAttribute.WEIGHT_REGULAR);
         setFont(getFont().deriveFont(attributes));
-        if(node.getChildCount() ==0){
-            setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
+        switch (node.getTreeType()){
+            case File:
+                setIcon(AllIcons.FileTypes.Java);
+                break;
+            case Directory:
+                setIcon(AllIcons.Nodes.Folder);
+                break;
+            default:
+                setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
         }
         return this;
     }

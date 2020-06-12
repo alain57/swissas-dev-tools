@@ -17,8 +17,16 @@ public abstract class AttributeChildrenBean implements Comparable<AttributeChild
 	private final Set<AttributeChildrenBean> children;
 	
 	public AttributeChildrenBean(Node element, String attributeKey){
+		this(element.attr(attributeKey));
+	}
+	
+	public AttributeChildrenBean(String mainAttribute) {
 		this.children = new TreeSet<>();
-		setMainAttribute(element.attr(attributeKey));
+		setMainAttribute(mainAttribute);
+	}
+	
+	public String getText() {
+		return getMainAttribute();
 	}
 	
 	public String getMainAttribute() {

@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 
 public class NetworkUtil {
 	private static final Logger         LOGGER                  = Logger.getInstance("Swiss-as");
-	private static final Pattern        PATTERN                 = Pattern.compile(".*LC:\\s+([A-Z]+).*Team:\\s+([A-Z]+).*");
+	private static final Pattern        PATTERN                 = Pattern.compile("^([^<]+).*LC:\\s+([A-Z]+).*Team:\\s+([A-Z]+).*");
 	private static final String         STAFF_URL               = ResourceBundle.getBundle("urls").getString("url.staff");
 	private static final String         TRAFFIC_LIGHT_CLICK_URL = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
 	private static final NetworkUtil    INSTANCE                = new NetworkUtil();
@@ -44,10 +44,11 @@ public class NetworkUtil {
 				String withinTitleHtmlText = element.attr("title").replaceAll("\n+", "<br/>");
 				Matcher matcher = PATTERN.matcher(withinTitleHtmlText);
 				if(matcher.find()) {
-					String lc = matcher.group(1);
-					String team = matcher.group(2);
+					String fullName = matcher.group(1);
+					String lc = matcher.group(2);
+					String team = matcher.group(3);
 					String allInfos = "<html><body>" + withinTitleHtmlText + "</body></html>";
-					userMap.put(lc, new User(lc, team, allInfos));
+					userMap.put(lc, new User(lc, team, fullName, allInfos));
 				}
 			}
 		} catch (Exception e) {

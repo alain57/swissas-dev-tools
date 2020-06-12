@@ -52,12 +52,15 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private       boolean           showIgnoredValues = false;
 	private final List<String>      ignoredValues;
 	private final Map<String, User> userMap;
+	
+	private final Map<String, String> fullNameTo4LcMap;
 	private       Properties        shareProperties;
 	private       boolean           isNewTranslation  = false;
 	
 	public SwissAsStorage() {
 		this.ignoredValues = new ArrayList<>();
 		this.userMap = new HashMap<>();
+		this.fullNameTo4LcMap = new HashMap<>();
 	}
 	
 	public static SwissAsStorage getInstance() {
@@ -241,10 +244,16 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		return Collections.unmodifiableMap(this.userMap);
 	}
 	
+	public Map<String, String> getFullNameTo4LcMap() {
+		return Collections.unmodifiableMap(this.fullNameTo4LcMap);
+	}
+	
 	public void setUserMap(Map<String, User> userMap) {
 		if (this.userMap.size() != userMap.size() || !this.userMap.equals(userMap)) {
 			this.userMap.clear();
+			this.fullNameTo4LcMap.clear();
 			this.userMap.putAll(userMap);
+			this.fullNameTo4LcMap.putAll(userMap.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getFullName(), Map.Entry::getKey)));
 			fillMyTeam();
 		}
 	}

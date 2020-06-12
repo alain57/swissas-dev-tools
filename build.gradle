@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.6.9'
+version '1.7.0'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -28,7 +28,7 @@ apply plugin: 'org.jetbrains.intellij'
 intellij {
     downloadSources true
     intellij.updateSinceUntilBuild false
-    plugins 'java', 'properties', 'svn4idea', 'git4idea'
+    plugins = ['java', 'properties', 'svn4idea', 'git4idea']
 
 }
 
@@ -42,6 +42,15 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.0</b><pre>
+Fix a performance issue at startup
+Improve the profile picture loading (loader icon + background download)
+Fixed the not working who is for teams.
+Fixed the some incompatibilities with the T_MOCs git setup.
+Show SAS warnings in a smart folder structure (no need to expand 50 different folder with just one subfolder)
+Add a total aside of the SAS warning folder/file to have a clear overview how much remains to be fixed
+Don't bother with the pre commit message on git.
+</pre>
 <b>V1.6.9</b><pre>
 Higlight in red my assigned work on the team view for AMOSup
 Don't crash because people give the same RPC impl name to two different RPC :/ 

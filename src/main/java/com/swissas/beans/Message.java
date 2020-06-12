@@ -16,6 +16,9 @@ public class Message extends AttributeChildrenBean{
     private Integer line;
     private String description;
     
+    private String priority;
+    
+    
     private boolean isMine;
 
     public Message(Node message){
@@ -27,6 +30,24 @@ public class Message extends AttributeChildrenBean{
         setLine(Integer.valueOf(message.attr("line")));
         setDescription(message.attr("description"));
         setMine(isMine);
+        setPriority(message.attr("priority"));
+    }
+    
+    @Override
+    public String getText() {
+        return getDescription() + ":" + getLine();
+    }
+    
+    public boolean isWarning() {
+        return "Warning".equalsIgnoreCase(getPriority());
+    }
+    
+    public String getPriority() {
+        return this.priority;
+    }
+    
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
     
     public boolean isMine() {

@@ -40,12 +40,14 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			.getString("commit.without.message");
 	
 	private final Project             project;
+	private final boolean             isGit;
 	private final CheckinProjectPanel checkinProjectPanel;
 	
 	private TrafficLightPanel trafficLightPanel = null;
 	private ImportantPreCommits importantPreCommitsDialog;
 	
-	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel) {
+	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel, boolean isGit) {
+		this.isGit = isGit;
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
 		IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
@@ -77,6 +79,9 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			                    1,
 			                    null);
 			return ReturnResult.CANCEL;
+		}
+		if(this.isGit) {
+			return ReturnResult.COMMIT;
 		}
 		ReturnResult result;
 		if (this.trafficLightPanel != null && this.trafficLightPanel.isRedOrYellowOn()) {

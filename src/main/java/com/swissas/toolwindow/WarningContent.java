@@ -2,13 +2,14 @@ package com.swissas.toolwindow;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JTabbedPane;
 import javax.swing.tree.TreeSelectionModel;
@@ -24,10 +25,11 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
 import com.swissas.action.CriticalActionToggle;
 import com.swissas.beans.AttributeChildrenBean;
+import com.swissas.beans.Directory;
 import com.swissas.beans.File;
 import com.swissas.beans.Message;
-import com.swissas.beans.Module;
 import com.swissas.beans.Type;
+import com.swissas.toolwindow.WarningContentTreeNode.TreeType;
 import com.swissas.toolwindow.adapters.WarningContentKeyAdapter;
 import com.swissas.toolwindow.adapters.WarningContentMouseAdapter;
 import com.swissas.util.ProjectUtil;
@@ -48,26 +50,18 @@ import org.jsoup.select.Elements;
 public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	
 	private static final String WARNING_CONTENT_TIMER = "WarningContentTimer";
-	private static final String CODE_CHECK            = "code check";
 	private static final String ROOT                  = "Root";
-	
-	private static final String COMPILER = "compiler";
-	private static final String SONAR    = "sonar";
-	private static final String MOVE_TO_SERVER = "Move to Server";
-	private static final String MOVE_TO_SERVER_TEAM = "Move to Server (team)";
 	private static final String MOVE_TO_SERVER_ATTRIBUTE = "\"Move this code to the server\"";
-	
 	
 	private static final String MESSAGE_URL = ResourceBundle.getBundle("urls").getString("url.warnings");
 	public static final  String ID          = "SAS Warnings";
 	
-	private final Map<String, Type> types = new TreeMap<>();
+	private final Set<Type>              types       = new TreeSet<>();
+	private final Map<String, Directory> directories = new TreeMap<>();
 	
 	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
 	private Project                    project;
-	private List<Element>              moveToServerModules;
-	private List<Element>              moveToServerModulesMeOnly;
 	
 	public WarningContent() {
 		this.criticalActionToggle = new CriticalActionToggle();
@@ -100,7 +94,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	public void refresh() {
 			if (!"".equals(this.swissAsStorage.getFourLetterCode())) {
 				int selectedTab = this.getSelectedIndex() == -1 ? 0 : this.getSelectedIndex();
-				if(readURL()) {
+				if(readWarningsAndFindings()) {
 					fillView();
 					if (this.getTabCount() > selectedTab) {
 						this.setSelectedIndex(selectedTab);
@@ -124,7 +118,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		return result;
 	}
 	
-	private boolean readURL() {
+	private boolean readWarningsAndFindings() {
 		if (!this.swissAsStorage.getFourLetterCode().isEmpty()) {
 			this.types.clear();
 			Elements typesDifferentThanCodeCheck = readUrlAndUseCssSelector(MESSAGE_URL + this.swissAsStorage.getFourLetterCode()
@@ -140,155 +134,130 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			for (Element type : typesDifferentThanCodeCheck) {
 				generateTypeFromElementType(type);
 			}
-			this.moveToServerModules = new ArrayList<>();
-			this.moveToServerModulesMeOnly = new ArrayList<>();
+			List<Element> moveToServerFiles = new ArrayList<>();
+			List<Element> moveToServerFilesMeOnly = new ArrayList<>();
 			for (String member : this.swissAsStorage.getMyTeamMembers(true)) {
 				Elements sonarMoveToServer = readUrlAndUseCssSelector(MESSAGE_URL + member
-						, "module:has(file > message[description="
+						, "file:has(message[description="
 						  + MOVE_TO_SERVER_ATTRIBUTE  + "])", false);
 				if(sonarMoveToServer != null) {
-					this.moveToServerModules.addAll(sonarMoveToServer);
+					moveToServerFiles.addAll(sonarMoveToServer);
 					if(member.equals(this.swissAsStorage.getFourLetterCode())) {
-						this.moveToServerModulesMeOnly.addAll(sonarMoveToServer);
+						moveToServerFilesMeOnly.addAll(sonarMoveToServer);
 					}
 				}
 			}
+			generateMoveToServer("move to server", moveToServerFilesMeOnly);
+			generateMoveToServer("move to server (Team) ", moveToServerFiles);
 		}
 		return true;
 	}
 	
+	private void generateMoveToServer(String title, List<Element> elements) {
+		Type type = new Type(title);
+		elements.forEach( fileNode -> {
+			String fullPath = fileNode.attr("path");
+			fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+			type.addChildren(generateDirectory(fullPath, "/", fileNode, title));
+		});
+		this.types.add(type);
+	}
+	
+	
 	private void generateTypeFromElementType(Element elementType) {
-		Type tmpType = new Type(elementType);
-		String typeName = tmpType.getMainAttribute();
-		Type type = this.types.getOrDefault(typeName, tmpType);
-		for (Node moduleNode : elementType.childNodes()) {
-			type.addChildren(generateModuleFromModuleNodeAndType(moduleNode, type));
-		}
-		this.types.putIfAbsent(typeName, type);
-	}
-	private void generateMoveToServerModuleFromElement(Element elementNode,
-	                                                   Map<String, Module> modulesByName,
-	                                                   boolean entireTeam){
-		Module tmpModule =  new Module(elementNode);
-		boolean isMine = entireTeam && this.moveToServerModulesMeOnly.contains(elementNode);
-		Module module = modulesByName.getOrDefault(tmpModule.getMainAttribute(), tmpModule);
-		for(Element fileElement : elementNode.select("file:has(message[description="
-		                                             + MOVE_TO_SERVER_ATTRIBUTE + "])")){
-			File file = new File(fileElement);
-			for(Element messageElement : fileElement.select("message[description="
-			                                                + MOVE_TO_SERVER_ATTRIBUTE + "]")){
-				Message message = new Message(messageElement, isMine);
-				file.addChildren(message);
-			}
-			module.addChildren(file);
-		}
-		modulesByName.put(module.getMainAttribute(), module);
+		String typeName = elementType.attr("name");
+		Type type = new Type(elementType);
+		elementType.childNodes().stream().flatMap(e -> e.childNodes().stream()).forEach(fileNode -> {
+			String fullPath = fileNode.attr("path");
+			fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+			type.addChildren(generateDirectory(fullPath, "", fileNode, typeName));
+		});
+		this.types.add(type);
 	}
 	
-	private Module generateModuleFromModuleNodeAndType(Node moduleNode, Type type) {
-		Module module = new Module(moduleNode);
-		for (Node fileNode : moduleNode.childNodes()) {
-			module.addChildren(generateFileFromFileNodeAndType(fileNode, type));
+	private Directory generateDirectory(String folderName, String parentPath,Node fileNode, String typeName) {
+		int indexOf = folderName.indexOf("/");
+		Directory dir;
+		if(indexOf > -1) {
+			String topFolder = folderName.substring(0, indexOf);
+			dir = this.directories.computeIfAbsent(typeName + "-> " + parentPath + topFolder,  k-> new Directory(topFolder, parentPath));
+			dir.addChildren(generateDirectory(folderName.substring(indexOf+1), parentPath + topFolder + "/", fileNode, typeName));
+		}else {
+			dir = this.directories.computeIfAbsent(typeName + "-> " + parentPath + folderName,  k-> new Directory(folderName, parentPath));
+			String path = fileNode.attr("path");
+			String fileName = path.substring(path.lastIndexOf("/")+1);
+			dir.addChildren(new File(fileName, fileNode));
 		}
-		return module;
-	}
-	
-	private File generateFileFromFileNodeAndType(Node fileNode, Type type) {
-		File file = new File(fileNode);
-		for (Node messageNode : fileNode.childNodes()) {
-			Message currentMessage = new Message(messageNode);
-			if (!this.criticalActionToggle.isCriticalOnly() ||
-			    type.getMainAttribute().equalsIgnoreCase(COMPILER) ||
-			    type.getMainAttribute().equalsIgnoreCase(SONAR) && currentMessage
-					    .isCritical()) {
-				file.addChildren(currentMessage);
-			}
-		}
-		return file;
+		return dir;
 	}
 	
 	private void fillView() {
 		removeAll();
 		if (!this.types.isEmpty()) {
-			for (Type type : this.types.values()) {
-				if (!type.getMainAttribute().equalsIgnoreCase(
-						CODE_CHECK)) { //code check has no use in the eclipse plugin, therefore get rid of useless stuff
-					WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
-					for (AttributeChildrenBean childrenBean : type.getChildren()) {
-						addModuleNodeToRootIfHasChildren(root, (Module)childrenBean);
-					}
-					createAndAddTreeForTypeAndRootNode(type, root);
+			for(Type type : this.types) {
+				String typeName = type.getMainAttribute();
+				WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
+				for(AttributeChildrenBean child : type.getChildren()) {
+					fillTreeWithChildren(root, child, typeName.contains("move to server"), 
+					                     "sonar".equalsIgnoreCase(typeName) && this.criticalActionToggle.isCriticalOnly());
 				}
+				addTreeWithTitleAndRoot(typeName, root);
 			}
 		}
-		WarningContentTreeNode root = new WarningContentTreeNode(ROOT);
-		fillMoveToServerRoot(root, true);
-		addMoveToServerTeamTree(root);
+	}
+	
+	
+	private void fillTreeWithChildren(WarningContentTreeNode node, AttributeChildrenBean element, boolean ignoreWarnings, boolean onlyCritical) {
+		WarningContentTreeNode currentElement = new WarningContentTreeNode("");
+		if(element instanceof File) {
+			currentElement.setCurrentType(TreeType.File);
+		}else if(element instanceof Message) {
+			currentElement.setCurrentType(TreeType.Message);
+			if(ignoreWarnings && ((Message)element).isWarning()) {
+				return;
+			}
+			if(onlyCritical && !((Message)element).isCritical()) {
+				return;
+			}
+		}
 		
-		root = new WarningContentTreeNode(ROOT);
-		fillMoveToServerRoot(root, false);
-		addMoveToServerTree(root);
-	}
-	
-	private void fillMoveToServerRoot(WarningContentTreeNode root, boolean entireTeam) {
-		List<Element> elements = entireTeam ? this.moveToServerModules : this.moveToServerModulesMeOnly;
-		Map<String,Module> modulesByName = new HashMap<>();
-		for (Element elementNode : elements) {
-			generateMoveToServerModuleFromElement(elementNode, modulesByName, entireTeam);
+		Set<AttributeChildrenBean> children = element.getChildren();
+		
+		if(element instanceof Directory && children.size() == 1) {
+			StringBuilder sb = new StringBuilder();
+			Directory dir = getSingleDirectoryPath(sb, (Directory) element);			
+			currentElement.setUserObject(sb.toString());
+			children = dir.getChildren();
 		}
-		modulesByName.values().forEach(module ->
-				                               addModuleNodeToRootIfHasChildren(root, module));
-	}
-	
-	private void addModuleNodeToRootIfHasChildren(WarningContentTreeNode root, Module module) {
-		int messageCount = 0;
-		WarningContentTreeNode moduleNode = new WarningContentTreeNode("");
-		for (AttributeChildrenBean attributeChildrenBean : module.getChildren()) {
-			File file = (File) attributeChildrenBean;
-			WarningContentTreeNode fileNode = new WarningContentTreeNode("");
-			addMessageNodesToFileNode(file, fileNode);
-			messageCount += addFileNodeToModuleNodeAndRetunAmountOfChildren(moduleNode, file,
-			                                                                fileNode);
+		children.forEach(child -> fillTreeWithChildren(currentElement, child, ignoreWarnings, onlyCritical));
+		
+		
+		if(currentElement.isLeaf()) {
+			currentElement.setUserObject(element.getText());
+		}else {
+			String text = currentElement.getUserObject().toString().isBlank() ? element.getText() 
+			                                                                  : currentElement.getUserObject().toString(); 
+			currentElement
+						.setUserObject(text + " (" + currentElement.getLeafCount() + ")");
+			
 		}
-		if (moduleNode.getChildCount() > 0) {
-			moduleNode.setUserObject(module.getMainAttribute() + " (" + messageCount + ")");
-			root.add(moduleNode);
+		node.add(currentElement);
+	}
+	
+	
+	private Directory getSingleDirectoryPath(StringBuilder sb, Directory directory) {
+		Directory dir;
+		sb.append(directory.getMainAttribute());
+		if(directory.getChildren().stream().filter(Directory.class::isInstance).count() == 1l) {
+			Directory childDirectory = directory.getChildren().stream()
+			                                    .filter(Directory.class::isInstance)
+			                                    .map(Directory.class::cast).findFirst().get();
+			sb.append("/");
+			dir =  getSingleDirectoryPath(sb, childDirectory);
+		}else {
+			dir = directory;
 		}
-	}
-	
-	private int addFileNodeToModuleNodeAndRetunAmountOfChildren(WarningContentTreeNode moduleNode,
-	                                                            File file,
-	                                                            WarningContentTreeNode fileNode) {
-		int children = 0;
-		if (fileNode.getChildCount() > 0) {
-			fileNode.setUserObject(file.getMainAttribute() + " (" + fileNode.getChildCount() + ")");
-			moduleNode.add(fileNode);
-			children = fileNode.getChildCount();
-		}
-		return children;
-	}
-	
-	private void addMessageNodesToFileNode(File file, WarningContentTreeNode fileNode) {
-		for (AttributeChildrenBean childrenBean : file.getChildren()) {
-			Message message = (Message)childrenBean; 
-			WarningContentTreeNode messageNode = new WarningContentTreeNode(message.getLine(),
-			                                                                message.getDescription(),
-			                                                                message.isMine());
-			messageNode.setCritical(message.isCritical());
-			fileNode.add(messageNode);
-		}
-	}
-	
-	private void addMoveToServerTeamTree(WarningContentTreeNode root){
-		addTreeWithTitleAndRoot(MOVE_TO_SERVER_TEAM, root);
-	}
-	
-	private void addMoveToServerTree(WarningContentTreeNode root){
-		addTreeWithTitleAndRoot(MOVE_TO_SERVER, root);
-	}
-	
-	private void createAndAddTreeForTypeAndRootNode(Type type, WarningContentTreeNode root) {
-		addTreeWithTitleAndRoot(type.getMainAttribute(), root);
+		return dir;
 	}
 	
 	private void addTreeWithTitleAndRoot(String title, WarningContentTreeNode root) {

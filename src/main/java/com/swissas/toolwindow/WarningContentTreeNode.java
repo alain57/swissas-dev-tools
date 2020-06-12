@@ -12,10 +12,18 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class WarningContentTreeNode extends DefaultMutableTreeNode {
     private static final String LINE = "Line ";
     
+    public enum TreeType {
+        Directory,
+        File,
+        Message
+    }
+    
     private boolean isMarked;
     private boolean isCritical;
     private boolean isErrorLine;
     private String description;
+    
+    private TreeType currentType;
     
     private boolean isMine = false;
 
@@ -24,6 +32,7 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
         this.isMarked = false;
         this.isErrorLine = false;
         this.description = null;
+        this.currentType = TreeType.Directory;
     }
 
     WarningContentTreeNode(Integer start, String description, boolean isMine){
@@ -32,7 +41,15 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
         this.description = description;
         this.isMine = isMine;
     }
-
+    
+    public TreeType getTreeType() {
+        return this.currentType;
+    }
+    
+    public void setCurrentType(TreeType currentType) {
+        this.currentType = currentType;
+    }
+    
     boolean isCritical() {
         return this.isCritical;
     }
