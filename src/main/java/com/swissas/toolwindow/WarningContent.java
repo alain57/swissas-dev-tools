@@ -18,7 +18,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -62,6 +61,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
 	private Project                    project;
+	private static final String        MOVE_TO_SERVER_TEAM = "move to server (Team)";
 	
 	public WarningContent() {
 		this.criticalActionToggle = new CriticalActionToggle();
@@ -84,8 +84,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			};
 			Timer timer = new Timer(WARNING_CONTENT_TIMER);
 			timer.schedule(timerTask, 30, 24 * 60 * 60_000L);
-			
-			((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
+			toolWindow.setTitleActions(List.of(this.criticalActionToggle));
 		}else {
 			this.project = null;
 		}
@@ -148,7 +147,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				}
 			}
 			generateMoveToServer("move to server", moveToServerFilesMeOnly);
-			generateMoveToServer("move to server (Team) ", moveToServerFiles);
+			generateMoveToServer(MOVE_TO_SERVER_TEAM, moveToServerFiles);
 		}
 		return true;
 	}
@@ -158,7 +157,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		elements.forEach( fileNode -> {
 			String fullPath = fileNode.attr("path");
 			fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
-			type.addChildren(generateDirectory(fullPath, "/", fileNode, title));
+			type.addChildren(generateDirectory(fullPath, "", fileNode, title));
 		});
 		this.types.add(type);
 	}
@@ -201,7 +200,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 					fillTreeWithChildren(root, child, typeName.contains("move to server"), 
 					                     "sonar".equalsIgnoreCase(typeName) && this.criticalActionToggle.isCriticalOnly());
 				}
-				addTreeWithTitleAndRoot(typeName, root);
+				addTreeWithTitleAndRoot(typeName, root, MOVE_TO_SERVER_TEAM.equals(typeName));
 			}
 		}
 	}
@@ -211,6 +210,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		WarningContentTreeNode currentElement = new WarningContentTreeNode("");
 		if(element instanceof File) {
 			currentElement.setCurrentType(TreeType.File);
+			currentElement.setMine(((File)element).isMine());
 		}else if(element instanceof Message) {
 			currentElement.setCurrentType(TreeType.Message);
 			if(ignoreWarnings && ((Message)element).isWarning()) {
@@ -238,7 +238,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			String text = currentElement.getUserObject().toString().isBlank() ? element.getText() 
 			                                                                  : currentElement.getUserObject().toString(); 
 			currentElement
-						.setUserObject(text + " (" + currentElement.getLeafCount() + ")");
+						.setUserObject(text);
 			
 		}
 		node.add(currentElement);
@@ -248,7 +248,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private Directory getSingleDirectoryPath(StringBuilder sb, Directory directory) {
 		Directory dir;
 		sb.append(directory.getMainAttribute());
-		if(directory.getChildren().stream().filter(Directory.class::isInstance).count() == 1l) {
+		if(directory.getChildren().stream().filter(Directory.class::isInstance).count() == 1L) {
 			Directory childDirectory = directory.getChildren().stream()
 			                                    .filter(Directory.class::isInstance)
 			                                    .map(Directory.class::cast).findFirst().get();
@@ -260,9 +260,9 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 		return dir;
 	}
 	
-	private void addTreeWithTitleAndRoot(String title, WarningContentTreeNode root) {
+	private void addTreeWithTitleAndRoot(String title, WarningContentTreeNode root, boolean myTasksInBold) {
 		Tree tree = new Tree(root);
-		tree.setCellRenderer(new WarningContentTreeCellRender());
+		tree.setCellRenderer(new WarningContentTreeCellRender(myTasksInBold));
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.setToolTipText(ResourceBundle.getBundle("texts").getString("mark.unmark.description"));
 		tree.setRootVisible(false);

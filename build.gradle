@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.0'
+version '1.7.1'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,10 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.1</b>pre>
+When marking content in SAS warning view as done, don't count it.
+Refactored some code and fix some minor issues
+</pre>
 <b>V1.7.0</b><pre>
 Fix a performance issue at startup
 Improve the profile picture loading (loader icon + background download)

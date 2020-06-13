@@ -19,7 +19,6 @@ public class Message extends AttributeChildrenBean{
     private String priority;
     
     
-    private boolean isMine;
 
     public Message(Node message){
         this(message, false);
@@ -29,7 +28,6 @@ public class Message extends AttributeChildrenBean{
         super(message, "severity");
         setLine(Integer.valueOf(message.attr("line")));
         setDescription(message.attr("description"));
-        setMine(isMine);
         setPriority(message.attr("priority"));
     }
     
@@ -50,13 +48,6 @@ public class Message extends AttributeChildrenBean{
         this.priority = priority;
     }
     
-    public boolean isMine() {
-        return this.isMine;
-    }
-    
-    public void setMine(boolean mine) {
-        this.isMine = mine;
-    }
     
     public Integer getLine() {
         return this.line;

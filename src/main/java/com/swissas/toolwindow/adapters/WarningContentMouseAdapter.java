@@ -43,7 +43,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
 			if(ProjectUtil.getInstance().isPreviewProject()) {
 				int line = 0;
-				String filePath = null;
+				String filePath;
 				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
 					Object[] path = this.tree.getSelectionPath().getPath();
 					line = getLineFromObjectArray(path);
@@ -85,7 +85,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 	private String findFilePath(WarningContentTreeNode fileNode) {
 		return Stream.of(fileNode.getPath()).skip(1).map(WarningContentTreeNode.class::cast)
 		             .map(DefaultMutableTreeNode::getUserObject)
-		             .map(Object::toString).map(s -> s.substring(0, s.indexOf(" ("))).collect(Collectors.joining("/"));
+		             .map(Object::toString).collect(Collectors.joining("/"));
 		
 	}
 	private void openFileAtLineIfPossible(int line, String projectFilePath) {

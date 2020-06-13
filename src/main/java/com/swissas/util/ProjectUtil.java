@@ -32,6 +32,7 @@ public class ProjectUtil {
 	private static final   Pattern STABLE_VERSION_PATTERN        = Pattern
 			.compile("^v?(\\d{2})[_\\-. ]?(\\d{1,2})$", Pattern.CASE_INSENSITIVE);
 	
+	private static final String PREVIEW = "preview";
 	protected Module  shared;
 	protected String  currentProjectBasePath    = null;
 	protected boolean isAmosProject             = false;
@@ -71,16 +72,15 @@ public class ProjectUtil {
 	}
 	
 	String convertToCorrectBranch(String branchName) {
-		String result = branchName;
-		if ("trunk".equals(branchName)) {
-			result = "preview";
-		} else if (result != null && !"preview".equalsIgnoreCase(result)) {
-			Matcher matcher = STABLE_VERSION_PATTERN.matcher(result);
-			if (matcher.find() && matcher.groupCount() == 2) {
-				int majorVersion = Integer.parseInt(matcher.group(1));
-				int minorVersion = Integer.parseInt(matcher.group(2));
-				result = getBranchOfMajorAndMinorVersion(majorVersion, minorVersion);
-			}
+		if(branchName == null || branchName.isBlank()) {
+			return null;
+		}
+		String result = PREVIEW;
+		Matcher matcher = STABLE_VERSION_PATTERN.matcher(branchName);
+		if (matcher.find() && matcher.groupCount() == 2) {
+			int majorVersion = Integer.parseInt(matcher.group(1));
+			int minorVersion = Integer.parseInt(matcher.group(2));
+			return getBranchOfMajorAndMinorVersion(majorVersion, minorVersion);
 		}
 		return result;
 	}
@@ -114,7 +114,7 @@ public class ProjectUtil {
 	}
 	
 	public boolean isPreviewProject() {
-		return "preview".equalsIgnoreCase(convertToCorrectBranch(this.projectDefaultBranch));
+		return PREVIEW.equalsIgnoreCase(convertToCorrectBranch(this.projectDefaultBranch));
 	}
 	
 	public boolean isGitProject() {
