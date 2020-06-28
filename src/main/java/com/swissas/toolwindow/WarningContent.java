@@ -18,6 +18,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -84,7 +85,10 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 			};
 			Timer timer = new Timer(WARNING_CONTENT_TIMER);
 			timer.schedule(timerTask, 30, 24 * 60 * 60_000L);
-			toolWindow.setTitleActions(List.of(this.criticalActionToggle));
+			((ToolWindowEx) toolWindow).setTitleActions(this.criticalActionToggle);
+			// use this once the setTitleActions bellow is marked for removal
+			// don't do it now as is is not compatible with stable versions.
+			// toolWindow.setTitleActions(List.of(this.criticalActionToggle));
 		}else {
 			this.project = null;
 		}

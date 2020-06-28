@@ -58,8 +58,8 @@ class ConfigPanel {
 	// JFormDesigner - End of variables declaration  //GEN-END:variables
 	
 	public ConfigPanel(Project project) {
-		initComponents();
 		this.project = project;
+		initComponents();
 		this.preCommitInformOtherPersonCheckbox.addActionListener(e -> enableOrDisableOtherPersonFields());
 	}
 
@@ -158,10 +158,10 @@ class ConfigPanel {
 		StringsCompletionProvider qualityUserProvider = new StringsCompletionProvider(qaUsersLcAndNames, null);
 		StringsCompletionProvider supportUserProvider = new StringsCompletionProvider(supportUsersLcAndNames, null);
 		StringsCompletionProvider documentationUserProvider = new StringsCompletionProvider(documentationUsersLcAndNames, null);
-		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider, "", false, true, true,  false);
-		this.qualityLetterBox = new TextFieldWithCompletion(this.project, qualityUserProvider, "", false, true,  true, false);
-		this.supportLetterBox = new TextFieldWithCompletion(this.project, supportUserProvider, "", false, true,  true, false);
-		this.documentationLetterBox = new TextFieldWithCompletion(this.project, documentationUserProvider, "", false, true,  true, false);
+		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider, "", true, true, true,  true);
+		this.qualityLetterBox = new TextFieldWithCompletion(this.project, qualityUserProvider, "", true, true,  true, true);
+		this.supportLetterBox = new TextFieldWithCompletion(this.project, supportUserProvider, "", true, true,  true, true);
+		this.documentationLetterBox = new TextFieldWithCompletion(this.project, documentationUserProvider, "", true, true,  true, true);
 	}
 
 	private void initComponents() {

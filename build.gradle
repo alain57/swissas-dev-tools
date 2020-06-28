@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.1'
+version '1.7.2'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,7 +42,10 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
-<b>V1.7.1</b>pre>
+<b>V1.7.2</b><pre>
+Fixed the not working auto completion in the setting menu
+Fixed the translation that in some usecase was still writting %s%s when just one %s was needed
+<b>V1.7.1</b><pre>
 When marking content in SAS warning view as done, don't count it.
 Refactored some code and fix some minor issues
 </pre>

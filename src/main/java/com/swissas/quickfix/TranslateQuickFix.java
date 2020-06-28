@@ -1,5 +1,15 @@
 package com.swissas.quickfix;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
@@ -31,12 +41,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Quickfix for translating normal keys
@@ -205,19 +209,16 @@ public class TranslateQuickFix implements LocalQuickFix {
     
     @NotNull
     private List<PsiElement> getElementsItemsToTranslate(PsiElement element) {
-        Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
-        return Stream.of(PsiTreeUtil.collectElements(element, e -> e instanceof PsiLiteralExpression
-                                                                   || e instanceof PsiMethodCallExpression
-                                                                   || e instanceof PsiReferenceExpression)).
-                filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
+        return Stream.of(element.getChildren()).filter(e -> e instanceof PsiLiteralExpression
+                                                     || e instanceof PsiMethodCallExpression
+                                                     || e instanceof PsiReferenceExpression)
+                     .collect(Collectors.toList());
     }
     
     private List<PsiElement> getElementsToFormat(PsiElement element) {
-        Predicate<PsiElement> onlyIncludeFullMethodCode = el -> el.getNextSibling() == null || !".".equals(el.getNextSibling().getText());
-        return Stream.of(PsiTreeUtil.collectElements(element, e ->    e instanceof PsiMethodCallExpression
-                                                                   || e instanceof PsiReferenceExpression
-                                                                   || e instanceof PsiLiteralExpression && !JavaTokenType.STRING_LITERAL.equals(((PsiLiteralExpressionImpl)e).getLiteralElementType()))).
-                             filter(onlyIncludeFullMethodCode).collect(Collectors.toList());
+        return Stream.of(element.getChildren()).filter(e -> e instanceof PsiMethodCallExpression
+                                                            || e instanceof PsiReferenceExpression)
+                     .collect(Collectors.toList());
     }
     
 

@@ -72,10 +72,10 @@ public class ProjectUtil {
 	}
 	
 	String convertToCorrectBranch(String branchName) {
-		if(branchName == null || branchName.isBlank()) {
-			return null;
-		}
 		String result = PREVIEW;
+		if(branchName == null || branchName.isBlank()) {
+			return result;
+		}
 		Matcher matcher = STABLE_VERSION_PATTERN.matcher(branchName);
 		if (matcher.find() && matcher.groupCount() == 2) {
 			int majorVersion = Integer.parseInt(matcher.group(1));
