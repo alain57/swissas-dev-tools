@@ -1,12 +1,12 @@
 package com.swissas.quickfix;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,10 +86,10 @@ public class TranslateQuickFix implements LocalQuickFix {
         PsiElement element = descriptor.getPsiElement();
         String tmpPropertyValue = getPropertyValue(element);
         String propertyValue = replaceWithKnownKeys(tmpPropertyValue);
-        List<String> valuesInProperties = new ArrayList<>(properties.getNamesMap().values());
+        Set<String> keysInProperties = properties.getNamesMap().keySet();
         String fullKey = properties.getNamesMap().entrySet().stream().filter(e -> e.getValue().equals(propertyValue)).map(Entry::getKey).findFirst().orElse(null);
         if(fullKey == null){
-            fullKey = generateFullKeyForAlreadyAssignedKey(valuesInProperties, tmpPropertyValue);
+            fullKey = generateFullKeyForAlreadyAssignedKey(keysInProperties, tmpPropertyValue);
             fillPropertiesAndMessageWith(project, properties, currentTranslationJavaFile,
                                          propertyValue, fullKey);
         }
@@ -122,13 +122,13 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
     
     @NotNull
-    public String generateFullKeyForAlreadyAssignedKey(List<String> valuesInProperties,
+    public String generateFullKeyForAlreadyAssignedKey(Set<String> keysInProperties,
                                                        String propertyValue) {
         String translatedKey = convertPropertyStringToKey(propertyValue);
         String fullKey;
         int numberInCaseOfDuplicateKey = 0;
         fullKey = translatedKey + this.ending;
-        while(valuesInProperties.contains(fullKey)) {
+        while(keysInProperties.contains(fullKey)) {
             numberInCaseOfDuplicateKey++;
             fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
         }
