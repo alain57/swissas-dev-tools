@@ -62,7 +62,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 	private final CriticalActionToggle criticalActionToggle;
 	private       SwissAsStorage       swissAsStorage;
 	private Project                    project;
-	private static final String        MOVE_TO_SERVER_TEAM = "move to server (Team)";
+	private static final String        MOVE_TO_SERVER = "move to server";
 	
 	public WarningContent() {
 		this.criticalActionToggle = new CriticalActionToggle();
@@ -138,30 +138,25 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 				generateTypeFromElementType(type);
 			}
 			List<Element> moveToServerFiles = new ArrayList<>();
-			List<Element> moveToServerFilesMeOnly = new ArrayList<>();
 			for (String member : this.swissAsStorage.getMyTeamMembers(true)) {
 				Elements sonarMoveToServer = readUrlAndUseCssSelector(MESSAGE_URL + member
 						, "file:has(message[description="
 						  + MOVE_TO_SERVER_ATTRIBUTE  + "])", false);
 				if(sonarMoveToServer != null) {
 					moveToServerFiles.addAll(sonarMoveToServer);
-					if(member.equals(this.swissAsStorage.getFourLetterCode())) {
-						moveToServerFilesMeOnly.addAll(sonarMoveToServer);
-					}
 				}
 			}
-			generateMoveToServer("move to server", moveToServerFilesMeOnly);
-			generateMoveToServer(MOVE_TO_SERVER_TEAM, moveToServerFiles);
+			generateMoveToServer(moveToServerFiles);
 		}
 		return true;
 	}
 	
-	private void generateMoveToServer(String title, List<Element> elements) {
-		Type type = new Type(title);
+	private void generateMoveToServer(List<Element> elements) {
+		Type type = new Type(MOVE_TO_SERVER);
 		elements.forEach( fileNode -> {
 			String fullPath = fileNode.attr("path");
 			fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
-			type.addChildren(generateDirectory(fullPath, "", fileNode, title));
+			type.addChildren(generateDirectory(fullPath, "", fileNode, MOVE_TO_SERVER));
 		});
 		this.types.add(type);
 	}
@@ -204,7 +199,7 @@ public class WarningContent extends JTabbedPane implements ToolWindowFactory {
 					fillTreeWithChildren(root, child, typeName.contains("move to server"), 
 					                     "sonar".equalsIgnoreCase(typeName) && this.criticalActionToggle.isCriticalOnly());
 				}
-				addTreeWithTitleAndRoot(typeName, root, MOVE_TO_SERVER_TEAM.equals(typeName));
+				addTreeWithTitleAndRoot(typeName, root, MOVE_TO_SERVER.equals(typeName));
 			}
 		}
 	}
