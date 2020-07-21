@@ -21,6 +21,7 @@
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
         <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />
+        <inspectionToolProvider implementation="com.swissas.inspection.WebWarningInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />

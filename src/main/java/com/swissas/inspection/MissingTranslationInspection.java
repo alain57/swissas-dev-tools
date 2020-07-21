@@ -57,7 +57,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		LocalQuickFix noSolFix = new MarkAsIgnoredQuickfix("/*NOSQL*/");
 		LocalQuickFix[] fixes = SwissAsStorage.getInstance().isNewTranslation() ? new LocalQuickFix[]{ignoreFix, translateFix, translateTooltipFix} : new LocalQuickFix[]{ignoreFix};
 		
-		if (holder.getFile().getName().endsWith("Test.java")) {
+		if (holder.getFile().getName().endsWith("Test.java") || !ProjectUtil.getInstance().isAmosProject(holder.getProject())) {
 			return super.buildVisitor(holder, isOnTheFly);
 		}
 		
@@ -94,23 +94,21 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		@Override
 		public void visitLiteralExpression(PsiLiteralExpression expression) {
 			super.visitLiteralExpression(expression);
-			if(ProjectUtil.getInstance().isAmosProject(expression.getProject())) {
-				int minSize = Integer.parseInt(
-						SwissAsStorage.getInstance().getMinWarningSize());
-				int textOffset = expression.getTextOffset();
-				int lineNumber = StringUtil.offsetToLineNumber(
-						expression.getContainingFile().getText(), textOffset);
-				boolean shouldCheckFile = this.noSvn || !SwissAsStorage.getInstance().isTranslationOnlyCheckChangedLine() || this.rangesToCheck.stream().anyMatch(
-						r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
-				if (shouldCheckFile) {
-					Object expressionValue = expression.getValue();
-					if (expressionValue instanceof String && ((String) expressionValue).length() >= minSize &&
-							!this.filenamePattern.matcher((String) expressionValue).matches()) {
-						if (this.sqlPattern.matcher((String) expressionValue).matches()) {
-							checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
-						}
-						checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
+			int minSize = Integer.parseInt(
+					SwissAsStorage.getInstance().getMinWarningSize());
+			int textOffset = expression.getTextOffset();
+			int lineNumber = StringUtil.offsetToLineNumber(
+					expression.getContainingFile().getText(), textOffset);
+			boolean shouldCheckFile = this.noSvn || !SwissAsStorage.getInstance().isTranslationOnlyCheckChangedLine() || this.rangesToCheck.stream().anyMatch(
+					r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
+			if (shouldCheckFile) {
+				Object expressionValue = expression.getValue();
+				if (expressionValue instanceof String && ((String) expressionValue).length() >= minSize &&
+						!this.filenamePattern.matcher((String) expressionValue).matches()) {
+					if (this.sqlPattern.matcher((String) expressionValue).matches()) {
+						checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
 					}
+					checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
 				}
 			}
 		}
