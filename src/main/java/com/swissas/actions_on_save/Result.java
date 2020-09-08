@@ -1,7 +1,9 @@
 package com.swissas.actions_on_save;
 
+import com.intellij.openapi.application.RunResult;
+
 /**
- * Composite of {@link com.intellij.openapi.application.Result} and {@link com.intellij.openapi.application.RunResult}.
+ * Composite of {@link com.intellij.openapi.application.Result} and {@link RunResult}.
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */
@@ -17,7 +19,7 @@ public class Result<T> {
 		this.result = result;
 	}
 	
-	Result(com.intellij.openapi.application.RunResult<T> result) {
+	Result(RunResult<T> result) {
 		this.result = result.getResultObject();
 	}
 	

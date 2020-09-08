@@ -23,10 +23,14 @@ import icons.SwissAsIcons;
  */
 class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
     
-    private final boolean myTasksInBold;
+    private boolean myTasksInBold;
     
     public WarningContentTreeCellRender(boolean myTasksInBold){
         this.myTasksInBold = myTasksInBold;
+    }
+
+    public void setMyTasksInBold(boolean value) {
+        this.myTasksInBold = value;
     }
     
     @Override

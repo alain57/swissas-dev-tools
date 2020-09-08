@@ -19,7 +19,6 @@ public class MyListCellRenderer extends DefaultListCellRenderer {
     private final LabelWithIcon labelWithIcon;
     
     public MyListCellRenderer(final JList list){
-        super();
         this.labelWithIcon = new LabelWithIcon();
         list.addMouseListener(new MouseAdapter() {
             @Override

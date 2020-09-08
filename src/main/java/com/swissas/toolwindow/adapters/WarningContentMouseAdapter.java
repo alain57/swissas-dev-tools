@@ -3,6 +3,7 @@ package com.swissas.toolwindow.adapters;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,6 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -19,6 +21,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.treeStructure.Tree;
+import com.swissas.toolwindow.WarningContent;
 import com.swissas.toolwindow.WarningContentTreeNode;
 import com.swissas.util.ProjectUtil;
 
@@ -30,23 +33,27 @@ import com.swissas.util.ProjectUtil;
 public class WarningContentMouseAdapter extends MouseAdapter {
 	private final Tree    tree;
 	private final Project project;
+	private final WarningContent warningContent;
 	
-	public WarningContentMouseAdapter(Project project, Tree tree) {
+	public WarningContentMouseAdapter(Project project, Tree tree, WarningContent warningContent) {
 		this.project = project;
 		this.tree = tree;
+		this.warningContent = warningContent;
 	}
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		WarningContentTreeNode selectedNode = (WarningContentTreeNode) this.tree
-				.getLastSelectedPathComponent();
+		WarningContentTreeNode selectedNode = (WarningContentTreeNode) this.tree.getLastSelectedPathComponent();
+		if(selectedNode == null){
+			return;
+		}
 		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
 			if(ProjectUtil.getInstance().isPreviewProject()) {
-				int line = 0;
 				String filePath;
 				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
-					Object[] path = this.tree.getSelectionPath().getPath();
-					line = getLineFromObjectArray(path);
+					int line = Optional.ofNullable(this.tree.getSelectionPath())
+							.map(TreePath::getPath)
+							.map(this::getLineFromObjectArray).orElse(0);
 					filePath = findFilePath((WarningContentTreeNode) selectedNode.getParent());
 					openFileAtLineIfPossible(line, filePath);
 				}
@@ -54,9 +61,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 				Messages.showWarningDialog("You only need to fix warnings on Preview. No need to check them on other release", "Warning");
 			}
 		} else if (e.getButton() == MouseEvent.BUTTON3) {
-			if (selectedNode != null) {
-				displayMenuForSelectedNodeOnPosition(selectedNode, e.getX(), e.getY());
-			}
+			displayMenuForSelectedNodeOnPosition(selectedNode, e.getX(), e.getY());
 		} else if (e.getButton() == MouseEvent.BUTTON2) {
 			switchMark(selectedNode);
 		}
@@ -70,15 +75,28 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 	private void displayMenuForSelectedNodeOnPosition(WarningContentTreeNode selectedNode,
 	                                                  int x, int y) {
 		JPopupMenu popupMenu = new JPopupMenu();
-		JMenuItem markDone = new JMenuItem(
+		JMenuItem markDoneMenu = new JMenuItem(
 				selectedNode.isMarked() ? "reset mark as done" : "mark as done");
-		markDone.addActionListener(event -> switchMark(selectedNode));
-		popupMenu.add(markDone);
+		markDoneMenu.addActionListener(event -> switchMark(selectedNode));
+		popupMenu.add(markDoneMenu);
+		if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
+			JMenuItem findSimilarMenu = new JMenuItem("Find similar");
+			findSimilarMenu.addActionListener(event -> findSimilar(selectedNode));
+			popupMenu.add(findSimilarMenu);
+		}
 		popupMenu.show(this.tree, x, y);
 	}
-	
+
+	private void findSimilar(WarningContentTreeNode selectedNode) {
+		var message = selectedNode.getUserObject().toString();
+		message = message.substring(0, message.lastIndexOf(':'));
+		this.warningContent.filterSimilar(message);
+		
+	}
+
 	private int getLineFromObjectArray(Object[] path) {
-		return Integer.parseInt(path[path.length-1].toString().split(":")[1]) - 1;
+		String[] split = path[path.length - 1].toString().split(":");
+		return Integer.parseInt(split[split.length-1]) - 1;
 	}
 	
 	

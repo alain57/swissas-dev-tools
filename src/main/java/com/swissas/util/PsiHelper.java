@@ -2,12 +2,7 @@ package com.swissas.util;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -58,26 +53,27 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PsiHelper {
 	private static final Logger    LOGGER   = Logger.getInstance("Swiss-as");
-	private static       PsiHelper INSTANCE = null;
+	private static       PsiHelper instance = null;
 	
 	private PsiHelper() {
 		
 	}
 	
 	public static PsiHelper getInstance() {
-		if(INSTANCE == null) {
-			INSTANCE = new PsiHelper();
+		if(instance == null) {
+			instance = new PsiHelper();
 		}
-		return INSTANCE;
+		return instance;
 	}
 	
 	public PsiDirectory findOrCreateDirectoryInShared(@NotNull Project project,
 	                                                  @NotNull String packageName) {
 		PsiDirectory result = null;
-		String dirPath = Stream.of(VfsUtil.findFile(Paths.get(project.getBasePath()), false)
-		                                  .getChildren())
-		                       .filter(e -> e.isDirectory() && e.getName().contains("share"))
-		                       .map(VirtualFile::getPath).findFirst().orElse(null);
+		String dirPath = Optional.ofNullable(project.getBasePath())
+				.map(path -> VfsUtil.findFile(Paths.get(path), false))
+				.flatMap(virtualFile -> Stream.of(virtualFile.getChildren())
+				.filter(e -> e.isDirectory() && e.getName().contains("share"))
+				.map(VirtualFile::getPath).findFirst()).orElse(null);
 		if(dirPath == null) {
 			LOGGER.error("your project is not correctly setup ! The project base path is : " + project.getBasePath());
 			return null;
@@ -85,8 +81,8 @@ public class PsiHelper {
 		dirPath += "/" + "src" + "/" +
 		                 packageName.replaceAll("\\.", "/");
 		try {
-			VirtualFile vfsDir = VfsUtil.createDirectoryIfMissing(dirPath);
-			result = PsiManager.getInstance(project).findDirectory(vfsDir);
+			result = Optional.ofNullable(VfsUtil.createDirectoryIfMissing(dirPath))
+							 .map(vfsDir -> PsiManager.getInstance(project).findDirectory(vfsDir)).orElse(null);
 		} catch (IOException e) {
 			LOGGER.error(e);
 		}
@@ -119,14 +115,16 @@ public class PsiHelper {
 			result.addAll(psiClasses);
 		}
 		
-		return result.stream().sorted(Comparator.comparing(PsiNamedElement::getName)).collect(
-				Collectors.toList());
+		return result.stream().sorted(Comparator.nullsLast(Comparator.comparing(PsiNamedElement::getName)))
+				     .collect(Collectors.toList());
 		
 	}
 	
 	public List<PsiClass> getBoClassesForProjectUp(@NotNull Project project) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-		PsiClass abstractBoClass = javaPsiFacade.findClass("amos.share.databaseAccess.bo.AbstractAmosBusinessObject",  GlobalSearchScope.allScope(project));
+		PsiClass abstractBoClass = Optional.ofNullable(javaPsiFacade.findClass("amos.share.databaseAccess.bo.AbstractAmosBusinessObject",  GlobalSearchScope.allScope(project)))
+				.orElseThrow(() -> new IllegalStateException("Could not found the class AbstractAmosBusinessObject"));
+				
 		Query<PsiClass> search = ClassInheritorsSearch
 				.search(abstractBoClass, GlobalSearchScope.projectScope(project), true);
 		return search.findAll().stream().filter(e -> !e.isInterface() && !e.hasModifier(
@@ -424,7 +422,6 @@ public class PsiHelper {
 	}
 	
 	public String getDDPkForPsiClass(@NotNull PsiMethod pkGetter) {
-		String result = null;
 		PsiMethodCallExpression expression = PsiTreeUtil
 				.collectElementsOfType(pkGetter.getBody(), PsiMethodCallExpression.class).stream()
 				.findFirst().orElse(null);

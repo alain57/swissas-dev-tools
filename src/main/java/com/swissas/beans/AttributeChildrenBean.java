@@ -1,5 +1,6 @@
 package com.swissas.beans;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -38,7 +39,7 @@ public abstract class AttributeChildrenBean implements Comparable<AttributeChild
 	}
 	
 	public Set<AttributeChildrenBean> getChildren() {
-		return this.children;
+		return Collections.unmodifiableSet(this.children);
 	}
 	
 	public void addChildren(AttributeChildrenBean child) {

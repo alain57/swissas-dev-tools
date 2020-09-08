@@ -12,75 +12,75 @@ class StringUtilsTest {
 	
 	@Test
 	void isLetterCodeDoesNotAcceptLowerCase() {
-		assertThat(StringUtils.getInstance().isLetterCode("azer")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isLetterCode("azer")).isFalse();
 	}
 	
 	@Test
 	void isLetterCodeDoesNotAcceptLessThanThreeOrMoreThanFour() {
-		assertThat(StringUtils.getInstance().isLetterCode("AZ")).isEqualTo(false);
-		assertThat(StringUtils.getInstance().isLetterCode("AZERT")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isLetterCode("AZ")).isFalse();
+		assertThat(StringUtils.getInstance().isLetterCode("AZERT")).isFalse();
 	}
 	
 	@Test
 	void isLetterCodeAcceptEmptyAndRefuseNull() {
-		assertThat(StringUtils.getInstance().isLetterCode("")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isLetterCode("")).isTrue();
 		assertThatIllegalArgumentException().isThrownBy(() -> StringUtils.getInstance().isLetterCode(null));
 	}
 	
 	@Test
 	void isLetterCodeAcceptThreeOrFourUppercase() {
-		assertThat(StringUtils.getInstance().isLetterCode("AZE")).isEqualTo(true);
-		assertThat(StringUtils.getInstance().isLetterCode("AZER")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isLetterCode("AZE")).isTrue();
+		assertThat(StringUtils.getInstance().isLetterCode("AZER")).isTrue();
 	}
 	
 	@Test
 	void isLetterCodeWithNameRefuseLowerCaseLC() {
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("azer (bla)")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("azer (bla)")).isFalse();
 	}
 	
 	@Test
 	void isLetterCodeWithNameAcceptEmptyAndRefuseNull() {
-		assertThat(StringUtils.getInstance().isLetterCode("")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isLetterCode("")).isTrue();
 		assertThatIllegalArgumentException().isThrownBy(() -> StringUtils.getInstance().isLetterCode(null));
 	}
 	
 	@Test
 	void isLetterCodeWithNameTooLongOrTooShort() {
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZ (bla)")).isEqualTo(false);
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZERT (bla)")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZ (bla)")).isFalse();
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZERT (bla)")).isFalse();
 	}
 	
 	@Test
 	void isLetterCodeWithNameOk() {
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZE (bla)")).isEqualTo(true);
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZER (é'r)")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZE (bla)")).isTrue();
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZER (é'r)")).isTrue();
 	}
 	
 	@Test
 	void isPositiveNumber() {
-		assertThat(StringUtils.getInstance().isPositiveNumber("500")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isPositiveNumber("500")).isTrue();
 	}
 	
 	@Test
 	void isNotPositiveNumber() {
-		assertThat(StringUtils.getInstance().isPositiveNumber("")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isPositiveNumber("")).isFalse();
 		assertThatIllegalArgumentException().isThrownBy(() -> StringUtils.getInstance().isPositiveNumber(null));
-		assertThat(StringUtils.getInstance().isPositiveNumber("-1")).isEqualTo(false);
-		assertThat(StringUtils.getInstance().isPositiveNumber("1.6")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isPositiveNumber("-1")).isFalse();
+		assertThat(StringUtils.getInstance().isPositiveNumber("1.6")).isFalse();
 	}
 	
 	@Test
 	void isValidGetter() {
-		assertThat(StringUtils.getInstance().isGetter("isGetter")).isEqualTo(true);
-		assertThat(StringUtils.getInstance().isGetter("hasMethod")).isEqualTo(true);
-		assertThat(StringUtils.getInstance().isGetter("getValue")).isEqualTo(true);
-		assertThat(StringUtils.getInstance().isGetter("areValuesGood")).isEqualTo(true);
+		assertThat(StringUtils.getInstance().isGetter("isGetter")).isTrue();
+		assertThat(StringUtils.getInstance().isGetter("hasMethod")).isTrue();
+		assertThat(StringUtils.getInstance().isGetter("getValue")).isTrue();
+		assertThat(StringUtils.getInstance().isGetter("areValuesGood")).isTrue();
 	}
 	
 	@Test
 	void isInvalidGetter() {
-		assertThat(StringUtils.getInstance().isGetter("isntGetter")).isEqualTo(false);
-		assertThat(StringUtils.getInstance().isGetter("hashCode")).isEqualTo(false);
+		assertThat(StringUtils.getInstance().isGetter("isntGetter")).isFalse();
+		assertThat(StringUtils.getInstance().isGetter("hashCode")).isFalse();
 		
 	}
 	

@@ -1,12 +1,7 @@
 package com.swissas.quickfix;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,25 +10,9 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.JavaTokenType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiImportList;
-import com.intellij.psi.PsiImportStaticStatement;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiLiteralExpression;
-import com.intellij.psi.PsiMethodCallExpression;
-import com.intellij.psi.PsiPolyadicExpression;
-import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
+import com.intellij.psi.util.PsiLiteralUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SwissAsStorage;
 import groovy.json.StringEscapeUtils;
@@ -62,7 +41,8 @@ public class TranslateQuickFix implements LocalQuickFix {
         this.javaPsiPointer = SmartPointerManager.getInstance(file.getProject()).createSmartPsiElementPointer(file);
         this.ending = "_TXT";
         this.className = "MultiLangText";
-        this.sharedProperties = SwissAsStorage.getInstance().getShareProperties();
+        this.sharedProperties = new Properties();
+        this.sharedProperties.putAll(SwissAsStorage.getInstance().getShareProperties());
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
@@ -191,7 +171,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                 if(psiElement instanceof PsiLiteralExpressionImpl){
                     PsiLiteralExpressionImpl psiLiteralExpression = (PsiLiteralExpressionImpl)psiElement;
                     if(JavaTokenType.STRING_LITERAL.equals(psiLiteralExpression.getLiteralElementType())){
-                        stringBuilder.append(psiLiteralExpression.getInnerText());
+                        stringBuilder.append(PsiLiteralUtil.getStringLiteralContent(psiLiteralExpression));
                     }else {
                         stringBuilder.append("%s");
                     }
@@ -201,7 +181,7 @@ public class TranslateQuickFix implements LocalQuickFix {
             }
             result = stringBuilder.toString();
         }else {
-            result = ((PsiLiteralExpressionImpl) element).getInnerText();
+            result = PsiLiteralUtil.getStringLiteralContent((PsiLiteralExpression)element);
         }
         result = StringEscapeUtils.unescapeJava(result);
         return autoCorrectCommonMistakes(result);
@@ -252,7 +232,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
 
     @NonNls
-    private String replaceWithKnownKeys(String sentence){
+    private String replaceWithKnownKeys(@NotNull String sentence){
         String result = sentence;
         for (Map.Entry<Object, Object> objectObjectEntry : this.sharedProperties.entrySet()) {
             String key = "@" + objectObjectEntry.getKey() + "@";

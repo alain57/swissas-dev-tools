@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class WhoIsThisAction extends LetterCodeAction {
 	protected WhoIsThisAction() {
-		super();
 	}
 	
 	@Override

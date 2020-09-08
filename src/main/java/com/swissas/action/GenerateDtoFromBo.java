@@ -1,6 +1,8 @@
 package com.swissas.action;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -17,7 +19,10 @@ public class GenerateDtoFromBo extends AnAction {
 	
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
-		Map<String, PsiClass> boMapForProjectUp = PsiHelper.getInstance().getBoMapForProjectUp(e.getProject());
+		
+		Map<String, PsiClass> boMapForProjectUp = Optional.ofNullable(e.getProject())
+				                                          .map(PsiHelper.getInstance()::getBoMapForProjectUp)
+														  .orElse(new HashMap<>());
 		DtoGeneratorForm generatorForm = new DtoGeneratorForm(e.getProject(), boMapForProjectUp);
 		generatorForm.show();
 	}

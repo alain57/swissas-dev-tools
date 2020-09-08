@@ -1,5 +1,6 @@
 package com.swissas.inspection;
 
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import com.intellij.codeInspection.LocalInspectionTool;
@@ -38,8 +39,9 @@ public class WebWarningInspection extends LocalInspectionTool {
 	@NotNull
 	@Override
 	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
-		if(ProjectRootManager.getInstance(holder.getProject()).getFileIndex()
-		                     .getModuleForFile(holder.getFile().getVirtualFile()).getName().contains("amos_web")){
+		if(Optional.ofNullable(ProjectRootManager.getInstance(holder.getProject()).getFileIndex()
+		                     .getModuleForFile(holder.getFile().getVirtualFile())).map(Module::getName)
+				.filter(name -> name.contains("amos_web")).isPresent()){
 			return new WebElementVisitor(holder);
 		}
 		return super.buildVisitor(holder, isOnTheFly);

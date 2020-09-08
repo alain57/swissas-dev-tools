@@ -1,4 +1,4 @@
-JFDML JFormDesigner: "7.0.0.6.255" Java: "11.0.5" encoding: "UTF-8"
+JFDML JFormDesigner: "7.0.2.4.305" Java: "11.0.8" encoding: "UTF-8"
 
 new FormModel {
 	"i18n.bundleName": "texts"
@@ -13,7 +13,7 @@ new FormModel {
 			name: "mainPanel"
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.intellij.uiDesigner.core.GridLayoutManager ) {
 				"$columnCount": 2
-				"$rowCount": 3
+				"$rowCount": 4
 			} ) {
 				name: "panel1"
 				"border": new javax.swing.border.TitledBorder( "i18nKey=general" )
@@ -62,6 +62,7 @@ new FormModel {
 				} )
 				add( new FormComponent( "com.intellij.ui.EditorTextField" ) {
 					name: "fourLetterCode"
+					"background": sfield com.jformdesigner.model.FormObject NULL_VALUE
 					auxiliary() {
 						"JavaCodeGenerator.customCreate": true
 					}
@@ -78,6 +79,23 @@ new FormModel {
 					"text": new FormMessage( null, "ConfigPanel.chkAnnotation.text" )
 				}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
 					"row": 2
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label7"
+					"text": new FormMessage( null, "ConfigPanel.label7.text" )
+				}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
+					"row": 3
+				} )
+				add( new FormComponent( "com.intellij.ui.components.JBTextField" ) {
+					name: "similarValue"
+					"cursor": new java.awt.Cursor( 2 )
+					"text": "0.8"
+					"toolTipText": "higher value = similar closer to identenical"
+				}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
+					"column": 1
+					"row": 3
+					"anchor": 8
+					"fill": 1
 				} )
 			}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
 				"anchor": 1
@@ -188,9 +206,9 @@ new FormModel {
 					"hSizePolicy": 0
 					"vSizePolicy": 0
 				} )
-				add( new FormComponent( "javax.swing.JTextField" ) {
+				add( new FormComponent( "com.intellij.ui.components.JBTextField" ) {
 					name: "minTranslationSize"
-					"background": new java.awt.Color( 60, 63, 65, 255 )
+					"background": sfield com.jformdesigner.model.FormObject NULL_VALUE
 					auxiliary() {
 						"JavaCodeGenerator.customCreate": true
 					}
@@ -351,7 +369,7 @@ new FormModel {
 			} )
 		}, new FormLayoutConstraints( null ) {
 			"location": new java.awt.Point( 0, 0 )
-			"size": new java.awt.Dimension( 709, 500 )
+			"size": new java.awt.Dimension( 790, 605 )
 		} )
 	}
 }

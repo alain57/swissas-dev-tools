@@ -48,6 +48,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private              boolean preCommitInformOther            = false;
 	private              boolean preCommitCodeReview             = true;
 	private              boolean convertToTeam                   = false;
+	private   			 double  similarValue					 = 0.8d;
 	
 	private       boolean           showIgnoredValues = false;
 	private final List<String>      ignoredValues;
@@ -208,7 +209,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	
 	public List<String> getIgnoredValues() {
-		return this.ignoredValues;
+		return Collections.unmodifiableList(this.ignoredValues);
 	}
 	
 	
@@ -294,8 +295,8 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		this.minWarningSize = minWarningSize;
 	}
 	
-	public Properties getShareProperties() {
-		return this.shareProperties;
+	public Map getShareProperties() {
+		return Collections.unmodifiableMap(this.shareProperties);
 	}
 	
 	public void setShareProperties(Properties shareProperties) {
@@ -321,16 +322,24 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	public boolean isPreCommitCodeReview() {
 		return this.preCommitCodeReview;
 	}
-	
+
 	public void setPreCommitCodeReview(boolean preCommitCodeReview) {
 		this.preCommitCodeReview = preCommitCodeReview;
 	}
-	
+
 	public boolean isConvertToTeam() {
 		return this.convertToTeam;
 	}
-	
+
 	public void setConvertToTeam(boolean convertToTeam) {
 		this.convertToTeam = convertToTeam;
+	}
+
+	public double getSimilarValue() {
+		return this.similarValue;
+	}
+
+	public void setSimilarValue(double similarValue) {
+		this.similarValue = similarValue;
 	}
 }

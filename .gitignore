@@ -5,3 +5,4 @@ build/
 out/
 gradlew
 gradlew.bat
+src/main/resources/token.properties

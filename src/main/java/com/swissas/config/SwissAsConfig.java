@@ -1,6 +1,6 @@
 package com.swissas.config;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javax.swing.JComponent;
@@ -8,7 +8,9 @@ import javax.swing.JComponent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComponentContainer;
 import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.WindowManager;
 import com.swissas.toolwindow.WarningContent;
@@ -55,6 +57,7 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.enableOrDisableOtherPersonFields();
             this.configPanel.getConvertToTeamCheckbox().setSelected(this.swissAsStorage.isConvertToTeam());
             this.configPanel.getChkAnnotation().setSelected(this.swissAsStorage.isUseAmosBeanAnnotationDto());
+            this.configPanel.getSimilarValue().setText(String.valueOf(this.swissAsStorage.getSimilarValue()));
         }
     }
     
@@ -89,7 +92,8 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isPreCommitCodeReview() != this.configPanel.getPreCommitCodeReviewCheckbox().isSelected() ||
                 this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected() ||
                 this.swissAsStorage.isConvertToTeam() != this.configPanel.getConvertToTeamCheckbox().isSelected() ||
-                this.swissAsStorage.isUseAmosBeanAnnotationDto() != this.configPanel.getChkAnnotation().isSelected()
+                this.swissAsStorage.isUseAmosBeanAnnotationDto() != this.configPanel.getChkAnnotation().isSelected() ||
+                this.swissAsStorage.getSimilarValue() != getSimilarValue()
                 ;/* ||
                 this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
     }
@@ -112,13 +116,15 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setPreCommitInformOther(this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected());
         this.swissAsStorage.setConvertToTeam(this.configPanel.getConvertToTeamCheckbox().isSelected());
         this.swissAsStorage.setUseAmosBeanAnnotationDto(this.configPanel.getChkAnnotation().isSelected());
+        this.swissAsStorage.setSimilarValue(getSimilarValue());
         refreshWarningContent();
     }
     
     private void validateSettings() throws ConfigurationException {
         if(getFourLetterCode().isEmpty()){
             throw new ConfigurationException("Please fill the 4LC field");
-        } else if(!StringUtils.getInstance().isLetterCode(getFourLetterCode())){
+        } 
+        if(!StringUtils.getInstance().isLetterCode(getFourLetterCode())){
             throw new ConfigurationException("Invalid letter code, please choose one from the list");
         }
         
@@ -139,10 +145,13 @@ public class SwissAsConfig implements Configurable {
                 throw new ConfigurationException(
                         "Please choose a proposed value for the Support field");
             }
+            if(getSimilarValue() < 0d || getSimilarValue() > 1d) {
+                throw new ConfigurationException("The similar value should be between 0 and 1");
+            }
         }
         
         if(!StringUtils.getInstance().isPositiveNumber(this.configPanel.getMinTranslationSize().getText())){
-            throw new ConfigurationException("the minimum translation size needs to be a positive integer");
+            throw new ConfigurationException("The minimum translation size needs to be a positive integer");
         }
     }
     
@@ -153,7 +162,11 @@ public class SwissAsConfig implements Configurable {
     private String getQALetterCode() {
         return this.configPanel.getQualityLetterBox().getText().trim();
     }
-    
+
+    private double getSimilarValue() {
+        return Double.parseDouble(this.configPanel.getSimilarValue().getText().trim());
+    }
+
     private String getDocuLetterCode() {
         return this.configPanel.getDocumentationLetterBox().getText().trim();
     }
@@ -164,15 +177,20 @@ public class SwissAsConfig implements Configurable {
 
     private void refreshWarningContent() {
         IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
-        TrafficLightPanel trafficLightPanel = (TrafficLightPanel)ideFrame.getStatusBar().getWidget(TrafficLightPanel.WIDGET_ID);
+        TrafficLightPanel trafficLightPanel = Optional.ofNullable(ideFrame).map(IdeFrame::getStatusBar)
+                .map(s -> s.getWidget(TrafficLightPanel.WIDGET_ID))
+                .map(TrafficLightPanel.class::cast).orElse(null);
         if(trafficLightPanel != null) {
             trafficLightPanel.setOrientation();
             ideFrame.getStatusBar().updateWidget(TrafficLightPanel.WIDGET_ID);
         }
-        WarningContent warningContent = (WarningContent) Objects.requireNonNull(ToolWindowManager.getInstance(this.project).getToolWindow(WarningContent.ID).getContentManager().getContent(0)).getComponent();
-        if(warningContent != null) {
-            warningContent.refresh();
-        }
+        Optional.ofNullable(ToolWindowManager.getInstance(this.project).getToolWindow(WarningContent.ID))
+                .map(ToolWindow::getContentManager)
+                .map(e -> e.getContent(0))
+                .map(ComponentContainer::getComponent)
+                .filter(WarningContent.class::isInstance)
+                .map(WarningContent.class::cast)
+                .ifPresent(WarningContent::refresh);
     }
         
 }

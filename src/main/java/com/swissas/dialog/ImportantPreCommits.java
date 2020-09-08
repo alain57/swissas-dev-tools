@@ -127,8 +127,8 @@ public class ImportantPreCommits extends JDialog {
 	}
 	
 	private boolean hasLetterCode(){
-		String value = (String) this.reviewerComboBox.getSelectedItem();
-		return StringUtils.getInstance().isLetterCode(value);
+		return Optional.ofNullable(this.reviewerComboBox.getSelectedItem())
+				.map(String.class::cast).map(StringUtils.getInstance()::isLetterCode).orElse(false);
 	}
 	
 	private boolean hasNoReview(){
@@ -143,7 +143,7 @@ public class ImportantPreCommits extends JDialog {
 				this.shouldDispose = false;
 				this.exitCode = DialogWrapper.CANCEL_EXIT_CODE;
 			} else {
-				String reviewText = (String) this.reviewerComboBox.getSelectedItem();
+				String reviewText = Optional.ofNullable(this.reviewerComboBox.getSelectedItem()).map(String.class::cast).orElse("");
 				String commitMessage = this.checkinProjectPanel.getCommitMessage();
 				if(hasLetterCode() && !commitMessage.toUpperCase().contains(reviewText)) {
 					this.checkinProjectPanel

@@ -125,11 +125,13 @@ public class ProjectUtil {
 		if (this.shouldSearchDefaultBranch) {
 			this.shouldSearchDefaultBranch = false;
 			if(isGitProject()) {
-				VirtualFile propertiesFile = this.shared.getModuleFile()
-				                                        .getParent() //getDirectory of shared
-				                                        .getParent() //getDirectory of project
-				                               .findChild("amos.properties");
 				Properties prop = new Properties();
+
+				VirtualFile propertiesFile = Optional.ofNullable(this.shared.getModuleFile())
+						.map(VirtualFile::getParent)
+						.map(VirtualFile::getParent)
+						.map(vf -> vf.findChild("amos.properties")).orElseThrow(() -> new IllegalStateException("Could not find the amos.properties file"));
+				
 				try {
 					prop.load(propertiesFile.getInputStream());
 				} catch (IOException e) {

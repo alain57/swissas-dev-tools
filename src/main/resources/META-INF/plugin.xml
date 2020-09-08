@@ -3,7 +3,7 @@
     <name>Swiss-AS Dev-Tools</name>
     <vendor email="alain57@gmail.com" url="http://www.linkedin.com/in/alain-tavan">Tavan Alain</vendor>
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-    <idea-version since-build="193.5233.102"/>
+    <idea-version since-build="202.4357.23"/>
     <description><![CDATA[
     A Personal Plugin built during my free time to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
     ]]></description>

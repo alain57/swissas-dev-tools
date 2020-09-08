@@ -130,7 +130,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
     
     @Override
-    public void uiSettingsChanged(UISettings uiSettings) {
+    public void uiSettingsChanged(@NotNull UISettings uiSettings) {
         refreshContent();
     }
 

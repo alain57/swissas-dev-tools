@@ -13,8 +13,6 @@ public class Directory extends AttributeChildrenBean{
 		super(name);
 		this.pathFromRootToName = pathFromRootToName;
 	}
-	
-	
 	public String getPathFromRootToName() {
 		return this.pathFromRootToName;
 	}

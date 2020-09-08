@@ -85,8 +85,10 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			this.fixes = fixes;
 			VirtualFile virtualFile = holder.getFile().getVirtualFile();
 			Project project = holder.getProject();
-			LineStatusTracker lineStatusTracker = LineStatusTrackerManager.getInstance(project).getLineStatusTracker(virtualFile);
-			this.rangesToCheck = Optional.ofNullable(lineStatusTracker).map(LineStatusTrackerI::getRanges).orElse(new ArrayList<>());
+			LineStatusTracker<?> lineStatusTracker = LineStatusTrackerManager.getInstance(project).getLineStatusTracker(virtualFile);
+			this.rangesToCheck = Optional.ofNullable(lineStatusTracker).map(LineStatusTrackerI::getRanges)
+										 .map(ArrayList<Range>::new)
+										 .orElse(new ArrayList<>());
 			this.rangesToCheck.removeIf(e -> e.getType() == Range.DELETED);
 			this.noSvn = this.rangesToCheck.isEmpty();
 		}

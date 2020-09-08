@@ -52,15 +52,13 @@ public class ReplaceWithTeamAuthorInspection extends LocalInspectionTool {
 						      .filter(tag -> tag.getName().equals("author")
 						              && tag.getValueElement() != null 
 						              && SwissAsStorage.getInstance().getMyTeamMembers(true).contains(tag.getValueElement().getText().toUpperCase()))
-						      .findFirst().ifPresent(tag -> {
-							holder.registerProblem(
-									holder.getManager().createProblemDescriptor(tag,
-	                                            ResourceBundle.getBundle("texts")
-			                                            .getString("ConfigPanel.convertToTeamCheckbox.text"),
-	                                            new ConvertToTeamQuickfix(),
-	                                            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-	                                            isOnTheFly));
-						});
+						      .findFirst().ifPresent(tag -> holder.registerProblem(
+									  holder.getManager().createProblemDescriptor(tag,
+												  ResourceBundle.getBundle("texts")
+														  .getString("ConfigPanel.convertToTeamCheckbox.text"),
+												  new ConvertToTeamQuickfix(),
+												  ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+												  isOnTheFly)));
 					} 
 				}
 			}

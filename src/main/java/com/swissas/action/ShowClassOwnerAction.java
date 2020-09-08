@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 class ShowClassOwnerAction extends LetterCodeAction {
 
 	protected ShowClassOwnerAction() {
-		super();
 	}
 	
 	@Override

@@ -179,7 +179,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 			protected void textChanged(@NotNull DocumentEvent e) {
 				revalidateNameTextField();
 				WriteCommandAction.runWriteCommandAction(DtoGeneratorForm.this.project,
-					                                         () -> refreshPreview());
+					                                         DtoGeneratorForm.this::refreshPreview);
 			}
 		});
 		this.getterSearchField.getDocument().addDocumentListener(new DocumentAdapter() {
@@ -191,7 +191,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	private void revalidateNameTextField() {
-		ComponentValidator.getInstance(DtoGeneratorForm.this.nameTextField).ifPresent(
+		ComponentValidator.getInstance(this.nameTextField).ifPresent(
 				ComponentValidator::revalidate);
 	}
 	
@@ -412,7 +412,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 							.get(selectedValue);
 					DtoGeneratorForm.this.tabbedPane.setEnabledAt(1, true);
 					WriteCommandAction.runWriteCommandAction(DtoGeneratorForm.this.project,
-					                                         () -> refreshPreview());
+					                                         DtoGeneratorForm.this::refreshPreview);
 				}else {
 					DtoGeneratorForm.this.selectedRpcInterfaceClass = null;
 					DtoGeneratorForm.this.tabbedPane.setEnabledAt(1, false);
@@ -478,7 +478,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		panel1.add(this.boSourceFile, "pad 0,cell 0 0,aligny center,grow 100 0");
 
 		this.generateMappersCheckBox.setText("Generate Mappers");
-		this.generateMappersCheckBox.addActionListener(e -> generateMappersCheckBoxActionPerformed(e));
+		this.generateMappersCheckBox.addActionListener(this::generateMappersCheckBoxActionPerformed);
 		panel1.add(this.generateMappersCheckBox, "cell 0 2,align left center,grow 0 0");
 
 		this.entityTagCheckbox.setText("EntityTag");

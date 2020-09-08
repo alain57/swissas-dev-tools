@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.4'
+version '1.7.5'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -29,7 +29,6 @@ intellij {
     downloadSources true
     intellij.updateSinceUntilBuild false
     plugins = ['java', 'properties', 'svn4idea', 'git4idea']
-
 }
 
 test {
@@ -37,11 +36,21 @@ test {
 }
 
 publishPlugin {
-    token intellijPublishToken //variable defined in the gradle.properties file
+//    token intellijPublishToken //variable defined in the gradle.properties file
 }
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.5</b><pre>
+Remove move to server panel as this project is finished
+Use the new Server for the findings in the SAS Warning Tab
+Code cleanups (prevent some potential NPE and replace code that will be removed in 2021)
+Improve the warning tabs :
+- It is now possible to collapse and expand all with dedicated icons on the left
+- It is now possible to filter the result for team members
+- Right click on an item offers the possibility to find similar issues and show them on new tabs
+- User can type text and use up and down arrow to go to next/previous found item.
+</pre>
 <b>V1.7.4</b><pre>
 Add Discourage Access for Server Code on Web Module
 </pre>

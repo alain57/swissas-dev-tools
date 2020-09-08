@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,7 +57,10 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
                                                                                                                        " *\n" +
                                                                                                                        AUTHOR + this.swissAsStorage.getFourLetterCode() + "\n" +
                                                                                                                        " */");
-            addedTag = this.smartPsiElementPointer.getElement().addBefore(docComment, startElement);
+            addedTag = Optional.ofNullable(this.smartPsiElementPointer.getElement())
+                               .map(element -> element.addBefore(docComment, startElement))
+                               .orElse(null);
+            
         } else if (startElement instanceof PsiDocComment) {
             List<String> lines = Stream.of(startElement.getText().split("\n")).collect(Collectors.toList());
             lines.add(lines.size() - 1, AUTHOR + this.swissAsStorage.getFourLetterCode());
