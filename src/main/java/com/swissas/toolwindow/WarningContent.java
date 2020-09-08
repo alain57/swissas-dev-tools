@@ -41,7 +41,7 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	private       SwissAsStorage       swissAsStorage;
 	private Project                    project;
 
-	private static final String USERNAME = "Swiss-AS Dev-Tools";
+	private static final String USERNAME = "jenkinsreadonly";
 	private static final String TOKEN = ResourceBundle.getBundle("token").getString("finding_token");
 
 	public WarningContent() {

@@ -42,7 +42,7 @@ class ConfigPanel {
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
     private JPanel mainPanel;
-    private ComboBox orientation;
+    private ComboBox<String> orientation;
     private EditorTextField fourLetterCode;
     private JBCheckBox chkAnnotation;
     private JLabel label7;

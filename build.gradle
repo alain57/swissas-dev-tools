@@ -36,7 +36,7 @@ test {
 }
 
 publishPlugin {
-//    token intellijPublishToken //variable defined in the gradle.properties file
+    token=System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken") //env var
 }
 
 patchPluginXml {
