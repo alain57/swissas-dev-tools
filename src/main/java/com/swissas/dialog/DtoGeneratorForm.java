@@ -251,7 +251,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private void refreshPreview() {
 		enablePkGetterIfNeeded();
 		String classContent = "package " + this.boFile.getPackageName()
-		                                              .replace("share.bo.", "share.dto.") + ";\n\n"
+		                                              .replace("server.bo.", "share.dto.") + ";\n\n"
 		                      + "import amos.share.system.transport.rpc.AmosDto;\n"
 		                      + "import java.util.Objects;\n"
 		                      + "/**\n"
@@ -321,7 +321,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private boolean checkDtoNameExists() {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(this.project);
 		String name = this.boFile.getPackageName()
-		                         .replace("share.bo.", "share.dto.") + "." +
+		                         .replace("server.bo.", "share.dto.") + "." +
 		              this.nameTextField.getText();
 		if(!name.equals(this.lastFileExistCheck)) {
 			this.lastFileExistCheck = name;
@@ -344,11 +344,11 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
 		String ddColumnImport = this.ddPkColumn == null ? "" :
-		                        "import amos.share.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n";
+		                        "import amos.server.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n";
 		String boFinderClass = this.finder.getFirst() == null ? "" : "import " + this.finder.getFirst().getQualifiedName() + ";\n";
 		String mapperClassContent = this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
-		                            + "import amos.share.databaseAccess.api.AmosTransaction;\n"
-		                            + "import amos.share.databaseAccess.bo.DefaultBOList;\n"
+		                            + "import amos.server.databaseAccess.api.AmosTransaction;\n"
+		                            + "import amos.server.databaseAccess.bo.DefaultBOList;\n"
 		                            + "import amos.share.util.ListUtils;\n"
 		                            + "\n"
 		                            + "import javax.validation.constraints.NotNull;\n"
@@ -361,7 +361,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                            + ddColumnImport
 		                            + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
 		                            + boFinderClass
-									+ "import static amos.share.sol.util.SolHelperFunctions.IN;\n";
+									+ "import static amos.server.sol.util.SolHelperFunctions.IN;\n";
 		
 		this.mapperFile =
 				(PsiJavaFile) PsiFileFactory.getInstance(this.project)

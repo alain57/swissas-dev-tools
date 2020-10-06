@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.5'
+version '1.7.6'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -29,6 +29,7 @@ intellij {
     downloadSources true
     intellij.updateSinceUntilBuild false
     plugins = ['java', 'properties', 'svn4idea', 'git4idea']
+    version '2020.2.3'
 }
 
 test {
@@ -41,6 +42,10 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.5</b><pre>
+Fixed the DTO generator (Thank you Jacques for the help :) )
+As asked by Philippe, use a dedicated IntelliJ token for Jenkins
+</pre>
 <b>V1.7.5</b><pre>
 Remove move to server panel as this project is finished
 Use the new Server for the findings in the SAS Warning Tab

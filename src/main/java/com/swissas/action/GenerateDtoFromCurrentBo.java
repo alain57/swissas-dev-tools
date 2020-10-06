@@ -30,7 +30,7 @@ public class GenerateDtoFromCurrentBo extends AnAction {
             if(this.javaFile.getClasses().length > 0) {
                 this.psiClass = this.javaFile.getClasses()[0];
                 isVisible = InheritanceUtil.isInheritor(this.psiClass,
-                                                        "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
+                                                        "amos.server.databaseAccess.bo.AbstractAmosBusinessObject");
                 presentation.setText("Generate DTO for " 
                                      + StringUtils.getInstance().removeJavaEnding(this.javaFile.getName()));
             }
