@@ -122,7 +122,7 @@ public class PsiHelper {
 	
 	public List<PsiClass> getBoClassesForProjectUp(@NotNull Project project) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-		PsiClass abstractBoClass = Optional.ofNullable(javaPsiFacade.findClass("amos.share.databaseAccess.bo.AbstractAmosBusinessObject",  GlobalSearchScope.allScope(project)))
+		PsiClass abstractBoClass = Optional.ofNullable(javaPsiFacade.findClass("amos.server.databaseAccess.bo.AbstractAmosBusinessObject",  GlobalSearchScope.allScope(project)))
 				.orElseThrow(() -> new IllegalStateException("Could not found the class AbstractAmosBusinessObject"));
 				
 		Query<PsiClass> search = ClassInheritorsSearch
@@ -190,7 +190,7 @@ public class PsiHelper {
 	
 	public boolean isBoReturned(PsiMethod getterMethod) {
 		return InheritanceUtil.isInheritor(getterMethod.getReturnType(),
-		                                   "amos.share.databaseAccess.bo.AbstractAmosBusinessObject");
+		                                   "amos.server.databaseAccess.bo.AbstractAmosBusinessObject");
 	}
 	
 	public void addEntityTag(Project project, PsiClass destinationClass) {
