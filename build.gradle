@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.6'
+version '1.7.7'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,9 +42,13 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
-<b>V1.7.6</b><pre>
+<b>V1.7.7</b><pre>
 The IDE now clearly see that a _Message field is linked to a standard.properties key. If you rename one, it will rename the other at the same time.
 Fixed a few small bugs and cleaned the code to avoid potential exceptions
+</pre>
+<b>V1.7.6</b><pre>
+small bugfixes
+</pre>
 <b>V1.7.5</b><pre>
 Fixed the DTO generator (Thank you Jacques for the help :) )
 As asked by Philippe, use a dedicated IntelliJ token for Jenkins
