@@ -108,14 +108,13 @@ public class PsiHelper {
 					.toArray(PsiClassObjectAccessExpression[]::new);
 			Set<PsiClass> psiClasses = IntStream.range(0, expressions.length).filter(i -> i % 2 != 0)
 			                                 .mapToObj(i -> expressions[i])
-			                                 .map(e -> PsiUtil
-					                                 .resolveClassInType(e.getOperand().getType()))
-			                                 .collect(
-					                                 Collectors.toSet());
+			                                 .map(e -> PsiUtil.resolveClassInType(e.getOperand().getType()))
+			                                 .collect(Collectors.toSet());
 			result.addAll(psiClasses);
 		}
 		
-		return result.stream().sorted(Comparator.nullsLast(Comparator.comparing(PsiNamedElement::getName)))
+		return result.stream()
+		             .sorted(Comparator.nullsLast(Comparator.comparing(PsiNamedElement::getName)))
 				     .collect(Collectors.toList());
 		
 	}
@@ -123,12 +122,14 @@ public class PsiHelper {
 	public List<PsiClass> getBoClassesForProjectUp(@NotNull Project project) {
 		JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
 		PsiClass abstractBoClass = Optional.ofNullable(javaPsiFacade.findClass("amos.server.databaseAccess.bo.AbstractAmosBusinessObject",  GlobalSearchScope.allScope(project)))
-				.orElseThrow(() -> new IllegalStateException("Could not found the class AbstractAmosBusinessObject"));
+		                                   .orElseThrow(() -> new IllegalStateException("Could not found the class AbstractAmosBusinessObject"));
 				
 		Query<PsiClass> search = ClassInheritorsSearch
 				.search(abstractBoClass, GlobalSearchScope.projectScope(project), true);
-		return search.findAll().stream().filter(e -> !e.isInterface() && !e.hasModifier(
-				JvmModifier.ABSTRACT) && e.getQualifiedName() != null).collect(Collectors.toList());
+		return search.findAll()
+		             .stream()
+		             .filter(e -> !e.isInterface() && !e.hasModifier(JvmModifier.ABSTRACT) && e.getQualifiedName() != null)
+		             .collect(Collectors.toList());
 	}
 	
 	public Map<String, PsiClass> getRpcImplementationMapForProjectUp(@NotNull Project project) {
@@ -220,8 +221,14 @@ public class PsiHelper {
 	                                      boolean useEntityTag) {
 		PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
 		StringBuilder toDtoContent = new StringBuilder("static ").append(dtoName)
-		                                                         .append(" toDto(@NotNull ").append(boName).append(" bo) {\n");
-		toDtoContent.append("\t").append(dtoName).append(" dto = new ").append(dtoName).append("();\n");
+		                                                         .append(" toDto(@NotNull ")
+		                                                         .append(boName)
+		                                                         .append(" bo) {\n")
+		                                                         .append("\t")
+		                                                         .append(dtoName)
+		                                                         .append(" dto = new ")
+		                                                         .append(dtoName)
+		                                                         .append("();\n");
 		if(useEntityTag) {
 			StringUtils.getInstance().addSetOfGetter(toDtoContent, "getEntityTag", pkName, false);
 		}

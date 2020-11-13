@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -296,7 +297,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public Map getShareProperties() {
-		return Collections.unmodifiableMap(this.shareProperties);
+		return Optional.ofNullable(this.shareProperties)
+						.map(Collections::unmodifiableMap)
+						.orElse(Map.of());
 	}
 	
 	public void setShareProperties(Properties shareProperties) {

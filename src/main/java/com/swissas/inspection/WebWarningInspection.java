@@ -72,11 +72,13 @@ public class WebWarningInspection extends LocalInspectionTool {
 		}
 		
 		private void registerProblem(PsiElement expression, PsiElement resolvedElement) {
-			Module module = ProjectRootManager.getInstance(resolvedElement.getProject()).getFileIndex()
-			                                  .getModuleForFile(
-					                                  resolvedElement.getContainingFile()
-					                                         .getVirtualFile());
-			if (module != null && module.getName().contains("amos_server")) {
+			String moduleName = resolvedElement == null ? "" :
+			                    Optional.ofNullable(ProjectRootManager.getInstance(resolvedElement.getProject()))
+			        .map(ProjectRootManager::getFileIndex)
+			        .map(e -> e.getModuleForFile(resolvedElement.getContainingFile().getVirtualFile()))
+			        .map(Module::getName)
+			        .orElse("");
+			if (moduleName.contains("amos_server")) {
 				this.holder.registerProblem(expression, "Discourage access, prefer using amos.api()",
 				                            ProblemHighlightType.LIKE_MARKED_FOR_REMOVAL);
 			}

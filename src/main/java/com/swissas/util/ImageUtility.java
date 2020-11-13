@@ -52,7 +52,9 @@ public class ImageUtility {
 	@Nullable
 	public Image getImageFromTransferable(Transferable transferable) {
 		try {
-			return transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor) ? (Image)transferable.getTransferData(DataFlavor.imageFlavor) : null;
+			return transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor) 
+			       ? (Image)transferable.getTransferData(DataFlavor.imageFlavor) 
+			       : null;
 		} catch (UnsupportedFlavorException  | IOException e) {
 			LOGGER.error(e);
 			return null;
@@ -66,8 +68,7 @@ public class ImageUtility {
 		} else {
 			int w = icon.getIconWidth();
 			int h = icon.getIconHeight();
-			GraphicsEnvironment ge =
-					GraphicsEnvironment.getLocalGraphicsEnvironment();
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			GraphicsDevice gd = ge.getDefaultScreenDevice();
 			GraphicsConfiguration gc = gd.getDefaultConfiguration();
 			BufferedImage image = gc.createCompatibleImage(w, h);

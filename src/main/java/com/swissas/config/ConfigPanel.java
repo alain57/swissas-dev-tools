@@ -1,8 +1,6 @@
 package com.swissas.config;
 
 import java.awt.*;
-import java.awt.Color;
-import java.awt.Insets;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
@@ -20,7 +18,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider;
 import com.intellij.ui.components.*;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;

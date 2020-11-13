@@ -12,6 +12,7 @@
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.modules.vcs</depends>
     <extensions defaultExtensionNs="com.intellij">
+        <psi.referenceContributor language="Properties" implementation="com.swissas.contributor.TranslationReferenceContributor" order="first" />
         <backgroundPostStartupActivity implementation="com.swissas.Startup" />
         <applicationService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
@@ -23,7 +24,6 @@
         <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />
         <inspectionToolProvider implementation="com.swissas.inspection.WebWarningInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
-        <gotoDeclarationHandler implementation="com.swissas.handler.PropertiesKeyToUsage" /> 
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
         <statusBarWidgetProvider id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetProvider"/>
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.WhoWroteThisAnnotationProvider" />

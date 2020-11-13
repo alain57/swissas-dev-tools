@@ -2,7 +2,6 @@ package com.swissas.toolwindow;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.Timer;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;

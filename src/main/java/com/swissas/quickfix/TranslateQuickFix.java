@@ -67,7 +67,12 @@ public class TranslateQuickFix implements LocalQuickFix {
         String tmpPropertyValue = getPropertyValue(element);
         String propertyValue = replaceWithKnownKeys(tmpPropertyValue);
         Set<String> keysInProperties = properties.getNamesMap().keySet();
-        String fullKey = properties.getNamesMap().entrySet().stream().filter(e -> e.getValue().equals(propertyValue)).map(Entry::getKey).findFirst().orElse(null);
+        String fullKey = properties.getNamesMap().entrySet()
+                                   .stream()
+                                   .filter(e -> e.getValue().equals(propertyValue))
+                                   .map(Entry::getKey)
+                                   .findFirst()
+                                   .orElse(null);
         if(fullKey == null){
             fullKey = generateFullKeyForAlreadyAssignedKey(keysInProperties, tmpPropertyValue);
             fillPropertiesAndMessageWith(project, properties, currentTranslationJavaFile,
@@ -98,6 +103,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + propertyKey
                                                                                                   + " = new " + this.className + "(INSTANCE);\n", null);
         PsiField latestField = PsiTreeUtil.collectElementsOfType(messageFile, PsiField.class).stream().reduce((a, b) -> b).get();
+        
         latestField.getParent().addAfter(javaTranslation, latestField);
     }
     
@@ -121,8 +127,14 @@ public class TranslateQuickFix implements LocalQuickFix {
         Collection<PsiImportStaticStatement> psiImportStatements = PsiTreeUtil.collectElementsOfType(file, PsiImportStaticStatement.class);
         if(psiImportStatements.stream().noneMatch(e -> e.getText().contains("._Messages.*"))){
             PsiImportStaticStatement importStaticStatement = JavaPsiFacade.getElementFactory(this.javaPsiPointer.getProject()).createImportStaticStatement(messageClass, memberName);
-            PsiImportList importList = ((PsiJavaFile) file).getImportList();
-            if(Stream.of(importList.getImportStaticStatements()).map(PsiElement::getText).noneMatch(e -> e.equals(importStaticStatement.getText()))) {
+            PsiImportList importList = Optional.ofNullable(file)
+                                               .filter(PsiJavaFile.class::isInstance)
+                                               .map(PsiJavaFile.class::cast)
+                                               .map(PsiJavaFile::getImportList)
+                                               .orElse(null);
+            if(importList != null && Stream.of(importList.getImportStaticStatements())
+                                           .map(PsiElement::getText)
+                                           .noneMatch(e -> e.equals(importStaticStatement.getText()))) {
                 importList.add(importStaticStatement);
             }
         }
@@ -155,9 +167,11 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
 
     private PropertiesFile getOrCreateProperties(){
-        PsiFile file = this.javaPsiPointer.getElement().getContainingDirectory().findFile("Standard.properties");
+        PsiDirectory currentDirectory = Objects.requireNonNull(this.javaPsiPointer.getElement())
+                                               .getContainingDirectory();
+        PsiFile file = currentDirectory.findFile("Standard.properties");
         if(file == null){
-            file = this.javaPsiPointer.getElement().getContainingDirectory().createFile("Standard.properties");
+            file = currentDirectory.createFile("Standard.properties");
         }
         return (PropertiesFile)file;
     }
@@ -208,6 +222,7 @@ public class TranslateQuickFix implements LocalQuickFix {
                                         .toUpperCase().replaceAll("[^A-Z0-9 ]", "")
                                         .replaceAll(" ", "_");
         capitalizeFully = StringUtils.removeEnd(capitalizeFully, "_");
+        capitalizeFully = StringUtils.removeStart(capitalizeFully, "_");
         if(capitalizeFully.length() > 36){
             capitalizeFully = capitalizeFully.substring(0, 36);
         }

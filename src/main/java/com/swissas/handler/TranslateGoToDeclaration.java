@@ -10,7 +10,6 @@ import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.swissas.provider.TranslationDocumentationProvider;
 import org.jetbrains.annotations.Nullable;
@@ -33,19 +32,16 @@ class TranslateGoToDeclaration implements GotoDeclarationHandler {
 			if (language.equals(JavaLanguage.INSTANCE) && elementType.toString()
 			                                                         .equals("IDENTIFIER")
 			    && TranslationDocumentationProvider.isSasMultiLang(sourceElement)) {
-				PsiFile currentPropertiesFile = sourceElement.getContainingFile()
+				PropertiesFile currentPropertiesFile = (PropertiesFile) sourceElement.getContainingFile()
 				                                             .getContainingDirectory()
 				                                             .findFile("Standard.properties");
-				if (currentPropertiesFile != null) { //when null then we may be on old stable version without properties file
-					PropertiesFile propertiesFile = (PropertiesFile) currentPropertiesFile;
-					PsiElement psiElement = Optional
-							.ofNullable(propertiesFile.findPropertyByKey(sourceElement.getText()))
-							.map(IProperty::getPsiElement).orElse(null);
-					if (psiElement != null) {
-						Property property = (Property) psiElement;
-						return new PsiElement[]{ property.getLastChild() };
-					}
-				}
+				return Optional.ofNullable(currentPropertiesFile)
+				        .map(f -> f.findPropertyByKey(sourceElement.getText()))
+				        .map(IProperty::getPsiElement)
+				        .map(Property.class::cast)
+				        .map(PsiElement::getLastChild)
+						.map(e -> new PsiElement[]{e})
+				        .orElse(new PsiElement[0]);
 			}
 		}
 		return new PsiElement[0];

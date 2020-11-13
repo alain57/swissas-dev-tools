@@ -542,6 +542,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 			                                                  this.ddPkColumn);
 		}
 		PsiHelper.getInstance().addFileInDirectory(dtoDir, this.dtoFile);
-		PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.mapperFile);
+		if(this.selectedRpcInterfaceClass != null) {
+			PsiHelper.getInstance().addFileInDirectory(this.rpcDir, this.mapperFile);
+		}
 	}
 }

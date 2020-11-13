@@ -72,7 +72,7 @@ class ProjectUtilTest {
 	@Test
 	void testConvertBranchNoNPEOnNull() {
 		String result = this.projectUtil.convertToCorrectBranch(null);
-		assertThat(result).isEqualTo(null);
+		assertThat(result).isEqualTo("preview");
 	}
 	
 
