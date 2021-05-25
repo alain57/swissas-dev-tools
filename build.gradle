@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.7'
+version '1.7.8'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,9 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.8</b><pre>
+Fix not working SAS warning tab for new employee or team containing new employee
+</pre>
 <b>V1.7.7</b><pre>
 The IDE now clearly see that a _Message field is linked to a standard.properties key. If you rename one, it will rename the other at the same time.
 Fixed a few small bugs and cleaned the code to avoid potential exceptions

@@ -103,11 +103,16 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	private boolean readWarningsAndFindings() {
 		if (!this.swissAsStorage.getFourLetterCode().isEmpty()) {
 			this.types.clear();
-			Elements myFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getFourLetterCode())  ,"type[ident~=[^CODE_CHECK]]", true);
-			Elements teamAccountFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getMyTeam()) ,"type[ident~=[^CODE_CHECK]]", true);
-			teamAccountFindings.addAll(myFindings);
+			Elements myFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getFourLetterCode())  ,"type[ident~=[^CODE_CHECK]]", false);
+			Elements teamAccountFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getMyTeam()) ,"type[ident~=[^CODE_CHECK]]", false);
+			if(myFindings != null) {
+				teamAccountFindings.addAll(myFindings);
+			}
 			for(var member : this.swissAsStorage.getMyTeamMembers(false, false)) {
-				teamAccountFindings.addAll(readUrlAndUseCssSelector(String.format(MESSAGE_URL , member) ,"type[ident~=[^CODE_CHECK]]", true));
+				Elements userWarnings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, member), "type[ident~=[^CODE_CHECK]]", true);
+				if(userWarnings != null) {
+					teamAccountFindings.addAll(userWarnings);
+				}
 			}
 			for (Element type : teamAccountFindings) {
 				WarningContentHelper.generateTypeFromElementTypeAndAddItToTypeSet(type, this.types, this.directories);
