@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.7.8'
+version '1.7.9'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,11 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.7.9</b><pre>
+Prevent a potential NPE
+fix smart folders in the SAS warning tab
+Add a Team Todo tab within the SAS Warning view
+</pre>
 <b>V1.7.8</b><pre>
 Fix not working SAS warning tab for new employee or team containing new employee
 </pre>

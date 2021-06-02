@@ -26,8 +26,8 @@ public final class WarningContentHelper {
         throw new IllegalStateException("Utility class");
     }
     public static void generateTypeFromElementTypeAndAddItToTypeSet(Element elementType,@NotNull Set<Type> types, @NotNull Map<String, Directory> directories) {
-        String typeName = elementType.attr("name");
-        Type type = new Type(elementType);
+        var typeName = elementType.attr("name");
+        var type = new Type(elementType);
         elementType.childNodes().stream().flatMap(e -> e.childNodes().stream()).forEach(fileNode -> {
             String fullPath = fileNode.attr("path");
             fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
@@ -40,31 +40,36 @@ public final class WarningContentHelper {
         int indexOf = folderName.indexOf("/");
         Directory dir;
         if(indexOf > -1) {
-            String topFolder = folderName.substring(0, indexOf);
+            var topFolder = folderName.substring(0, indexOf);
             dir = directories.computeIfAbsent(typeName + "-> " + parentPath + topFolder,  k-> new Directory(topFolder, parentPath));
             dir.addChildren(generateDirectory(directories, folderName.substring(indexOf+1), parentPath + topFolder + "/", fileNode, typeName));
         }else {
             dir = directories.computeIfAbsent(typeName + "-> " + parentPath + folderName,  k-> new Directory(folderName, parentPath));
-            String path = fileNode.attr("path");
-            String fileName = path.substring(path.lastIndexOf("/")+1);
+            var path = fileNode.attr("path");
+            var fileName = path.substring(path.lastIndexOf("/")+1);
             dir.addChildren(new File(fileName, fileNode));
         }
         return dir;
     }
 
-    public static void fillTreeWithChildren(WarningContentTreeNode node, AttributeChildrenBean element, String filterLetterCode, boolean onlyCritical, String similarMessage) {
-        WarningContentTreeNode currentElement = new WarningContentTreeNode("");
+    private static boolean hasSimilarMessage(Message message, String similarMessage) {
+        double score = similarMessage == null ? Double.MAX_VALUE : JARO_WINKLER.similarity(message.getDescription(), similarMessage);
+        return score > SwissAsStorage.getInstance().getSimilarValue();
+    }
+    
+    public static void fillTreeWithChildren(WarningContentTreeNode node, AttributeChildrenBean element, 
+                                            String filterLetterCode, boolean onlyCritical, String similarMessage) {
+        var currentElement = new WarningContentTreeNode("");
         if(element instanceof File) {
-            currentElement.setCurrentType(WarningContentTreeNode.TreeType.File);
+            currentElement.setCurrentType(WarningContentTreeNode.TreeType.FILE);
             if(fileNotGoodResponsible((File) element, filterLetterCode)){
                 return;
             }
             currentElement.setMine(((File)element).isMine());
         }else if(element instanceof Message) {
-            Message message = (Message)element; 
-            currentElement.setCurrentType(WarningContentTreeNode.TreeType.Message);
-            double score = similarMessage == null ? 1.0 : JARO_WINKLER.similarity(message.getDescription(), similarMessage);
-            if(onlyCritical && !message.isCritical() || score < SwissAsStorage.getInstance().getSimilarValue()) {
+            var message = (Message)element; 
+            currentElement.setCurrentType(WarningContentTreeNode.TreeType.MESSAGE);
+            if(onlyCritical && !message.isCritical() || !hasSimilarMessage(message, similarMessage)) {
                 return;
             }
         }
@@ -72,8 +77,8 @@ public final class WarningContentHelper {
         Set<AttributeChildrenBean> children = element.getChildren();
 
         if(element instanceof Directory) {
-            StringBuilder sb = new StringBuilder();
-            Directory dir = getSingleDirectoryPath(sb, (Directory) element, filterLetterCode);
+            var sb = new StringBuilder();
+            var dir = getSingleDirectoryPath(sb, (Directory) element, filterLetterCode, similarMessage);
             currentElement.setUserObject(sb.toString());
             children = dir.getChildren();
         }
@@ -104,24 +109,24 @@ public final class WarningContentHelper {
     }
 
 
-    private static Directory getSingleDirectoryPath(StringBuilder sb, Directory directory, String filteredResponsible) {
+    private static Directory getSingleDirectoryPath(StringBuilder sb, Directory directory, String filteredResponsible, String similarMessage) {
         Directory dir;
         sb.append(directory.getMainAttribute());
         List<Directory> subDirs = directory.getChildren().stream()
                 .filter(Directory.class::isInstance)
                 .map(Directory.class::cast)
-                .filter(subDir -> hasFilteredChild(subDir, filteredResponsible)).collect(Collectors.toList());
+                .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, similarMessage)).collect(Collectors.toList());
         if(subDirs.size() == 1) {
-            Directory childDirectory = subDirs.get(0);
+            var childDirectory = subDirs.get(0);
             sb.append("/");
-            dir =  getSingleDirectoryPath(sb, childDirectory, filteredResponsible);
+            dir =  getSingleDirectoryPath(sb, childDirectory, filteredResponsible, similarMessage);
         }else {
             dir = directory;
         }
         return dir;
     }
     
-    private static boolean hasFilteredChild(Directory directory, String filteredResponsible) {
+    private static boolean hasFilteredChild(Directory directory, String filteredResponsible, String similarMessage) {
         List<Directory> subDirs = directory.getChildren().stream()
                 .filter(Directory.class::isInstance)
                 .map(Directory.class::cast)
@@ -132,11 +137,17 @@ public final class WarningContentHelper {
         if(filteredResponsible != null && !filteredResponsible.equals(SwissAsStorage.getInstance().getMyTeam())) {
             files = files.filter(file -> file.getResponsible().equals(filteredResponsible));
         }
+        if(similarMessage != null) {
+            files = files.filter(file -> file.getChildren().stream()
+                                  .filter(Message.class::isInstance)
+                                  .map(Message.class::cast)
+                                  .anyMatch(message -> hasSimilarMessage(message, similarMessage)));
+        }
         if(files.count() > 0L) {
             return true;
         }
         for (Directory subDir : subDirs) {
-            if(hasFilteredChild(subDir, filteredResponsible)){
+            if(hasFilteredChild(subDir, filteredResponsible, similarMessage)){
                 return true;
             }
         }

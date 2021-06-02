@@ -24,9 +24,11 @@ public class ConvertToTeamQuickfix implements LocalQuickFix {
 	@Override
 	public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
 		PsiDocTag tag = (PsiDocTag)descriptor.getPsiElement();
+		if(tag != null) {
 		PsiDocTag newAuthorTag = JavaPsiFacade.getElementFactory(project).createDocTagFromText(
 				"@author " + SwissAsStorage.getInstance().getMyTeam());
-		tag.getParent().addBefore(newAuthorTag, tag);
-		tag.delete();
+			tag.getParent().addBefore(newAuthorTag, tag);
+			tag.delete();
+		}
 	}
 }

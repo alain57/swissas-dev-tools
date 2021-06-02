@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.swissas.beans.Directory;
 import com.swissas.beans.Type;
@@ -30,9 +29,11 @@ import org.jsoup.select.Elements;
 public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	
 	private static final String WARNING_CONTENT_TIMER = "WarningContentTimer";
+	private static final String TODO_SEARCH_MESSAGE = "Complete the task associated to this TODO comment.";
 
 	private static final String MESSAGE_URL = ResourceBundle.getBundle("urls").getString("url.warnings");
 	public static final  String ID          = "SAS Warnings";
+	public static final String CODE_CHECK = "type[ident~=[^CODE_CHECK]]";
 	
 	private final Set<Type>              types       = new TreeSet<>();
 	private final Map<String, Directory> directories = new TreeMap<>();
@@ -51,8 +52,8 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 		if (ProjectUtil.getInstance().isAmosProject(project)) {
 			this.project = project;
 			this.swissAsStorage = SwissAsStorage.getInstance();
-			ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-			Content content = contentFactory.createContent(this, "", false);
+			var contentFactory = ContentFactory.SERVICE.getInstance();
+			var content = contentFactory.createContent(this, "", false);
 			toolWindow.getContentManager().addContent(content);
 			TimerTask timerTask = new TimerTask() {
 				@Override
@@ -60,7 +61,7 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 					WarningContent.this.refresh();
 				}
 			};
-			Timer timer = new Timer(WARNING_CONTENT_TIMER);
+			var timer = new Timer(WARNING_CONTENT_TIMER);
 			timer.schedule(timerTask, 30, 24 * 60 * 60_000L);
 		}else {
 			this.project = null;
@@ -82,19 +83,15 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 		}
 	}
 	
-	private Elements readUrlAndUseCssSelector(String url, String cssSelector, boolean logToError){
+	private Elements readUrlAndUseCssSelector(String url, String cssSelector){
 		Elements result = null;
-		String encoding = Base64.getEncoder().encodeToString((USERNAME + ":" + TOKEN).getBytes());
+		var encoding = Base64.getEncoder().encodeToString((USERNAME + ":" + TOKEN).getBytes());
 		try{
 			result = Jsoup.connect(url)
 					.header("Authorization", "Basic " + encoding)
 					.post().select(cssSelector);
 		}catch (IOException e){
-			if(logToError){
-				Logger.getInstance("Swiss-as").error(e);
-			}else {
-				Logger.getInstance("Swiss-as").info(e);
-			}
+			Logger.getInstance("Swiss-as").info(e);
 		}
 		
 		return result;
@@ -103,13 +100,14 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	private boolean readWarningsAndFindings() {
 		if (!this.swissAsStorage.getFourLetterCode().isEmpty()) {
 			this.types.clear();
-			Elements myFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getFourLetterCode())  ,"type[ident~=[^CODE_CHECK]]", false);
-			Elements teamAccountFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getMyTeam()) ,"type[ident~=[^CODE_CHECK]]", false);
+			Elements myFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getFourLetterCode())  , CODE_CHECK);
+			Elements teamAccountFindings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, this.swissAsStorage.getMyTeam()) , CODE_CHECK);
+			assert teamAccountFindings != null;
 			if(myFindings != null) {
 				teamAccountFindings.addAll(myFindings);
 			}
 			for(var member : this.swissAsStorage.getMyTeamMembers(false, false)) {
-				Elements userWarnings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, member), "type[ident~=[^CODE_CHECK]]", true);
+				Elements userWarnings = readUrlAndUseCssSelector(String.format(MESSAGE_URL, member), CODE_CHECK);
 				if(userWarnings != null) {
 					teamAccountFindings.addAll(userWarnings);
 				}
@@ -125,15 +123,21 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	private void fillView() {
 		removeAll();
 		if (!this.types.isEmpty()) {
+			Type sonarType = null;
 			for(Type type : this.types) {
 				String typeName = type.getMainAttribute();
+				if(type.getMainAttribute().equals("Sonar")) {
+					sonarType = type;
+				}
 				add(typeName, new WarningContentTreeView(this.project, type, this, null));
 			}
+			assert sonarType != null;
+			add("Team TODOS", new WarningContentTreeView(this.project, sonarType, this, TODO_SEARCH_MESSAGE)); 
 		}
 	}
 	
 	public void filterSimilar(String message) {
-		int tabsThatShouldNotBeRemoved = this.types.size(); 
+		int tabsThatShouldNotBeRemoved = this.types.size() + 1; //+1 because of the team to do tab  
 		while(getTabCount() > tabsThatShouldNotBeRemoved) {
 			removeTabAt(tabsThatShouldNotBeRemoved);
 		}
@@ -141,9 +145,5 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 			String typeName = type.getMainAttribute();
 			add(String.format( "Similar %s result", typeName), new WarningContentTreeView(this.project, type, this, message));
 		}
-		
 	}
-	
-	
-
 }

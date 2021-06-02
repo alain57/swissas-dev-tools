@@ -49,12 +49,12 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         p.add(text);
         JBLabel amount;
         switch (node.getTreeType()) {
-            case File:
+            case FILE:
                 text.setIcon(AllIcons.FileTypes.Java);
                 amount = new JBLabel("( " + node.getUnmarkedCount() + ")");
                 p.add(amount);
                 break;
-            case Directory:
+            case DIRECTORY:
                 text.setIcon(AllIcons.Nodes.Folder);
                 amount = new JBLabel("( " + node.getUnmarkedCount() + ")");
                 p.add(amount);

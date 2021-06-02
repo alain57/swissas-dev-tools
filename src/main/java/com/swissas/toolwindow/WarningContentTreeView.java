@@ -15,6 +15,7 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.components.BorderLayoutPanel;
 import com.swissas.action.CriticalActionToggle;
 import com.swissas.beans.AttributeChildrenBean;
 import com.swissas.beans.Type;
@@ -50,7 +51,8 @@ public class WarningContentTreeView extends JPanel {
     private String name;
     private final String filterSimilar;
 
-    public WarningContentTreeView(@NotNull Project project, @NotNull Type type, @NotNull WarningContent delegate, @Nullable String filterSimilar) {
+    public WarningContentTreeView(@NotNull Project project, @NotNull Type type, @NotNull WarningContent delegate,
+                                  @Nullable String filterSimilar) {
         this.project = project;
         this.type = type;
         this.delegate = delegate;
@@ -74,10 +76,12 @@ public class WarningContentTreeView extends JPanel {
         buildTree();
         JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(this.tree, SideBorder.LEFT);
         JComponent leftActionsToolbar = createLeftActionsToolbar();
-        JPanel borderLayoutPanel = JBUI.Panels.simplePanel()
-                .addToLeft(leftActionsToolbar)
-                .addToCenter(scrollPane)
-                .addToTop(topActionBar);
+        var borderLayoutPanel = JBUI.Panels.simplePanel()
+                                                         .addToLeft(leftActionsToolbar)
+                                                         .addToCenter(scrollPane);
+        if(this.filterSimilar == null) {
+            borderLayoutPanel.addToTop(topActionBar);
+        }
         add(borderLayoutPanel, BorderLayout.CENTER);
         new TreeSpeedSearch(this.tree, e -> WarningContentTreeComparator.getDisplayTextToSort(e.getLastPathComponent().toString()), true);
     }
@@ -108,11 +112,11 @@ public class WarningContentTreeView extends JPanel {
     }
 
     private JComponent createLeftActionsToolbar() {
-        DefaultActionGroup group = new DefaultActionGroup();
+        var group = new DefaultActionGroup();
         final TreeExpander treeExpander = new DefaultTreeExpander(this.tree);
         group.add(ACTIONS_MANAGER.createExpandAllAction(treeExpander, this.tree));
         group.add(ACTIONS_MANAGER.createCollapseAllAction(treeExpander, this.tree));
-        if(isSonarTab()){
+        if(isSonarTab() && this.filterSimilar == null){
             group.add(this.criticalActionToggle);
         }
         return createToolbar(group, false);
@@ -126,7 +130,7 @@ public class WarningContentTreeView extends JPanel {
             refreshTree();
         });
         this.userChoice.setMaximumSize(this.userChoice.getPreferredSize() );
-        JPanel content = new JPanel();
+        var content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.X_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         content.add(new JBLabel("Filter Messages for "));
@@ -140,7 +144,7 @@ public class WarningContentTreeView extends JPanel {
 
     @NotNull
     private JButton getCloseButton() {
-        JButton closeButton = new JButton(AllIcons.Actions.Close);
+        var closeButton = new JButton(AllIcons.Actions.Close);
         closeButton.setMaximumSize(new Dimension(32, 32));
         closeButton.setBorderPainted(false);
         closeButton.setFocusPainted(false);
@@ -151,7 +155,7 @@ public class WarningContentTreeView extends JPanel {
     }
 
     private JComponent createToolbar(final DefaultActionGroup specialGroup, boolean horizontal) {
-        final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(this.name, specialGroup, horizontal);
+        final var toolbar = ActionManager.getInstance().createActionToolbar(this.name, specialGroup, horizontal);
         return toolbar.getComponent();
     }
 }

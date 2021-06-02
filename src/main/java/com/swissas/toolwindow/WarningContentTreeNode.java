@@ -13,12 +13,9 @@ import javax.swing.tree.TreeNode;
  */
 
 public class WarningContentTreeNode extends DefaultMutableTreeNode {
-    private static final String LINE = "Line ";
     
     public enum TreeType {
-        Directory,
-        File,
-        Message
+        DIRECTORY, FILE, MESSAGE
     }
     
     private boolean isMarked;
@@ -30,7 +27,7 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
     WarningContentTreeNode(String value){
         super(value);
         this.isMarked = false;
-        this.currentType = TreeType.Directory;
+        this.currentType = TreeType.DIRECTORY;
     }
     
     public TreeType getTreeType() {
@@ -45,10 +42,6 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
         return this.isCritical;
     }
 
-    void setCritical(boolean critical) {
-        this.isCritical = critical;
-    }
-    
     private void setMarked(boolean value){
         this.isMarked = value;
     }
@@ -59,7 +52,7 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
     
     private void markNode(WarningContentTreeNode node, boolean marked){
         node.setMarked(marked);
-        for(int i = 0; i< node.getChildCount() ; i++){
+        for(var i = 0; i< node.getChildCount() ; i++){
             markNode((WarningContentTreeNode)node.getChildAt(i), marked);
         }
         
@@ -68,7 +61,7 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
     public boolean isMine() {
         int children = getChildCount();
         if (children != 0) {
-            for (int i = 0; i < children; i++) {
+            for (var i = 0; i < children; i++) {
                 WarningContentTreeNode currentChild = (WarningContentTreeNode) getChildAt(i);
                 if (currentChild.isMine()) {
                     return true;
@@ -83,7 +76,7 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
     }
     
     public int getUnmarkedCount() {
-        int count = 0;
+        var count = 0;
     
         WarningContentTreeNode node;
         Enumeration<TreeNode> enumeration = breadthFirstEnumeration(); // order matters not
@@ -100,8 +93,8 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
         int children = getChildCount();
         if (children != 0) {
         
-            boolean loopBreak = false;
-            for (int i = 0; i < children; i++) {
+            var loopBreak = false;
+            for (var i = 0; i < children; i++) {
                 WarningContentTreeNode currentChild = (WarningContentTreeNode) getChildAt(i);
                 if (!currentChild.isMarked()) {
                     loopBreak = true;

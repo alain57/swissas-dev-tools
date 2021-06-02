@@ -50,7 +50,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
 			if(ProjectUtil.getInstance().isPreviewProject()) {
 				String filePath;
-				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
+				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.MESSAGE)) {
 					int line = Optional.ofNullable(this.tree.getSelectionPath())
 							.map(TreePath::getPath)
 							.map(this::getLineFromObjectArray).orElse(0);
@@ -79,7 +79,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 				selectedNode.isMarked() ? "reset mark as done" : "mark as done");
 		markDoneMenu.addActionListener(event -> switchMark(selectedNode));
 		popupMenu.add(markDoneMenu);
-		if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.Message)) {
+		if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.MESSAGE)) {
 			JMenuItem findSimilarMenu = new JMenuItem("Find similar");
 			findSimilarMenu.addActionListener(event -> findSimilar(selectedNode));
 			popupMenu.add(findSimilarMenu);
