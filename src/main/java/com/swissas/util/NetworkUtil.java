@@ -62,13 +62,10 @@ public class NetworkUtil {
 		Elements body = null;
 		try {
 			body = Jsoup.connect(TRAFFIC_LIGHT_CLICK_URL+ SwissAsStorage.getInstance().getFourLetterCode()).timeout(20_000).get().select("body");
-		}catch (SocketTimeoutException ex) {
+		}catch (IOException ex) {
 			LOGGER.info(ex);
-		}catch (IOException e){
-			LOGGER.error(e);
 		}
 		return body;
 	}
-	
 	
 }

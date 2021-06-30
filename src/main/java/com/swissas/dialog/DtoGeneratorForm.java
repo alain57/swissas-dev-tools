@@ -65,7 +65,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private final List<JCheckBox>       getterCheckboxes = new ArrayList<>();
 	private       PsiJavaFile           dtoFile;
 	private       PsiJavaFile           mapperFile;
-	private final JavaCodeStyleManager  codeStyleManager;
 	private final PsiDocumentManager    documentManager;
 	private final Project                   project;
 	private final PsiFileFactory            psiFileFactory;
@@ -101,7 +100,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.boMap = Collections.unmodifiableMap(boMap);
 		this.project = project;
 		this.psiFileFactory = PsiFileFactory.getInstance(this.project);
-		this.codeStyleManager = JavaCodeStyleManager.getInstance(this.project);
 		this.documentManager = PsiDocumentManager.getInstance(this.project);
 		initUI();
 	}
@@ -111,7 +109,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.boMap = null;
 		this.project = boFile.getProject();
 		this.psiFileFactory = PsiFileFactory.getInstance(this.project);
-		this.codeStyleManager = JavaCodeStyleManager.getInstance(this.project);
 		this.documentManager = PsiDocumentManager.getInstance(this.project);
 		this.boFile = boFile;
 		this.getters = Collections.unmodifiableList(getters);

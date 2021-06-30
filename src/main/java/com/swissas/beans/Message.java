@@ -21,10 +21,6 @@ public class Message extends AttributeChildrenBean{
     
 
     public Message(Node message){
-        this(message, false);
-    }
-    
-    public Message(Node message, boolean isMine) {
         super(message, "severity");
         setLine(Integer.valueOf(message.attr("line")));
         setDescription(message.attr("description"));

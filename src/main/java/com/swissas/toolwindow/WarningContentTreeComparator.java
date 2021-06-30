@@ -12,12 +12,13 @@ public final class WarningContentTreeComparator {
         if (s.isEmpty()) {
             return s;
         }
-        while (!Character.isLetterOrDigit(s.charAt(0))) {
-            s = s.substring(1);
-            if (s.isEmpty()) {
-                return s;
+        String workingString = s;
+        while (!Character.isLetterOrDigit(workingString.charAt(0))) {
+            workingString = workingString.substring(1);
+            if (workingString.isEmpty()) {
+                return workingString;
             }
         }
-        return s;
+        return workingString;
     }
 }

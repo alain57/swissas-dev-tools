@@ -45,7 +45,10 @@ public class ReplaceWithTeamAuthorInspection extends LocalInspectionTool {
 			@Override
 			public void visitJavaFile(@NotNull PsiJavaFile file) {
 				super.visitJavaFile(file);
-				if (ProjectUtil.getInstance().isAmosProject(file.getProject()) && SwissAsStorage.getInstance().isConvertToTeam() && file.getClasses().length > 0) {
+				if (SwissAsStorage.getInstance().isConvertToTeam() &&
+				    ProjectUtil.getInstance().isAmosProject(file.getProject()) &&
+				    ProjectUtil.getInstance().isPreviewProject() &&
+					file.getClasses().length > 0) {
 					PsiDocComment docComment = PsiTreeUtil.getChildOfType(file.getClasses()[0], PsiDocComment.class);
 					if (docComment != null) {
 						Stream.of(docComment.getTags())

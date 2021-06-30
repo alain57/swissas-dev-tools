@@ -44,8 +44,6 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 	private static final String USERNAME = "jenkinsreadonly";
 	private static final String TOKEN = ResourceBundle.getBundle("token").getString("finding_token");
 
-	public WarningContent() {
-	}
 	
 	@Override
 	public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {

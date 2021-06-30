@@ -118,7 +118,11 @@ public class ProjectUtil {
 	}
 	
 	public boolean isGitProject() {
-		return this.shared.getModuleFilePath().toLowerCase().contains("git");
+		try {
+			return this.shared.getModuleFilePath().toLowerCase().contains("git");
+		}catch (Exception e) {
+			return false;
+		}
 	}
 	
 	String getProjectDefaultBranch() {

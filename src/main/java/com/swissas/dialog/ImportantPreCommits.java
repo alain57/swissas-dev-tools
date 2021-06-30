@@ -60,6 +60,16 @@ public class ImportantPreCommits extends JDialog {
 	private       int                 exitCode;
 	private       boolean             shouldDispose;
 	
+	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
+	private JPanel contentPane;
+	private JCheckBox informCheckbox;
+	private JComboBox<String> reviewerComboBox;
+	private JLabel reviewerLbl;
+	private DragDropTextPane messageContent;
+	private JButton buttonOK;
+	private JButton buttonCancel;
+	// JFormDesigner - End of variables declaration  //GEN-END:variables
+	
 	public ImportantPreCommits(CheckinProjectPanel checkinProjectPanel) {
 		initComponents();
 		setContentPane(this.contentPane);
@@ -370,13 +380,4 @@ public class ImportantPreCommits extends JDialog {
 		// JFormDesigner - End of component initialization  //GEN-END:initComponents
 	}
 
-	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-	private JPanel contentPane;
-	private JCheckBox informCheckbox;
-	private JComboBox<String> reviewerComboBox;
-	private JLabel reviewerLbl;
-	private DragDropTextPane messageContent;
-	private JButton buttonOK;
-	private JButton buttonCancel;
-	// JFormDesigner - End of variables declaration  //GEN-END:variables
 }

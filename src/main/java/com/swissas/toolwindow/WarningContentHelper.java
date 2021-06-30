@@ -78,7 +78,7 @@ public final class WarningContentHelper {
 
         if(element instanceof Directory) {
             var sb = new StringBuilder();
-            var dir = getSingleDirectoryPath(sb, (Directory) element, filterLetterCode, similarMessage);
+            var dir = getSingleDirectoryPath(sb, (Directory) element, filterLetterCode, onlyCritical, similarMessage);
             currentElement.setUserObject(sb.toString());
             children = dir.getChildren();
         }
@@ -109,24 +109,24 @@ public final class WarningContentHelper {
     }
 
 
-    private static Directory getSingleDirectoryPath(StringBuilder sb, Directory directory, String filteredResponsible, String similarMessage) {
+    private static Directory getSingleDirectoryPath(StringBuilder sb, Directory directory, String filteredResponsible, boolean onlyCritical, String similarMessage) {
         Directory dir;
         sb.append(directory.getMainAttribute());
         List<Directory> subDirs = directory.getChildren().stream()
                 .filter(Directory.class::isInstance)
                 .map(Directory.class::cast)
-                .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, similarMessage)).collect(Collectors.toList());
+                .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).collect(Collectors.toList());
         if(subDirs.size() == 1) {
             var childDirectory = subDirs.get(0);
             sb.append("/");
-            dir =  getSingleDirectoryPath(sb, childDirectory, filteredResponsible, similarMessage);
+            dir =  getSingleDirectoryPath(sb, childDirectory, filteredResponsible, onlyCritical, similarMessage);
         }else {
             dir = directory;
         }
         return dir;
     }
     
-    private static boolean hasFilteredChild(Directory directory, String filteredResponsible, String similarMessage) {
+    private static boolean hasFilteredChild(Directory directory, String filteredResponsible, boolean onlyCritical, String similarMessage) {
         List<Directory> subDirs = directory.getChildren().stream()
                 .filter(Directory.class::isInstance)
                 .map(Directory.class::cast)
@@ -136,6 +136,12 @@ public final class WarningContentHelper {
                 .map(File.class::cast);
         if(filteredResponsible != null && !filteredResponsible.equals(SwissAsStorage.getInstance().getMyTeam())) {
             files = files.filter(file -> file.getResponsible().equals(filteredResponsible));
+        }
+        if(onlyCritical) {
+            files = files.filter(file -> file.getChildren().stream()
+                                             .filter(Message.class::isInstance)
+                                             .map(Message.class::cast)
+                                             .anyMatch(message -> message.isCritical()));
         }
         if(similarMessage != null) {
             files = files.filter(file -> file.getChildren().stream()
@@ -147,7 +153,7 @@ public final class WarningContentHelper {
             return true;
         }
         for (Directory subDir : subDirs) {
-            if(hasFilteredChild(subDir, filteredResponsible, similarMessage)){
+            if(hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)){
                 return true;
             }
         }

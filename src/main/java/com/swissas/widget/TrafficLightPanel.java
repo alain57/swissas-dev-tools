@@ -135,7 +135,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     private void openTrafficDetailLink(HyperlinkEvent event){
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
+        if (HyperlinkEvent.EventType.ACTIVATED.equals(event.getEventType())){
             URL url = event.getURL();
             if (url != null) {
                 BrowserUtil.browse(url);
@@ -212,6 +212,10 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     private void readTrafficValues() {
         Elements tickerDetail = NetworkUtil.getInstance().getTrafficLightContent();
         this.status.clear();
+        if(tickerDetail == null) {
+            this.trafficDetails = "<b>network issue, check again later</b>";
+            return;
+        }
         this.status.putAll(getSmartTrafficLightColor(tickerDetail));
         if(!OFF.equals(getStateForColor(RED)) || !OFF.equals(getStateForColor(YELLOW))) {
             this.trafficDetails = tickerDetail.html();
