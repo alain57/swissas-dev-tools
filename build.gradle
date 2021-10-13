@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.swissas.tala'
-version '1.8.0'
+version '1.8.1'
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -42,6 +42,7 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
+<b>V1.8.1</b><pre>allow 2LC as a new coworker had such letter code</pre>
 <b>V1.8.0</b><pre>
 Don't replace 4LC with Team account on stable as this should not be patched down !
 Fix smart folders in SAS warning tab for sonar critical only view 
