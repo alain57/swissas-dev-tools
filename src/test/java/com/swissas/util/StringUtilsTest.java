@@ -17,7 +17,7 @@ class StringUtilsTest {
 	
 	@Test
 	void isLetterCodeDoesNotAcceptLessThanThreeOrMoreThanFour() {
-		assertThat(StringUtils.getInstance().isLetterCode("AZ")).isFalse();
+		assertThat(StringUtils.getInstance().isLetterCode("A")).isFalse();
 		assertThat(StringUtils.getInstance().isLetterCode("AZERT")).isFalse();
 	}
 	
@@ -28,7 +28,8 @@ class StringUtilsTest {
 	}
 	
 	@Test
-	void isLetterCodeAcceptThreeOrFourUppercase() {
+	void isLetterCodeAcceptTwoThreeOrFourUppercase() {
+		assertThat(StringUtils.getInstance().isLetterCode("AZ")).isTrue();
 		assertThat(StringUtils.getInstance().isLetterCode("AZE")).isTrue();
 		assertThat(StringUtils.getInstance().isLetterCode("AZER")).isTrue();
 	}
@@ -46,12 +47,13 @@ class StringUtilsTest {
 	
 	@Test
 	void isLetterCodeWithNameTooLongOrTooShort() {
-		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZ (bla)")).isFalse();
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("A (bla)")).isFalse();
 		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZERT (bla)")).isFalse();
 	}
 	
 	@Test
 	void isLetterCodeWithNameOk() {
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZ (bla)")).isTrue();
 		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZE (bla)")).isTrue();
 		assertThat(StringUtils.getInstance().isLetterCodeWithName("AZER (é'r)")).isTrue();
 	}

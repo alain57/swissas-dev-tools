@@ -8,8 +8,8 @@ import org.jetbrains.annotations.Nullable;
 
 
 public class StringUtils {
-	private static final Pattern LETTER_CODE_PATTERN = Pattern.compile("^[A-Z]{3,4}$");
-	private static final Pattern LETTER_CODE_PATTERN_WITH_NAME = Pattern.compile("^[A-Z]{3,4} \\(.+\\)$");
+	private static final Pattern LETTER_CODE_PATTERN = Pattern.compile("^[A-Z]{2,4}$");
+	private static final Pattern LETTER_CODE_PATTERN_WITH_NAME = Pattern.compile("^[A-Z]{2,4} \\(.+\\)$");
 	private static final Pattern GETTER_PREFIX_PATTERN = Pattern.compile("^(get|is|has|are)([A-Z].*)$");
 	private static StringUtils instance;
 	
