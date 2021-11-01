@@ -19,7 +19,7 @@ dependencies {
     testRuntime group:'org.junit.jupiter', name:'junit-jupiter-engine', version: '5.2.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version:'3.11.0'
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'javax.mail', name: 'mail', version: '1.4.7'
 }
@@ -42,7 +42,8 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes """
-<b>V1.8.2</b><pre>an employee got a new 4LC what is not the normal process :/ and this generated a duplicate key exception breaking the plugin for all users :/</pre>
+<b>V1.8.2</b><pre>an employee got a new 4LC what is not the normal process :/ and this generated a duplicate key exception breaking the plugin for all users :/
+Use up to date JSoup as there is a critical security issue</pre>
 <b>V1.8.1</b><pre>allow 2LC as a new coworker had such letter code</pre>
 <b>V1.8.0</b><pre>
 Don't replace 4LC with Team account on stable as this should not be patched down !
