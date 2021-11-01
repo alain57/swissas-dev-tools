@@ -255,7 +255,8 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 			this.userMap.clear();
 			this.fullNameTo4LcMap.clear();
 			this.userMap.putAll(userMap);
-			this.fullNameTo4LcMap.putAll(userMap.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getFullName(), Map.Entry::getKey)));
+			//TODO : maybe log or warn that two people have the same full name... But as this is just git specific and as the move to git is still draft ...
+			this.fullNameTo4LcMap.putAll(userMap.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getFullName(), Map.Entry::getKey, (first, second) -> second)));
 			fillMyTeam();
 		}
 	}
