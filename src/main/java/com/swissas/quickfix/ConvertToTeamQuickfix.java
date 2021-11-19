@@ -6,6 +6,7 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nls;
@@ -27,8 +28,11 @@ public class ConvertToTeamQuickfix implements LocalQuickFix {
 		if(tag != null) {
 		PsiDocTag newAuthorTag = JavaPsiFacade.getElementFactory(project).createDocTagFromText(
 				"@author " + SwissAsStorage.getInstance().getMyTeam());
-			tag.getParent().addBefore(newAuthorTag, tag);
-			tag.delete();
+			PsiElement parent = tag.getParent();
+			if(parent != null) {
+				parent.addBefore(newAuthorTag, tag);
+				tag.delete();
+			}
 		}
 	}
 }

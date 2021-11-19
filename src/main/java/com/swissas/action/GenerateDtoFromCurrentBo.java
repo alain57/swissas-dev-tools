@@ -23,19 +23,18 @@ public class GenerateDtoFromCurrentBo extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-        boolean isVisible = false;
-        Presentation presentation = e.getPresentation();
         if(psiFile instanceof PsiJavaFile){
             this.javaFile = (PsiJavaFile)psiFile;
             if(this.javaFile.getClasses().length > 0) {
                 this.psiClass = this.javaFile.getClasses()[0];
-                isVisible = InheritanceUtil.isInheritor(this.psiClass,
+                boolean isVisible = InheritanceUtil.isInheritor(this.psiClass,
                                                         "amos.server.databaseAccess.bo.AbstractAmosBusinessObject");
+                Presentation presentation = e.getPresentation();
                 presentation.setText("Generate DTO for " 
                                      + StringUtils.getInstance().removeJavaEnding(this.javaFile.getName()));
+                presentation.setVisible(isVisible);
             }
         }
-        presentation.setVisible(isVisible);
         super.update(e);
     }
 

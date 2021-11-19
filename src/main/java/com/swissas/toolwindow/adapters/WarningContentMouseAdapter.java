@@ -79,6 +79,9 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 				selectedNode.isMarked() ? "reset mark as done" : "mark as done");
 		markDoneMenu.addActionListener(event -> switchMark(selectedNode));
 		popupMenu.add(markDoneMenu);
+		JMenuItem forceRefresh = new JMenuItem("Refresh Warnings");
+		forceRefresh.addActionListener(e -> this.warningContent.refresh());
+		popupMenu.add(forceRefresh);
 		if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.MESSAGE)) {
 			JMenuItem findSimilarMenu = new JMenuItem("Find similar");
 			findSimilarMenu.addActionListener(event -> findSimilar(selectedNode));

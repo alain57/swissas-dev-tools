@@ -112,10 +112,23 @@ public final class WarningContentHelper {
     private static Directory getSingleDirectoryPath(StringBuilder sb, Directory directory, String filteredResponsible, boolean onlyCritical, String similarMessage) {
         Directory dir;
         sb.append(directory.getMainAttribute());
-        List<Directory> subDirs = directory.getChildren().stream()
-                .filter(Directory.class::isInstance)
-                .map(Directory.class::cast)
-                .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).collect(Collectors.toList());
+        Set<AttributeChildrenBean> children = directory.getChildren();
+        boolean dirContainsFiles = children.stream()
+                                       .filter(File.class::isInstance)
+                                       .map(File.class::cast)
+                                       .filter(f -> !fileNotGoodResponsible(f, filteredResponsible))
+                                       .flatMap(f -> f.getChildren().stream())
+                                       .filter(Message.class::isInstance)
+                                       .map(Message.class::cast)
+                                       .anyMatch(message -> hasSimilarMessage(message, similarMessage));
+                                    
+        if(dirContainsFiles){
+            return directory;
+        }
+        List<Directory> subDirs = children.stream()
+                                          .filter(Directory.class::isInstance)
+                                          .map(Directory.class::cast)
+                                          .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).collect(Collectors.toList());
         if(subDirs.size() == 1) {
             var childDirectory = subDirs.get(0);
             sb.append("/");
@@ -134,7 +147,7 @@ public final class WarningContentHelper {
         Stream<File> files = directory.getChildren().stream()
                 .filter(File.class::isInstance)
                 .map(File.class::cast);
-        if(filteredResponsible != null && !filteredResponsible.equals(SwissAsStorage.getInstance().getMyTeam())) {
+        if(filteredResponsible != null){
             files = files.filter(file -> file.getResponsible().equals(filteredResponsible));
         }
         if(onlyCritical) {
