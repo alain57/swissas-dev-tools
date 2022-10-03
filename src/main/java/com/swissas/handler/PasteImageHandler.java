@@ -32,7 +32,7 @@ public class PasteImageHandler extends EditorActionHandler implements EditorText
 	}
 	
 	@Override
-	public void execute(Editor editor, DataContext dataContext, Producer<Transferable> producer) {
+	public void execute(Editor editor, DataContext dataContext, @Nullable Producer<? extends Transferable> producer) {
 		if (this.originalActionHandler instanceof EditorTextInsertHandler) {
 			((EditorTextInsertHandler)this.originalActionHandler).execute(editor, dataContext, producer);
 		}

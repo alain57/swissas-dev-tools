@@ -1,9 +1,10 @@
 plugins {
-    id 'org.jetbrains.intellij' version '0.4.15'
+    id "java"
+    id 'org.jetbrains.intellij' version '1.9.0'
 }
 
-group 'com.swissas.tala'
-version '1.8.3'
+group = "com.swissas.tala"
+version = "1.8.4"
 
 apply plugin: 'java'
 sourceCompatibility = JavaVersion.VERSION_11
@@ -14,54 +15,65 @@ repositories {
 
 
 dependencies {
-    testCompile group:'org.junit.jupiter', name:'junit-jupiter-api', version: '5.2.0'
-    testCompile group:'org.junit.jupiter', name:'junit-jupiter-params', version: '5.2.0'
-    testRuntime group:'org.junit.jupiter', name:'junit-jupiter-engine', version: '5.2.0'
-    testCompile group: 'org.assertj', name: 'assertj-core', version:'3.11.0'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
-    compile group: 'javax.mail', name: 'mail', version: '1.4.7'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.assertj:assertj-core:3.22.0'
+    testImplementation 'org.mockito:mockito-core:4.5.1'
+    implementation  "org.jsoup:jsoup:1.14.3"
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation  "javax.mail:mail:1.4.7"
 }
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 apply plugin: 'org.jetbrains.intellij'
 intellij {
-    downloadSources true
-    intellij.updateSinceUntilBuild false
+    intellij.updateSinceUntilBuild = false
     plugins = ['java', 'properties', 'svn4idea', 'git4idea']
-    version '2020.2.3'
+    pluginName = "Swiss-AS Dev-Tools"
+    downloadSources = true
+    version = '2021.3.3'
+    buildSearchableOptions.enabled = false
 }
+
+// JAVA compatibility
+compileJava {
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+}
+
+
 
 test {
     useJUnitPlatform()
 }
 
 publishPlugin {
-    token=System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken") //env var
+    token.set(System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")) //env var
 }
 
 patchPluginXml {
-    changeNotes """
+    changeNotes = """
+<b>V1.8.4</b><pre>Prevent exception when no sas warning exist for the team
+Fix broken picture
+update some libraries to latest version
+Updated the build.gradle to be compliant with latest maven/jetbrains intellij plugin</pre>
 <b>V1.8.3</b><pre>reduce some exception and correct some issues in the SAS warning panel</pre>
 <b>V1.8.2</b><pre>an employee got a new 4LC what is not the normal process :/ and this generated a duplicate key exception breaking the plugin for all users :/
 Use up to date JSoup as there is a critical security issue</pre>
-<b>V1.8.1</b><pre>allow 2LC as a new coworker had such letter code</pre>
+<b>V1.8.1</b><pre>Allow 2LC as a new coworker had such letter code</pre>
 <b>V1.8.0</b><pre>
 Don't replace 4LC with Team account on stable as this should not be patched down !
 Fix smart folders in SAS warning tab for sonar critical only view 
 Code cleanup
 Get rid of an exception that happens on network issue.
 </pre>
-<b>V1.7.9</b><pre>
-Prevent a potential NPE
+<b>V1.7.9</b><pre>Prevent a potential NPE
 fix smart folders in the SAS warning tab
 Add a Team Todo tab within the SAS Warning view
 </pre>
-<b>V1.7.8</b><pre>
-Fix not working SAS warning tab for new employee or team containing new employee
+<b>V1.7.8</b><pre>Fix not working SAS warning tab for new employee or team containing new employee
 </pre>
-<b>V1.7.7</b><pre>
-The IDE now clearly see that a _Message field is linked to a standard.properties key. If you rename one, it will rename the other at the same time.
+<b>V1.7.7</b><pre>The IDE now clearly see that a _Message field is linked to a standard.properties key. If you rename one, it will rename the other at the same time.
 Fixed a few small bugs and cleaned the code to avoid potential exceptions
 </pre>
 <b>V1.7.6</b><pre>

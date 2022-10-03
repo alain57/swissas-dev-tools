@@ -14,7 +14,6 @@ import static com.swissas.actions_on_save.Result.ResultCode.OK;
 
 /**
  * Implements write action that encapsulates {@link WriteCommandAction} that returns
- *
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */
@@ -30,7 +29,7 @@ public class SaveWriteCommand extends SaveCommand {
 	public Result<ResultCode> execute() {
 		RunResult<ResultCode> runResult = new WriteCommandAction<ResultCode>(getProject(), getPsiFilesAsArray()) {
 			@Override
-			protected void run(@NotNull com.intellij.openapi.application.Result<ResultCode> result) {
+			protected void run(com.intellij.openapi.application.@NotNull Result<? super ResultCode> result) throws Throwable {
 				getCommand().apply(getProject(), getPsiFilesAsArray()).run();
 				result.setResult(OK);
 			}
