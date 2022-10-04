@@ -40,6 +40,7 @@ class ConfigPanel {
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
     private JPanel mainPanel;
     private ComboBox<String> orientation;
+    private ComboBox<String> committerOption;
     private EditorTextField fourLetterCode;
     private JBCheckBox chkAnnotation;
     private JLabel label7;
@@ -56,7 +57,7 @@ class ConfigPanel {
     private EditorTextField qualityLetterBox;
     private EditorTextField supportLetterBox;
     private EditorTextField documentationLetterBox;
-	// JFormDesigner - End of variables declaration  //GEN-END:variables
+    // JFormDesigner - End of variables declaration  //GEN-END:variables
 	
 	public ConfigPanel(Project project) {
 		this.project = project;
@@ -99,6 +100,8 @@ class ConfigPanel {
 	public ComboBox<String> getOrientation() {
 		return this.orientation;
 	}
+
+    public ComboBox<String> getCommitterOption() { return this.committerOption; }
 
 	public JCheckBox getChkFixAuthor() {
 		return this.chkFixAuthor;
@@ -178,7 +181,9 @@ class ConfigPanel {
         var panel1 = new JPanel();
         var label1 = new JLabel();
         var label2 = new JLabel();
+        var label3 = new JLabel();
         this.orientation = new ComboBox();
+        this.committerOption = new ComboBox();
         this.chkAnnotation = new JBCheckBox();
         this.label7 = new JLabel();
         this.similarValue = new JBTextField();
@@ -192,7 +197,6 @@ class ConfigPanel {
         var panel3 = new JPanel();
         this.chkTranslateOnlyModifiedLines = new JBCheckBox();
         var hSpacer1 = new Spacer();
-        var label3 = new JLabel();
         var panel4 = new JPanel();
         this.preCommitCodeReviewCheckbox = new JBCheckBox();
         var hSpacer2 = new Spacer();
@@ -221,8 +225,16 @@ class ConfigPanel {
                     null, null, null));
 
                 //---- label2 ----
-                label2.setText(bundle.getString("choose.traffic.light.orientation"));
+                label2.setText(bundle.getString("committer.option"));
                 panel1.add(label2, new GridConstraints(1, 0, 1, 1,
+                        GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                        GridConstraints.SIZEPOLICY_FIXED,
+                        GridConstraints.SIZEPOLICY_FIXED,
+                        null, null, null));
+
+                //---- label3 ----
+                label3.setText(bundle.getString("choose.traffic.light.orientation"));
+                panel1.add(label3, new GridConstraints(2, 0, 1, 1,
                     GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                     GridConstraints.SIZEPOLICY_FIXED,
                     GridConstraints.SIZEPOLICY_FIXED,
@@ -235,11 +247,24 @@ class ConfigPanel {
                     "Horizontal",
                     "Vertical"
                 }));
-                panel1.add(this.orientation, new GridConstraints(1, 1, 1, 1,
+                panel1.add(this.orientation, new GridConstraints(2, 1, 1, 1,
                     GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                     GridConstraints.SIZEPOLICY_CAN_GROW,
                     GridConstraints.SIZEPOLICY_FIXED,
                     null, null, null));
+
+                //---- committer option ----
+                this.committerOption.setEditable(false);
+                this.committerOption.setInheritsPopupMenu(false);
+                this.committerOption.setModel(new DefaultComboBoxModel<>(new String[] {
+                        "User",
+                        "Team"
+                }));
+                panel1.add(this.committerOption, new GridConstraints(1, 1, 1, 1,
+                        GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                        GridConstraints.SIZEPOLICY_CAN_GROW,
+                        GridConstraints.SIZEPOLICY_FIXED,
+                        null, null, null));
 
                 //---- fourLetterCode ----
                 this.fourLetterCode.setBackground(null);

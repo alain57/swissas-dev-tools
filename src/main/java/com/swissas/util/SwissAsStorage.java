@@ -43,6 +43,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private              String  supportLetterCode               = "";
 	private              String  supportMail                     = "";
 	private              boolean horizontalOrientation           = true;
+	private              boolean user                            = true;
 	private              String  minWarningSize                  = "5";
 	private              boolean fixMissingOverride              = true;
 	private              boolean fixMissingThis                  = true;
@@ -176,7 +177,15 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	public void setHorizontalOrientation(boolean horizontalOrientation) {
 		this.horizontalOrientation = horizontalOrientation;
 	}
-	
+
+	public boolean isUser() {
+		return this.user;
+	}
+
+	public void setUser(boolean user) {
+		this.user = user;
+	}
+
 	public boolean isFixMissingOverride() {
 		return this.fixMissingOverride;
 	}

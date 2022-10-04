@@ -1,26 +1,5 @@
 package com.swissas.widget;
 
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-
-import com.intellij.openapi.options.ShowSettingsUtil;
-import com.swissas.config.SwissAsConfig;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jsoup.select.Elements;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.UISettings;
@@ -29,9 +8,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.ui.ex.MultiLineLabel;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.IconButton;
@@ -47,19 +26,33 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.labels.BoldLabel;
 import com.swissas.beans.BranchFailure;
 import com.swissas.beans.Failure;
-import com.swissas.enumerations.State;
+import com.swissas.beans.User;
 import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
-
-import icons.SwissAsIcons;
-import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jsoup.select.Elements;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.swissas.util.Constants.GREEN;
 import static com.swissas.util.Constants.OFF;
@@ -166,7 +159,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             }
         }
     }
-    
+
     private void showBreakMessage() {
         List<BranchFailure> breaker = NetworkUtil.getInstance().getTrafficLightBreaker();
         System.out.println(breaker);
@@ -174,7 +167,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         JPanel contentPanel = new JPanel(new MigLayout(new LC().fill()));
         String fourLetterCode = TrafficLightPanel.this.swissAsStorage.getFourLetterCode();
         for (BranchFailure branchFailure : breaker) {
-//            if (branchFailure.get4Lc().contains(fourLetterCode)) {
+            // TODO TALA please uncomment it later
+//            if (concerns(branchFailure.getCommitters(), fourLetterCode)) {
             JPanel branchePanel = new JPanel(new MigLayout(new LC().fillX()));
             JLabel brancheLabel = new BoldLabel(branchFailure.getJobs());
             branchePanel.add(brancheLabel, new CC().pushX().wrap());
@@ -197,8 +191,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                     NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING);
                     updateLabelIcon(lookCauseCkb, classNameLabel);
                 });
-                                               
-                                               
+
+
 
                 branchePanel.add(lookCauseCkb, new CC().wrap());
             }
@@ -246,7 +240,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             balloon.show(RelativePoint.getCenterOf(this.getComponent()), Balloon.Position.above);
         }
     }
-    
+
     private String formatFailureName(String name) {
         StringBuilder sb = new StringBuilder(name);
         sb.append("<html><p style=\"widht:400px\">");
@@ -254,7 +248,13 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         sb.append("</p></html>");
         return sb.toString();
     }
-    
+
+    private boolean concerns(String committersArray, String fourLC) {
+        List<String> committers = Arrays.asList(committersArray.split(";"));
+        Map<String, User> userMap = this.swissAsStorage.getUserMap();
+        return SwissAsStorage.getInstance().isUser() && committers.contains(fourLC) || !SwissAsStorage.getInstance().isUser() && userMap.values().stream().anyMatch(u-> u.isInTeam(userMap.get(fourLC).getTeam()));
+    }
+
     private JLabel getFailureClassName(Failure failure) {
         JLabel classNameLabel = new JLabel(failure.getClassName());
         if ("CHECKING".equals(failure.getState())) {
@@ -266,7 +266,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         }
         return classNameLabel;
     }
-    
+
     private void updateLabelIcon(JBCheckBox lookCauseCkb, JLabel classNameLabel) {
         if (lookCauseCkb.isSelected()) {
            classNameLabel.setIcon(SwissAsIcons.LOOK_FOR_CAUSE);

@@ -46,6 +46,7 @@ public class SwissAsConfig implements Configurable {
             this.configPanel.getDocumentationLetterBox().setText(this.swissAsStorage.getDocuLetterCode());
             this.configPanel.getSupportLetterBox().setText(this.swissAsStorage.getSupportLetterCode());
             this.configPanel.getOrientation().setSelectedIndex(this.swissAsStorage.isHorizontalOrientation() ? 0 : 1);
+            this.configPanel.getCommitterOption().setSelectedIndex(this.swissAsStorage.isUser() ? 0 : 1);
             this.configPanel.getMinTranslationSize().setText(this.swissAsStorage.getMinWarningSize());
             this.configPanel.getChkFixThis().setSelected(this.swissAsStorage.isFixMissingThis());
             this.configPanel.getChkFixAuthor().setSelected(this.swissAsStorage.isFixMissingAuthor());
@@ -83,6 +84,7 @@ public class SwissAsConfig implements Configurable {
                !this.swissAsStorage.getSupportLetterCode().equals(getSupportLetterCode()) ||
                !this.swissAsStorage.getDocuLetterCode().equals(getDocuLetterCode()) ||
                 this.swissAsStorage.isHorizontalOrientation() == (this.configPanel.getOrientation().getSelectedIndex() == 1) ||
+                this.swissAsStorage.isUser() == (this.configPanel.getCommitterOption().getSelectedIndex() == 1) ||
                 this.swissAsStorage.isFixMissingThis() != this.configPanel.getChkFixThis().isSelected() ||
                 this.swissAsStorage.isFixMissingAuthor() != this.configPanel.getChkFixAuthor().isSelected() ||
                !this.swissAsStorage.getMinWarningSize().equals(this.configPanel.getMinTranslationSize().getText()) ||
@@ -106,6 +108,7 @@ public class SwissAsConfig implements Configurable {
         this.swissAsStorage.setDocuLetterCode(getDocuLetterCode());
         this.swissAsStorage.setSupportLetterCode(getSupportLetterCode());
         this.swissAsStorage.setHorizontalOrientation(this.configPanel.getOrientation().getSelectedIndex() == 0);
+        this.swissAsStorage.setUser(this.configPanel.getCommitterOption().getSelectedIndex() == 0);
         this.swissAsStorage.setFixMissingThis(this.configPanel.getChkFixThis().isSelected());
         this.swissAsStorage.setFixMissingOverride(this.configPanel.getChkFixOverride().isSelected());
         this.swissAsStorage.setFixUnusedSuppressWarning(this.configPanel.getChkFixUnused().isSelected());
