@@ -23,4 +23,7 @@ public interface SwissAsIcons {
 	Icon AUTHOR = IconLoader.getIcon("/icons/author.png");
 	Icon SUPPORT = IconLoader.getIcon("/icons/support.png");
 	Icon REVIEW = IconLoader.getIcon("/icons/review.png");
+	Icon LOOK_FOR_CAUSE = IconLoader.getIcon("/icons/magn.png");
+	Icon ISSUE_FIXED = IconLoader.getIcon("/icons/activate.png");
+	Icon ISSUE = IconLoader.getIcon("/icons/lightbulb_on.png");
 }
