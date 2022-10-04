@@ -367,4 +367,8 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	public void removeFailures(Collection<Failure> failures) {
 		this.myFailures.removeAll(new HashSet<>(failures));
 	}
+
+	public boolean hasFailure(Failure failure) {
+		return this.myFailures.contains(failure);
+	}
 }
