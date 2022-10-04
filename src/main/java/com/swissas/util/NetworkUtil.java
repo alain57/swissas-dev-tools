@@ -32,6 +32,7 @@ public class NetworkUtil {
 	private static final String         STAFF_URL               = ResourceBundle.getBundle("urls").getString("url.staff");
 	private static final String         TRAFFIC_LIGHT_CLICK_URL = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
 	private static final String         TRAFFIC_LIGHT_BREAKER   = ResourceBundle.getBundle("urls").getString("url.trafficlight.breaker");
+	public static final String         JENKINS_NOTES_URL   = ResourceBundle.getBundle("urls").getString("url.jenkins.notes");
 	private static final NetworkUtil    INSTANCE                = new NetworkUtil();
 	
 	private NetworkUtil() {
