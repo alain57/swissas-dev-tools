@@ -187,6 +187,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                 branchePanel.add(detailsPanel);
 
                 JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
+                lookCauseCkb.setSelected(SwissAsStorage.getInstance().hasFailure(failure));
                 lookCauseCkb.addActionListener(e -> {
                     if(lookCauseCkb.isSelected()){
                         SwissAsStorage.getInstance().addFailure(failure);
