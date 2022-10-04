@@ -6,6 +6,7 @@ public class Failure {
 	String className;
 	String error;
 	String state;
+	String assignedTo;
 	
 	/**
 	 * @return The value of the id property
@@ -62,4 +63,38 @@ public class Failure {
 	public void setState(String state) {
 		this.state = state;
 	}
+	
+	/**
+	 * @return The value of the assignedTo property
+	 */
+	public String getAssignedTo() {
+		return assignedTo;
+	}
+	
+	/**
+	 * Sets the given value to the assignedTo property
+	 *
+	 * @param assignedTo The value to set
+	 */
+	public void setAssignedTo(String assignedTo) {
+		this.assignedTo = assignedTo;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		
+		Failure failure = (Failure) o;
+		
+		if (id != null ? !id.equals(failure.id) : failure.id != null) return false;
+		
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		return id != null ? id.hashCode() : 0;
+	}
+	
 }

@@ -26,6 +26,7 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
 import com.swissas.beans.BranchFailure;
@@ -178,16 +179,24 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             JPanel branchePanel = new JPanel(new MigLayout(new LC().fillX()));
             JLabel brancheLabel = new BoldLabel(branchFailure.getJobs());
             branchePanel.add(brancheLabel, new CC().pushX().wrap());
+            Color failureBackground = Color.LIGHT_GRAY;
             for (Failure failure : branchFailure.getFailures()) {
+                JPanel failurePanel = new JPanel(new MigLayout(new LC().fillX()));
+                failurePanel.setBackground(failureBackground);
+                
                 JPanel detailsPanel = new JPanel(new MigLayout(new LC().insets("0 0 0 0"), new AC().gap("0"), new AC().gap("0")));
+                detailsPanel.setBackground(failureBackground);
                 JLabel classNameLabel = getFailureClassName(failure);
                 detailsPanel.add(classNameLabel, new CC().wrap());
                 JLabel nameLabel = new MultiLineLabel(failure.getName());
                 detailsPanel.add(nameLabel, new CC().gapBefore("35"));
-                branchePanel.add(detailsPanel);
+    
+                failurePanel.add(detailsPanel, new CC().alignX("left"));
 
                 JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
                 lookCauseCkb.setSelected(SwissAsStorage.getInstance().hasFailure(failure));
+                lookCauseCkb.setHorizontalTextPosition(SwingConstants.LEFT);
+                lookCauseCkb.setBackground(failureBackground);
                 lookCauseCkb.addActionListener(e -> {
                     if(lookCauseCkb.isSelected()){
                         SwissAsStorage.getInstance().addFailure(failure);
@@ -197,13 +206,13 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                     NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING);
                     updateLabelIcon(lookCauseCkb, classNameLabel);
                 });
-
-
-
-                branchePanel.add(lookCauseCkb, new CC().wrap());
+    
+                failurePanel.add(lookCauseCkb, new CC().alignX("right"));
+                
+                branchePanel.add(failurePanel, new CC().wrap().growX());
             }
 
-            contentPanel.add(branchePanel, new CC().wrap());
+            contentPanel.add(branchePanel, new CC().wrap().growX());
 //            }
         }
 
@@ -223,7 +232,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
 
 
         JBPopup popup = componentPopupBuilder.setCancelOnWindowDeactivation(true).createPopup();
-        popup.setSize(new Dimension(750, 400));
+        popup.setSize(new Dimension(770, 400));
         Optional<JComponent> sourceComponentOptional = Optional.ofNullable(this.getComponent());
         if (sourceComponentOptional.isPresent()) {
             popup.showCenteredInCurrentWindow(this.project);
@@ -231,7 +240,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             popup.showInFocusCenter();
         }
     }
-        
+    
     private void showTrafficDetailsNotificationBubble() {
         if(this.trafficDetails != null) {
             Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(this.trafficDetails, MessageType.INFO, this::openTrafficDetailLink)
