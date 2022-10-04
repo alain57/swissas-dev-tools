@@ -1,14 +1,18 @@
 package com.swissas.util;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
 import com.intellij.openapi.diagnostic.Logger;
+import com.swissas.beans.BranchFailure;
 import com.swissas.beans.User;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,6 +31,7 @@ public class NetworkUtil {
 	private static final Pattern        PATTERN                 = Pattern.compile("^([^<]+).*LC:\\s+([A-Z]+).*Team:\\s+([A-Z]+).*");
 	private static final String         STAFF_URL               = ResourceBundle.getBundle("urls").getString("url.staff");
 	private static final String         TRAFFIC_LIGHT_CLICK_URL = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
+	private static final String         TRAFFIC_LIGHT_BREAKER   = ResourceBundle.getBundle("urls").getString("url.trafficlight.breaker");
 	private static final NetworkUtil    INSTANCE                = new NetworkUtil();
 	
 	private NetworkUtil() {
@@ -66,6 +71,21 @@ public class NetworkUtil {
 			LOGGER.info(ex);
 		}
 		return body;
+	}
+	
+	public List<BranchFailure> getTrafficLightBreaker() {
+		String result = null;
+
+		 Gson gson = new Gson();
+
+		try {
+			result = Jsoup.connect(TRAFFIC_LIGHT_BREAKER).timeout(20_000).ignoreContentType(true).execute().body();
+			BranchFailure[] breakers = gson.fromJson(result, BranchFailure[].class);
+			return Arrays.stream(breakers).collect(Collectors.toList());
+		} catch (IOException e) {
+			LOGGER.info(e);
+		}
+		return List.of();
 	}
 	
 }

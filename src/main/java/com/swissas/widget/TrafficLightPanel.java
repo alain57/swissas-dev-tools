@@ -1,19 +1,26 @@
 package com.swissas.widget;
 
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jsoup.select.Elements;
+
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.ui.UISettingsListener;
@@ -21,10 +28,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
+import com.intellij.openapi.ui.popup.IconButton;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vcs.AbstractVcsHelper;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
@@ -32,15 +41,20 @@ import com.intellij.openapi.vcs.changes.LocalChangeList;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.CustomStatusBarWidget;
 import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.impl.IdePanePanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
-import com.swissas.config.SwissAsConfig;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBScrollPane;
+import com.swissas.beans.BranchFailure;
+import com.swissas.beans.Failure;
 import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jsoup.select.Elements;
+
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 
 import static com.swissas.util.Constants.GREEN;
 import static com.swissas.util.Constants.OFF;
@@ -113,9 +127,10 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(TrafficLightPanel.this.swissAsStorage.getFourLetterCode().isEmpty()){
-                    ShowSettingsUtil.getInstance().showSettingsDialog(TrafficLightPanel.this.project, SwissAsConfig.class);
-                }
+                showTrafficDetailsNotificationBubble();
+//                if(TrafficLightPanel.this.swissAsStorage.getFourLetterCode().isEmpty()){
+//                    ShowSettingsUtil.getInstance().showSettingsDialog(TrafficLightPanel.this.project, SwissAsConfig.class);
+//                }
             }
         });
 
@@ -146,20 +161,69 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     private void showTrafficDetailsNotificationBubble() {
-        if(this.trafficDetails != null) {
-            Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(this.trafficDetails, MessageType.INFO, this::openTrafficDetailLink)
-                    .setCloseButtonEnabled(true)
-                    .setDisposable(this.project)
-                    .setHideOnAction(true)
-                    .setHideOnClickOutside(true)
-                    .setHideOnLinkClick(true)
-                    .setHideOnKeyOutside(true)
-                    .setFadeoutTime(3_000)
-                    .createBalloon();
-            balloon.show(RelativePoint.getCenterOf(this.getComponent()), Balloon.Position.above);
+        //if(this.trafficDetails != null) {
+        List<BranchFailure> breaker = NetworkUtil.getInstance().getTrafficLightBreaker();
+        System.out.println(breaker);
+        IdePanePanel panel = new IdePanePanel(new MigLayout(new LC().fill()));
+        panel.setPreferredSize(new Dimension(500, 400));
+        String fourLetterCode = TrafficLightPanel.this.swissAsStorage.getFourLetterCode();
+        for (BranchFailure branchFailure : breaker) {
+            if (branchFailure.get4Lc().contains(fourLetterCode)) {
+                JPanel branchePanel = new JPanel(new MigLayout(new LC().fill()));
+                JBScrollPane scrollPanel = new JBScrollPane(branchePanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                branchePanel.add(new JLabel(branchFailure.getJobs()), new CC().wrap());
+                for (Failure failure : branchFailure.getFailures()) {
+                    JPanel detailsPanel = new JPanel(new MigLayout(new LC().fill()));
+                    detailsPanel.add(new JLabel(StringUtils.substring(failure.getError(), 0, 50)), new CC().push().alignX("left"));
+                    JBCheckBox it = new JBCheckBox("Look for cause");
+                    it.setHorizontalTextPosition(SwingConstants.LEFT);
+                    it.addActionListener(e -> sendLookForCauseState(failure.getId()));
+                    detailsPanel.add(it, new CC().alignX("right"));
+                    branchePanel.add(detailsPanel, new CC().push().wrap());
+                }
+                panel.add(scrollPanel);
+            }
         }
-    }
+        ComponentPopupBuilder stuff = JBPopupFactory.getInstance().createComponentPopupBuilder(panel, null);
+        stuff.setCancelOnClickOutside(false)
+                .setTitle("You broke one or multiple branches !")
+                .setRequestFocus(true)
+                .setFocusable(true)
+                .setMovable(false)
+                .setCancelOnOtherWindowOpen(false)
+                .setCancelOnWindowDeactivation(true)
+                .setCancelKeyEnabled(false)
+                .setShowBorder(true)
+                .setCancelButton(new IconButton("Not involved", AllIcons.Actions.Close));
+    
+    
+        JBPopup popup = stuff.setCancelOnWindowDeactivation(true).createPopup();
+        Optional<JComponent> sourceComponentOptional = Optional.ofNullable(this.getComponent());
+            if (sourceComponentOptional.isPresent()) {
+                popup.showCenteredInCurrentWindow(this.project);
+            } else {
+                popup.showInFocusCenter();
+            }
+        
 
+//            Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(this.trafficDetails, MessageType.INFO, this::openTrafficDetailLink)
+//                    .setCloseButtonEnabled(true)
+//                    .setDisposable(this.project)
+//                    .setHideOnAction(true)
+//                    .setHideOnClickOutside(true)
+//                    .setHideOnLinkClick(true)
+//                    .setHideOnKeyOutside(true)
+//                    .setFadeoutTime(3_000)
+//                    .createBalloon();
+//            balloon.show(RelativePoint.getCenterOf(this.getComponent()), Balloon.Position.above);
+        //}
+    }
+    
+    private void sendLookForCauseState(String id) {
+        // TODO 03 Oct 2022 Auto-generated method stub
+    
+    }
+    
     public void setOrientation() {
         int radius =  this.swissAsStorage.isHorizontalOrientation() ? RADIUS_HORIZONTAL : RADIUS_VERTICAL;
         int border = this.swissAsStorage.isHorizontalOrientation() ? BORDER_HORIZONTAL : BORDER_VERTICAL;
