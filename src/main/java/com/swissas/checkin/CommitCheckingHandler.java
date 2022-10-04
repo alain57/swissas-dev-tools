@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NonNls;
  *
  * @author Tavan Alain
  */
-class PreCommitCheckingHandler extends CheckinHandler {
+class CommitCheckingHandler extends CheckinHandler {
 	
 	@NonNls
 	private static final String         TITLE            = ResourceBundle.getBundle("texts")
@@ -46,7 +46,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	private TrafficLightPanel trafficLightPanel = null;
 	private ImportantPreCommits importantPreCommitsDialog;
 	
-	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel, boolean isGit) {
+	CommitCheckingHandler(CheckinProjectPanel checkinProjectPanel, boolean isGit) {
 		this.isGit = isGit;
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
@@ -61,6 +61,13 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	public void checkinSuccessful() {
 		if(this.importantPreCommitsDialog != null) {
 			this.importantPreCommitsDialog.sendMail();
+		}
+		if(!SwissAsStorage.getInstance().getMyFailures().isEmpty()){
+			if(SwissAsStorage.getInstance().getMyFailures().size() == 1) {
+				//TODO : inform info term
+			}else {
+				//TODO : show dialog to choose what failure the commit should fix
+			}
 		}
 	}
 	
