@@ -2,16 +2,14 @@ package com.swissas.checkin;
 
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import com.intellij.openapi.diagnostic.Logger;
+
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -27,14 +25,11 @@ import com.swissas.dialog.ConfirmationDialog;
 import com.swissas.dialog.ImportantPreCommits;
 import com.swissas.util.NetworkUtil;
 import com.swissas.enumerations.State;
-import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
 import com.swissas.widget.TrafficLightPanel;
 import org.jetbrains.annotations.NonNls;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 
 /**
  * The pre commit checking that will prevent committing with empty message, incorrect traffic light indicator
@@ -82,12 +77,14 @@ class CommitCheckingHandler extends CheckinHandler {
                 NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.ALREADY_FIXED);
                 SwissAsStorage.getInstance().removeFailure(failure);
             } else {
-                FailureDialogWrapper failureDialogWrapper = new FailureDialogWrapper();
-                if (failureDialogWrapper.showAndGet()) {
-                    Set<Failure> markAsFixed = failureDialogWrapper.getMarkAsFixed();
-                    NetworkUtil.getInstance().informInfoTerm(markAsFixed.stream().map(Failure::getId).collect(Collectors.toSet()), State.ALREADY_FIXED);
-                    SwissAsStorage.getInstance().removeFailures(markAsFixed);
-                }
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    FailureDialogWrapper failureDialogWrapper = new FailureDialogWrapper(this.project, false);
+                    if (failureDialogWrapper.showAndGet()) {
+                        Set<Failure> markAsFixed = failureDialogWrapper.getMarkAsFixed();
+                        NetworkUtil.getInstance().informInfoTerm(markAsFixed.stream().map(Failure::getId).collect(Collectors.toSet()), State.ALREADY_FIXED);
+                        SwissAsStorage.getInstance().removeFailures(markAsFixed);
+                    }
+                });
             }
         }
     }

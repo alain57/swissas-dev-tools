@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBPanel;
@@ -19,10 +20,11 @@ import org.jetbrains.annotations.Nullable;
 public class FailureDialogWrapper extends DialogWrapper {
 	Set<Failure> failuresToMarkAsFix = new HashSet<>();
 
-	protected FailureDialogWrapper() {
-		super(true);
+	protected FailureDialogWrapper(@Nullable Project project, boolean canBeParent) {
+		super(project, canBeParent);
 		setTitle("Choose the Failure(S) This Commit Should Fix");
 	}
+
 
 	@Override
 	protected @Nullable JComponent createCenterPanel() {
