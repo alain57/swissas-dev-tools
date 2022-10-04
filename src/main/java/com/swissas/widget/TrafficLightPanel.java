@@ -42,6 +42,8 @@ import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.select.Elements;
@@ -194,16 +196,19 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                 failurePanel.add(detailsPanel, new CC().alignX("left"));
 
                 JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
-                lookCauseCkb.setSelected(SwissAsStorage.getInstance().hasFailure(failure));
+                lookCauseCkb.setEnabled(fourLetterCode.equals(failure.getAssignedTo()) || StringUtils.isEmpty(failure.getAssignedTo()));
+                lookCauseCkb.setToolTipText(getAssignment(failure));
+                lookCauseCkb.setSelected(SwissAsStorage.getInstance().hasFailure(failure) || StringUtils.isNotEmpty(failure.getAssignedTo()));
                 lookCauseCkb.setHorizontalTextPosition(SwingConstants.LEFT);
                 lookCauseCkb.setBackground(failureBackground);
                 lookCauseCkb.addActionListener(e -> {
                     if(lookCauseCkb.isSelected()){
                         SwissAsStorage.getInstance().addFailure(failure);
+                        NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING);
                     }else {
                         SwissAsStorage.getInstance().removeFailure(failure);
+                        NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.NOT_ASSIGNED, "");
                     }
-                    NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING);
                     updateLabelIcon(lookCauseCkb, classNameLabel);
                 });
     
@@ -239,6 +244,15 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         } else {
             popup.showInFocusCenter();
         }
+    }
+    
+    private String getAssignment(Failure failure) {
+        if (TrafficLightPanel.this.swissAsStorage.getFourLetterCode().equals(failure.getAssignedTo())) {
+            return "Assigned to me";
+        } else if (StringUtils.isNotEmpty(failure.getAssignedTo())) {
+            return "Assigned to " + failure.getAssignedTo();
+        }
+        return "Not yet assigned";
     }
     
     private void showTrafficDetailsNotificationBubble() {

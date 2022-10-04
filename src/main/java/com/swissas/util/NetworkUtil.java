@@ -98,9 +98,13 @@ public class NetworkUtil {
 	}
 	
 	public void informInfoTerm(String id, State state){
+		informInfoTerm(id, state, SwissAsStorage.getInstance().getFourLetterCode());
+	}
+	
+	public void informInfoTerm(String id, State state, String assigned){
 		Map<String, String> data = new HashMap<>() {{
 			put("link", id);
-			put("assigned", SwissAsStorage.getInstance().getFourLetterCode());
+			put("assigned", assigned);
 			put("State", state.name());
 			put("action", "");
 		}};
