@@ -3,6 +3,7 @@ package com.swissas.widget;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +16,12 @@ import java.util.TimerTask;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import com.intellij.icons.AllIcons;
@@ -177,7 +181,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                     detailsPanel.add(new JLabel(StringUtils.substring(failure.getError(), 0, 50)), new CC().push().alignX("left"));
                     JBCheckBox it = new JBCheckBox("Look for cause");
                     it.setHorizontalTextPosition(SwingConstants.LEFT);
-                    it.addActionListener(e -> sendLookForCauseState(failure.getId()));
+                    it.addActionListener(e -> sendLookForCauseState(failure.getId(), fourLetterCode));
                     detailsPanel.add(it, new CC().alignX("right"));
                     branchePanel.add(detailsPanel, new CC().push().wrap());
                 }
@@ -219,9 +223,27 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         //}
     }
     
-    private void sendLookForCauseState(String id) {
-        // TODO 03 Oct 2022 Auto-generated method stub
-    
+    private void sendLookForCauseState(String commentId, String user) {
+        HashMap<String, String> data = new HashMap<>() {{
+            put("link", commentId);
+            put("assigned", user);
+            put("State", "CHECKING");
+            put("action", "");
+        }};
+        try {
+            Connection.Response execute = Jsoup
+                    .connect(NetworkUtil.JENKINS_NOTES_URL)
+                    .timeout(20_000)
+                    .ignoreContentType(true)
+                    .data(data)
+                    .method(Connection.Method.POST)
+                    .execute();
+
+            Logger.getInstance("Swiss-as").info(execute.statusCode()+" "+execute.statusMessage());
+        } catch (IOException e) {
+            Logger.getInstance("Swiss-as").error(e);
+            throw new RuntimeException(e);
+        }
     }
     
     public void setOrientation() {
