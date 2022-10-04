@@ -2,13 +2,16 @@ package com.swissas.beans;
 
 public class Failure {
 	String id;
+	String name;
+	String className;
 	String error;
+	String state;
 	
 	/**
 	 * @return The value of the id property
 	 */
 	public String getId() {
-		return id;
+		return this.id;
 	}
 	
 	/**
@@ -24,7 +27,7 @@ public class Failure {
 	 * @return The value of the error property
 	 */
 	public String getError() {
-		return error;
+		return this.error;
 	}
 	
 	/**
@@ -35,5 +38,28 @@ public class Failure {
 	public void setError(String error) {
 		this.error = error;
 	}
-	
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getClassName() {
+		return this.className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
+	public String getState() {
+		return this.state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
 }
