@@ -3,7 +3,6 @@ package com.swissas.widget;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +15,8 @@ import java.util.TimerTask;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import com.intellij.icons.AllIcons;
@@ -33,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.ui.ex.MultiLineLabel;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.IconButton;
@@ -49,6 +46,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.labels.BoldLabel;
 import com.swissas.beans.BranchFailure;
 import com.swissas.beans.Failure;
 import com.swissas.enumerations.State;
@@ -165,55 +163,41 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             }
         }
     }
-
+    
     private void showTrafficDetailsNotificationBubble() {
         //if(this.trafficDetails != null) {
         List<BranchFailure> breaker = NetworkUtil.getInstance().getTrafficLightBreaker();
         System.out.println(breaker);
-    
+        
         JPanel contentPanel = new JPanel(new MigLayout(new LC().fill()));
-        JBScrollPane scrollPanel = new JBScrollPane(contentPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    
         String fourLetterCode = TrafficLightPanel.this.swissAsStorage.getFourLetterCode();
         for (BranchFailure branchFailure : breaker) {
 //            if (branchFailure.get4Lc().contains(fourLetterCode)) {
             JPanel branchePanel = new JPanel(new MigLayout(new LC().fillX()));
-            JLabel brancheLabel = new JLabel(branchFailure.getJobs());
-            brancheLabel.setFont(new Font( "", Font.BOLD, 12));
+            JLabel brancheLabel = new BoldLabel(branchFailure.getJobs());
             branchePanel.add(brancheLabel, new CC().pushX().wrap());
-            Color failureBackground = Color.lightGray;
             for (Failure failure : branchFailure.getFailures()) {
-                JPanel failurePanel = new JPanel(new MigLayout(new LC().fillX()));
-                failurePanel.setBackground(failureBackground);
-            
                 JPanel detailsPanel = new JPanel(new MigLayout(new LC().insets("0 0 0 0"), new AC().gap("0"), new AC().gap("0")));
-                detailsPanel.setBackground(failureBackground);
-                JLabel classNameLabel = getFailureInfo(failure);
+                JLabel classNameLabel = getFailureClassName(failure);
                 detailsPanel.add(classNameLabel, new CC().wrap());
-                JLabel nameLabel = new JLabel(failure.getName());
+                JLabel nameLabel = new MultiLineLabel(failure.getName());
                 detailsPanel.add(nameLabel, new CC().gapBefore("35"));
-            
-                failurePanel.add(detailsPanel, new CC().alignX("left").alignY("top"));
-            
+                
+                branchePanel.add(detailsPanel);
+
                 JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
-                lookCauseCkb.setBackground(failureBackground);
-                lookCauseCkb.setHorizontalTextPosition(SwingConstants.LEFT);
                 lookCauseCkb.addActionListener(e -> NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING));
                 lookCauseCkb.addActionListener(e -> updateLabelIcon(lookCauseCkb, classNameLabel));
-            
-                failurePanel.add(lookCauseCkb, new CC().alignY("top"));
-            
-                branchePanel.add(failurePanel, new CC().pushX().wrap());
+
+                branchePanel.add(lookCauseCkb, new CC().wrap());
             }
-        
-            contentPanel.add(branchePanel, new CC().alignX("center").alignY("center"));
+            
+            contentPanel.add(branchePanel, new CC().wrap());
 //            }
         }
-    
-        IdePanePanel idePanel = new IdePanePanel(new BorderLayout());
-        idePanel.setPreferredSize(new Dimension(520, 400));
-        idePanel.add(scrollPanel, BorderLayout.CENTER);
-        ComponentPopupBuilder componentPopupBuilder = JBPopupFactory.getInstance().createComponentPopupBuilder(idePanel, null);
+        
+        JBScrollPane scrollPanel = new JBScrollPane(contentPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        ComponentPopupBuilder componentPopupBuilder = JBPopupFactory.getInstance().createComponentPopupBuilder(scrollPanel, null);
         componentPopupBuilder.setCancelOnClickOutside(false)
                 .setTitle("You broke one or multiple branches !")
                 .setRequestFocus(true)
@@ -222,11 +206,12 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                 .setCancelOnOtherWindowOpen(false)
                 .setCancelOnWindowDeactivation(true)
                 .setCancelKeyEnabled(false)
-                .setShowBorder(true)
+                .setShowBorder(true).setResizable(true)
                 .setCancelButton(new IconButton("Not involved", AllIcons.Actions.Close));
-    
-    
+        
+        
         JBPopup popup = componentPopupBuilder.setCancelOnWindowDeactivation(true).createPopup();
+        popup.setSize(new Dimension(750, 400));
         Optional<JComponent> sourceComponentOptional = Optional.ofNullable(this.getComponent());
         if (sourceComponentOptional.isPresent()) {
             popup.showCenteredInCurrentWindow(this.project);
@@ -248,7 +233,15 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         //}
     }
     
-    private JLabel getFailureInfo(Failure failure) {
+    private String formatFailureName(String name) {
+        StringBuilder sb = new StringBuilder(name);
+        sb.append("<html><p style=\"widht:400px\">");
+        sb.append(name);
+        sb.append("</p></html>");
+        return sb.toString();
+    }
+    
+    private JLabel getFailureClassName(Failure failure) {
         JLabel classNameLabel = new JLabel(failure.getClassName());
         if ("CHECKING".equals(failure.getState())) {
             classNameLabel.setIcon(SwissAsIcons.LOOK_FOR_CAUSE);
