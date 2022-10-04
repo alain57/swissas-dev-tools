@@ -17,7 +17,7 @@ import java.util.Optional;
  * The pre-commit checking factory class
  * @author Tavan Alain
  */
-class PreCommitCheckingFactory extends CheckinHandlerFactory {
+class CheckingFactory extends CheckinHandlerFactory {
     @NotNull
     @Override
     public CheckinHandler createHandler(@NotNull CheckinProjectPanel panel, @NotNull CommitContext commitContext) {
@@ -29,6 +29,6 @@ class PreCommitCheckingFactory extends CheckinHandlerFactory {
             String vcsName = Optional.ofNullable(VcsUtil.getVcsFor(project, filePath)).map(AbstractVcs::getName).orElse("");
             isGit = "Git".equalsIgnoreCase(vcsName);
         }
-        return new PreCommitCheckingHandler(panel, isGit);
+        return new CommitCheckingHandler(panel, isGit);
     }
 }

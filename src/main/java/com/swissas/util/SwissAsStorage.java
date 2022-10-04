@@ -3,6 +3,7 @@ package com.swissas.util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.Consumer;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.swissas.beans.BranchFailure;
+import com.swissas.beans.Failure;
 import com.swissas.beans.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +61,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private final Map<String, String> fullNameTo4LcMap;
 	private       Properties        shareProperties;
 	private       boolean           isNewTranslation  = false;
+	private final Set<Failure>     myFailures = new HashSet<>();
 	
 	public SwissAsStorage() {
 		this.ignoredValues = new ArrayList<>();
@@ -345,5 +349,17 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 
 	public void setSimilarValue(double similarValue) {
 		this.similarValue = similarValue;
+	}
+	
+	public Set<Failure> getMyFailures() {
+		return this.myFailures;
+	}
+	
+	public void addFailure(Failure failure) {
+		this.myFailures.add(failure);
+	}
+	
+	public void removeFailure(Failure failure) {
+		this.myFailures.remove(failure);
 	}
 }

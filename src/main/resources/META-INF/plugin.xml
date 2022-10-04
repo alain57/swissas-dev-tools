@@ -18,7 +18,7 @@
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
                                  instance="com.swissas.config.SwissAsConfig" />
         <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />
-        <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckingFactory"/>
+        <checkinHandlerFactory implementation="com.swissas.checkin.CheckingFactory"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
         <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
         <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />

@@ -13,7 +13,7 @@ public class BranchFailure {
 	 * @return The value of the jobs property
 	 */
 	public String getJobs() {
-		return jobs;
+		return this.jobs;
 	}
 	
 	/**
@@ -29,7 +29,7 @@ public class BranchFailure {
 	 * @return The value of the committers property
 	 */
 	public String getCommitters() {
-		return committers;
+		return this.committers;
 	}
 	
 	/**
@@ -45,7 +45,7 @@ public class BranchFailure {
 	 * @return The value of the failures property
 	 */
 	public List<Failure> getFailures() {
-		return failures;
+		return this.failures;
 	}
 	
 	/**
