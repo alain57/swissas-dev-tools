@@ -51,6 +51,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.swissas.beans.BranchFailure;
 import com.swissas.beans.Failure;
+import com.swissas.enumerations.State;
 import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
