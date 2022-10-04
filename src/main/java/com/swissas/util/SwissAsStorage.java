@@ -1,6 +1,7 @@
 package com.swissas.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -361,5 +362,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public void removeFailure(Failure failure) {
 		this.myFailures.remove(failure);
+	}
+	
+	public void removeFailures(Collection<Failure> failures) {
+		this.myFailures.removeAll(new HashSet<>(failures));
 	}
 }

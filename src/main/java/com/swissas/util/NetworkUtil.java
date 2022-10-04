@@ -2,6 +2,8 @@ package com.swissas.util;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -14,6 +16,8 @@ import com.google.gson.Gson;
 import com.intellij.openapi.diagnostic.Logger;
 import com.swissas.beans.BranchFailure;
 import com.swissas.beans.User;
+import com.swissas.enumerations.State;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -87,6 +91,32 @@ public class NetworkUtil {
 			LOGGER.info(e);
 		}
 		return List.of();
+	}
+	
+	public void informInfoTerm(Collection<String> ids, State state){
+		informInfoTerm(String.join(",", ids), state);
+	}
+	
+	public void informInfoTerm(String id, State state){
+		Map<String, String> data = new HashMap<>() {{
+			put("link", id);
+			put("assigned", SwissAsStorage.getInstance().getFourLetterCode());
+			put("State", state.name());
+			put("action", "");
+		}};
+		try {
+			Connection.Response execute = Jsoup
+					.connect(NetworkUtil.JENKINS_NOTES_URL)
+					.timeout(20_000)
+					.ignoreContentType(true)
+					.data(data)
+					.method(Connection.Method.POST)
+					.execute();
+			Logger.getInstance("Swiss-as").info(execute.statusCode()+" "+execute.statusMessage());
+		} catch (IOException e) {
+			Logger.getInstance("Swiss-as").error(e);
+			throw new RuntimeException(e);
+		}
 	}
 	
 }

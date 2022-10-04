@@ -3,8 +3,10 @@ package com.swissas.checkin;
 
 import java.io.File;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -16,8 +18,11 @@ import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
+import com.swissas.beans.Failure;
 import com.swissas.dialog.ConfirmationDialog;
 import com.swissas.dialog.ImportantPreCommits;
+import com.swissas.enumerations.State;
+import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.StringUtils;
 import com.swissas.util.SwissAsStorage;
@@ -66,7 +71,12 @@ class CommitCheckingHandler extends CheckinHandler {
 			if(SwissAsStorage.getInstance().getMyFailures().size() == 1) {
 				//TODO : inform info term
 			}else {
-				//TODO : show dialog to choose what failure the commit should fix
+				FailureDialogWrapper failureDialogWrapper = new FailureDialogWrapper();
+				if(failureDialogWrapper.showAndGet()){
+					Set<Failure> markAsFixed = failureDialogWrapper.getMarkAsFixed();
+					SwissAsStorage.getInstance().removeFailures(markAsFixed);
+					NetworkUtil.getInstance().informInfoTerm(markAsFixed.stream().map(e -> e.getId()).collect(Collectors.toSet()), State.ALREADY_FIXED);
+				}
 			}
 		}
 	}
