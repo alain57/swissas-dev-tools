@@ -3,6 +3,7 @@ package com.swissas.widget;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,11 @@ import java.util.TimerTask;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import com.intellij.icons.AllIcons;
@@ -165,46 +169,46 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         //if(this.trafficDetails != null) {
         List<BranchFailure> breaker = NetworkUtil.getInstance().getTrafficLightBreaker();
         System.out.println(breaker);
-        
+    
         JPanel contentPanel = new JPanel(new MigLayout(new LC().fill()));
         JBScrollPane scrollPanel = new JBScrollPane(contentPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        
+    
         String fourLetterCode = TrafficLightPanel.this.swissAsStorage.getFourLetterCode();
         for (BranchFailure branchFailure : breaker) {
 //            if (branchFailure.get4Lc().contains(fourLetterCode)) {
-                JPanel branchePanel = new JPanel(new MigLayout(new LC().fillX()));
-                JLabel brancheLabel = new JLabel(branchFailure.getJobs());
-                brancheLabel.setFont(new Font( "", Font.BOLD, 12));
-                branchePanel.add(brancheLabel, new CC().pushX().wrap());
-                Color failureBackground = Color.lightGray;
-                for (Failure failure : branchFailure.getFailures()) {
-                    JPanel failurePanel = new JPanel(new MigLayout(new LC().fillX()));
-                    failurePanel.setBackground(failureBackground);
-                    
-                    JPanel detailsPanel = new JPanel(new MigLayout(new LC().insets("0 0 0 0"), new AC().gap("0"), new AC().gap("0")));
-                    detailsPanel.setBackground(failureBackground);
-                    JLabel classNameLabel = getFailureInfo(failure);
-                    detailsPanel.add(classNameLabel, new CC().wrap());
-                    JLabel nameLabel = new JLabel(failure.getName());
-                    detailsPanel.add(nameLabel, new CC().gapBefore("35"));
-                    
-                    failurePanel.add(detailsPanel, new CC().alignX("left").alignY("top"));
-                    
-                    JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
-                    lookCauseCkb.setBackground(failureBackground);
-                    lookCauseCkb.setHorizontalTextPosition(SwingConstants.LEFT);
-                    lookCauseCkb.addActionListener(e -> sendLookForCauseState(failure.getId()));
-                    lookCauseCkb.addActionListener(e -> updateLabelIcon(lookCauseCkb, classNameLabel));
-                    
-                    failurePanel.add(lookCauseCkb, new CC().alignY("top"));
-                    
-                    branchePanel.add(failurePanel, new CC().pushX().wrap());
-                }
-                
-                contentPanel.add(branchePanel, new CC().alignX("center").alignY("center"));
+            JPanel branchePanel = new JPanel(new MigLayout(new LC().fillX()));
+            JLabel brancheLabel = new JLabel(branchFailure.getJobs());
+            brancheLabel.setFont(new Font( "", Font.BOLD, 12));
+            branchePanel.add(brancheLabel, new CC().pushX().wrap());
+            Color failureBackground = Color.lightGray;
+            for (Failure failure : branchFailure.getFailures()) {
+                JPanel failurePanel = new JPanel(new MigLayout(new LC().fillX()));
+                failurePanel.setBackground(failureBackground);
+            
+                JPanel detailsPanel = new JPanel(new MigLayout(new LC().insets("0 0 0 0"), new AC().gap("0"), new AC().gap("0")));
+                detailsPanel.setBackground(failureBackground);
+                JLabel classNameLabel = getFailureInfo(failure);
+                detailsPanel.add(classNameLabel, new CC().wrap());
+                JLabel nameLabel = new JLabel(failure.getName());
+                detailsPanel.add(nameLabel, new CC().gapBefore("35"));
+            
+                failurePanel.add(detailsPanel, new CC().alignX("left").alignY("top"));
+            
+                JBCheckBox lookCauseCkb = new JBCheckBox("Look for cause");
+                lookCauseCkb.setBackground(failureBackground);
+                lookCauseCkb.setHorizontalTextPosition(SwingConstants.LEFT);
+                lookCauseCkb.addActionListener(e -> NetworkUtil.getInstance().informInfoTerm(failure.getId(), State.CHECKING));
+                lookCauseCkb.addActionListener(e -> updateLabelIcon(lookCauseCkb, classNameLabel));
+            
+                failurePanel.add(lookCauseCkb, new CC().alignY("top"));
+            
+                branchePanel.add(failurePanel, new CC().pushX().wrap());
+            }
+        
+            contentPanel.add(branchePanel, new CC().alignX("center").alignY("center"));
 //            }
         }
-        
+    
         IdePanePanel idePanel = new IdePanePanel(new BorderLayout());
         idePanel.setPreferredSize(new Dimension(520, 400));
         idePanel.add(scrollPanel, BorderLayout.CENTER);
@@ -223,12 +227,12 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     
         JBPopup popup = componentPopupBuilder.setCancelOnWindowDeactivation(true).createPopup();
         Optional<JComponent> sourceComponentOptional = Optional.ofNullable(this.getComponent());
-            if (sourceComponentOptional.isPresent()) {
-                popup.showCenteredInCurrentWindow(this.project);
-            } else {
-                popup.showInFocusCenter();
-            }
-        
+        if (sourceComponentOptional.isPresent()) {
+            popup.showCenteredInCurrentWindow(this.project);
+        } else {
+            popup.showInFocusCenter();
+        }
+
 
 //            Balloon balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(this.trafficDetails, MessageType.INFO, this::openTrafficDetailLink)
 //                    .setCloseButtonEnabled(true)
