@@ -3,10 +3,12 @@ package com.swissas.handler;
 import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.util.Optional;
 
 import javax.swing.ImageIcon;
 
 import com.intellij.diagnostic.PluginException;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
@@ -14,6 +16,7 @@ import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.openapi.editor.actionSystem.EditorTextInsertHandler;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.util.Producer;
@@ -59,15 +62,8 @@ public class PasteImageHandler extends EditorActionHandler implements EditorText
 			try {
 				this.originalActionHandler.execute(editor, caret, dataContext);
 			} catch (Throwable e) {
-				PluginId pluginId;
-				try {
-					// this one is 2019(ish) only
-					pluginId = PluginManagerCore
-							.getPluginOrPlatformByClassName(this.originalActionHandler.getClass().getName());
-				} catch (Throwable ignored) {
-					// use old implementation, goes back to 2016
-					pluginId = PluginManagerCore.getPluginByClassName(this.originalActionHandler.getClass().getName());
-				}
+				PluginId pluginId = Optional.ofNullable(PluginManager.getPluginByClass(this.originalActionHandler.getClass()))
+				                            .map(PluginDescriptor::getPluginId).orElse(null);
 				LOGGER.error(new PluginException("execute() delegated to original paste handler, " + e.getMessage(), e, pluginId));
 			}
 		}
