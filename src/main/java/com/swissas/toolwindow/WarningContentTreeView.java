@@ -81,7 +81,7 @@ public class WarningContentTreeView extends JPanel {
             borderLayoutPanel.addToTop(topActionBar);
         }
         add(borderLayoutPanel, BorderLayout.CENTER);
-        new TreeSpeedSearch(this.tree, e -> WarningContentTreeComparator.getDisplayTextToSort(e.getLastPathComponent().toString()), true);
+        new TreeSpeedSearch(this.tree, true, e -> WarningContentTreeComparator.getDisplayTextToSort(e.getLastPathComponent().toString()));
     }
 
     private void buildTree() {
