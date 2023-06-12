@@ -178,7 +178,7 @@ class ConfigPanel {
         var panel1 = new JPanel();
         var label1 = new JLabel();
         var label2 = new JLabel();
-        this.orientation = new ComboBox();
+        this.orientation = new ComboBox<>();
         this.chkAnnotation = new JBCheckBox();
         this.label7 = new JLabel();
         this.similarValue = new JBTextField();
