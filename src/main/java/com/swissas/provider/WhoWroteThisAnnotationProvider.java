@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.vcs.actions.ShowAnnotateOperationsPopup;
 import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.intellij.openapi.vcs.annotate.UpToDateLineNumberListener;
@@ -27,9 +28,8 @@ public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionPro
 	}
 	
 	
-	private static class WhoIsThisRightClickAction extends AnAction implements UpToDateLineNumberListener {
+	private static class WhoIsThisRightClickAction extends AnAction {
 		private final FileAnnotation annotation;
-		private int lineNumber;
 		
 		public WhoIsThisRightClickAction(@NotNull FileAnnotation annotation){
 			super("Who Wrote This", "Display information about the letter code", SwissAsIcons.AUTHOR);
@@ -41,15 +41,11 @@ public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionPro
 		
 		@Override
 		public void actionPerformed(@NotNull AnActionEvent e) {
-			VcsRevisionNumber lineRevisionNumber = this.annotation.getLineRevisionNumber(this.lineNumber);
+			int lineNumber = ShowAnnotateOperationsPopup.getAnnotationLineNumber(e.getDataContext());
+			VcsRevisionNumber lineRevisionNumber = this.annotation.getLineRevisionNumber(lineNumber);
 			String lc = Objects.requireNonNull(this.annotation.getAuthorsMappingProvider())
 			                   .getAuthors().get(lineRevisionNumber);
 			ShowLetterCodeInformationHelper.displayInformation(lc, null);
-		}
-		
-		@Override
-		public void consume(Integer integer) {
-			this.lineNumber = integer;
 		}
 	}
 }
