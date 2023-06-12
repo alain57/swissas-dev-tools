@@ -25,7 +25,7 @@
         <inspectionToolProvider implementation="com.swissas.inspection.WebWarningInspectionProvider" />
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
-        <statusBarWidgetFactory id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetProvider"/>
+        <statusBarWidgetFactory id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetFactory"/>
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.WhoWroteThisAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenCaseAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />

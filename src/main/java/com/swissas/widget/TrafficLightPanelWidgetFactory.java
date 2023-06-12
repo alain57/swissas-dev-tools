@@ -10,16 +10,15 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.openapi.wm.StatusBarWidgetProvider;
-import com.intellij.openapi.wm.impl.status.MemoryUsagePanel;
+import com.intellij.openapi.wm.StatusBarWidgetFactory;
 import com.swissas.util.NetworkUtil;
 import com.swissas.util.ProjectUtil;
 import com.swissas.util.SwissAsStorage;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * The main class of the plugin that installs the traffic light on the bottom of the IDE
@@ -28,12 +27,12 @@ import org.jetbrains.annotations.Nullable;
  * @author Tavan Alain
  */
 
-public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider {
+public class TrafficLightPanelWidgetFactory implements StatusBarWidgetFactory {
 	private final Properties properties;
 	private final SwissAsStorage swissAsStorage;
 	private Project project;
 	
-	public TrafficLightPanelWidgetProvider() {
+	public TrafficLightPanelWidgetFactory() {
 		this.properties = new Properties();
 		this.swissAsStorage = SwissAsStorage.getInstance();
 	}
@@ -43,7 +42,7 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 		TimerTask refreshUserMapTimerTask = new TimerTask() {
 			@Override
 			public void run() {
-				if(ProjectUtil.getInstance().isAmosProject(TrafficLightPanelWidgetProvider.this.project)) {
+				if(ProjectUtil.getInstance().isAmosProject(TrafficLightPanelWidgetFactory.this.project)) {
 					NetworkUtil.getInstance().refreshUserMap();
 				}
 			}
@@ -72,25 +71,25 @@ public class TrafficLightPanelWidgetProvider implements StatusBarWidgetProvider 
 		}
 	}
 	
-	@Nullable
 	@Override
-	public StatusBarWidget getWidget(@NotNull Project project) {
+	public @NotNull @NonNls String getId() {
+		return TrafficLightPanel.WIDGET_ID;
+	}
+	
+	@Override
+	public @NotNull @NlsContexts.ConfigurableName String getDisplayName() {
+		return TrafficLightPanel.WIDGET_DISPLAY_NAME;
+	}
+	
+	@Override
+	public boolean isAvailable(@NotNull Project project) {
+		return ProjectUtil.getInstance().isAmosProject(project);
+	}
+	
+	@Override
+	public @NotNull StatusBarWidget createWidget(@NotNull Project project) {
 		this.project = project;
 		fillSharedProperties();
-		TrafficLightPanel trafficLightPanel;
-		if(ProjectUtil.getInstance().isAmosProject(project)) {
-			trafficLightPanel = new TrafficLightPanel(project);
-		}else {
-			trafficLightPanel = null;
-		}
-		return trafficLightPanel;
+		return new TrafficLightPanel(project);
 	}
-
-	@NotNull
-	@Override
-	public String getAnchor() {
-		return StatusBar.Anchors.before(MemoryUsagePanel.WIDGET_ID);
-	}
-
-
 }
