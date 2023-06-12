@@ -19,10 +19,6 @@ public class Result<T> {
 		this.result = result;
 	}
 	
-	Result(RunResult<T> result) {
-		this.result = result.getResultObject();
-	}
-	
 	public T getResult() {
 		return this.result;
 	}

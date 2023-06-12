@@ -3,11 +3,10 @@ package com.swissas.actions_on_save;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.util.ThrowableRunnable;
 
 import static com.swissas.actions_on_save.Result.ResultCode;
 import static com.swissas.actions_on_save.Result.ResultCode.OK;
@@ -27,14 +26,12 @@ public class SaveWriteCommand extends SaveCommand {
 	
 	@Override
 	public Result<ResultCode> execute() {
-		RunResult<ResultCode> runResult = new WriteCommandAction<ResultCode>(getProject(), getPsiFilesAsArray()) {
-			@Override
-			protected void run(com.intellij.openapi.application.@NotNull Result<? super ResultCode> result) throws Throwable {
-				getCommand().apply(getProject(), getPsiFilesAsArray()).run();
-				result.setResult(OK);
-			}
-		}.execute();
-		return new Result<>(runResult);
+		try {
+			WriteCommandAction.writeCommandAction(getProject(), getPsiFilesAsArray())
+			                  .run((ThrowableRunnable<Throwable>) () -> getCommand().apply(getProject(), getPsiFilesAsArray()).run());
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+		return new Result<>(OK);
 	}
-	
 }
