@@ -11,16 +11,20 @@ import com.intellij.openapi.util.IconLoader;
  */
 
 public interface SwissAsIcons {
-	Icon CRITICAL = IconLoader.getIcon("/icons/critical.png");
-	Icon BUBBLE = IconLoader.getIcon("/icons/bubble.png");
-	Icon DELETE = IconLoader.getIcon("/icons/delete.png");
-	Icon SONAR = IconLoader.getIcon("/icons/sonar.png");
-	Icon WARNING = IconLoader.getIcon("/icons/warning.png");
-	Icon AMOS = IconLoader.getIcon("/icons/amos.png");
-	Icon DTO = IconLoader.getIcon("/icons/dto.png");
-	Icon GENERICDTO = IconLoader.getIcon("/icons/genericdto.png");
-	Icon WHOIS = IconLoader.getIcon("/icons/whois.png");
-	Icon AUTHOR = IconLoader.getIcon("/icons/author.png");
-	Icon SUPPORT = IconLoader.getIcon("/icons/support.png");
-	Icon REVIEW = IconLoader.getIcon("/icons/review.png");
+	Icon CRITICAL = getIcon("/icons/critical.png");
+	Icon BUBBLE = getIcon("/icons/bubble.png");
+	Icon DELETE = getIcon("/icons/delete.png");
+	Icon SONAR = getIcon("/icons/sonar.png");
+	Icon WARNING = getIcon("/icons/warning.png");
+	Icon AMOS = getIcon("/icons/amos.png");
+	Icon DTO = getIcon("/icons/dto.png");
+	Icon GENERICDTO = getIcon("/icons/genericdto.png");
+	Icon WHOIS = getIcon("/icons/whois.png");
+	Icon AUTHOR = getIcon("/icons/author.png");
+	Icon SUPPORT = getIcon("/icons/support.png");
+	Icon REVIEW = getIcon("/icons/review.png");
+	
+	private static Icon getIcon(String path) {
+		return IconLoader.getIcon(path, SwissAsIcons.class);
+	}
 }
