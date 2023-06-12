@@ -171,7 +171,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     void refreshContent(){
-        if(this.currentBranch == null || this.project.isDisposed() || !ProjectUtil.getInstance().isAmosProject(this.project)){
+        if(this.currentBranch == null || this.statusBar == null || this.project.isDisposed() || !ProjectUtil.getInstance().isAmosProject(this.project)){
             return;
         }
         if(this.swissAsStorage.getFourLetterCode().isEmpty()){
