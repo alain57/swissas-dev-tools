@@ -11,8 +11,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.Consumer;
@@ -66,7 +66,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public static SwissAsStorage getInstance() {
-		return ServiceManager.getService(SwissAsStorage.class);
+		return ApplicationManager.getApplication().getService(SwissAsStorage.class);
 	}
 	
 	@Nullable
