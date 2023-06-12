@@ -35,6 +35,7 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -168,7 +169,7 @@ public class PsiHelper {
 			if (annotation != null) {
 				PsiModifierList list = getter.getModifierList();
 				if (!annotation.getText().endsWith("\n")) {
-					PsiElement newLine = PsiParserFacade.SERVICE.getInstance(psiMethod.getProject())
+					PsiElement newLine = PsiParserFacade.getInstance(psiMethod.getProject())
 					                                            .createWhiteSpaceFromText("\n");
 					annotation.add(newLine);
 				}
@@ -460,7 +461,7 @@ public class PsiHelper {
 		boolean result = false;
 		if(psiMethod.hasModifier(JvmModifier.PUBLIC) &&
 		   !psiMethod.hasModifier(JvmModifier.STATIC) &&
-		   !PsiType.VOID.equals(psiMethod.getReturnType()) &&
+		   !PsiTypes.voidType().equals(psiMethod.getReturnType()) &&
 		   psiMethod.getParameterList().isEmpty()) {
 			result = StringUtils.getInstance().isGetter(psiMethod.getName());
 		}
