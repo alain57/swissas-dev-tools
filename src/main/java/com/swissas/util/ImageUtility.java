@@ -13,13 +13,13 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.Base64;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -91,7 +91,7 @@ public class ImageUtility {
 			ImageIO.write(image, "jpg", bos);
 			g.dispose();
 			byte[] imageBytes = bos.toByteArray();
-			imageString = Base64.encode(imageBytes);
+			imageString = Base64.getEncoder().encodeToString(imageBytes);
 			
 			bos.close();
 		} catch (IOException e) {
