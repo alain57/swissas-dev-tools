@@ -20,7 +20,7 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.mockito:mockito-core:4.5.1'
-    implementation  "org.jsoup:jsoup:1.14.3"
+    implementation  "org.jsoup:jsoup:1.15.3"
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation  "javax.mail:mail:1.4.7"
 }
@@ -54,7 +54,9 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes = """
-<b>V1.8.5</b><pre>Fix broken traffic light refresh with new Intellij UI</pre>
+<b>V1.8.5</b><pre>Fix broken traffic light refresh with new Intellij UI
+Update to newest JSOUP to prevent XSS vulnerability
+</pre>
 <b>V1.8.4</b><pre>Prevent exception when no sas warning exist for the team
 Fix broken picture
 update some libraries to latest version
