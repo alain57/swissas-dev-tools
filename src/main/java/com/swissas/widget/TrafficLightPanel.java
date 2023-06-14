@@ -65,6 +65,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     private static final int BORDER_HORIZONTAL = 2;
     @NonNls
     public static final String WIDGET_ID = "trafficLightPanel";
+    public static final String WIDGET_DISPLAY_NAME = "Swiss-AS Traffic Light";
     private StatusBar statusBar;
     
     private boolean informWhenReady;
@@ -170,7 +171,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     void refreshContent(){
-        if(this.currentBranch == null || this.project.isDisposed() || !ProjectUtil.getInstance().isAmosProject(this.project)){
+        if(this.currentBranch == null || this.statusBar == null || this.project.isDisposed() || !ProjectUtil.getInstance().isAmosProject(this.project)){
             return;
         }
         if(this.swissAsStorage.getFourLetterCode().isEmpty()){

@@ -9,6 +9,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.vcs.actions.ShowAnnotateOperationsPopup;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
 import com.intellij.openapi.vcs.annotate.UpToDateLineNumberListener;
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +19,9 @@ import org.jetbrains.annotations.Nullable;
  * Action class which is opening a support case, or the review.
  * @author Tavan Alain
  */
-public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumberListener {
+public class OpenCaseOrReviewAction extends AnAction {
 	private static final int            PATTERN_POSITION = 3;
 	private final        FileAnnotation annotation;
-	private              int            lineNumber;
 	private              int            previousLineNumber;
 	private              String         link             = null;
 	private final        Pattern        searchPattern;
@@ -39,15 +39,15 @@ public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumb
 	
 	@Override
 	public void update(@NotNull AnActionEvent e) {
-		refreshDataAndFields();
+		refreshDataAndFields(ShowAnnotateOperationsPopup.getAnnotationLineNumber(e.getDataContext()));
 		Presentation presentation = e.getPresentation();
 		presentation.setVisible(this.link != null);
 		super.update(e);
 	}
 	
-	private void refreshDataAndFields() {
-		if (this.previousLineNumber != this.lineNumber) {
-			String message = this.annotation.getHtmlToolTip(this.lineNumber);
+	private void refreshDataAndFields(int lineNumber) {
+		if (this.previousLineNumber != lineNumber) {
+			String message = this.annotation.getHtmlToolTip(lineNumber);
 			this.link = null;
 			if (message != null) {
 				Matcher matcher = this.searchPattern.matcher(message);
@@ -55,7 +55,7 @@ public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumb
 					this.link = this.urlPrefix + matcher.group(PATTERN_POSITION);
 				}
 			}
-			this.previousLineNumber = this.lineNumber;
+			this.previousLineNumber = lineNumber;
 		}
 	}
 	
@@ -64,10 +64,5 @@ public class OpenCaseOrReviewAction extends AnAction implements UpToDateLineNumb
 		if (this.link != null) {
 			BrowserUtil.browse(this.link);
 		}
-	}
-	
-	@Override
-	public void consume(Integer integer) {
-		this.lineNumber = integer;
 	}
 }

@@ -40,7 +40,7 @@ public class InspectionRunnable implements Runnable {
 	@Override
 	public void run() {
 		InspectionManager inspectionManager = InspectionManager.getInstance(this.project);
-		GlobalInspectionContext context = inspectionManager.createNewGlobalContext(false);
+		GlobalInspectionContext context = inspectionManager.createNewGlobalContext();
 		LocalInspectionToolWrapper toolWrapper = new LocalInspectionToolWrapper(this.inspectionTool);
 		for (PsiFile psiFile : this.psiFiles) {
 			List<ProblemDescriptor> problemDescriptors = getProblemDescriptors(context, toolWrapper, psiFile);

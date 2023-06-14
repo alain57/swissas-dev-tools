@@ -328,12 +328,11 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	private void installValidator() {
-		new ComponentValidator(this.project).withValidator(v -> {
+		new ComponentValidator(this.project).withValidator(() -> {
 			if(checkDtoNameExists()) {
-				v.updateInfo(new ValidationInfo("A Dto with the same name already exists", this.nameTextField));
-			}else {
-				v.updateInfo(null);
+				return new ValidationInfo("A Dto with the same name already exists", this.nameTextField);
 			}
+			return null;
 		}).installOn(this.nameTextField);
 	}
 	

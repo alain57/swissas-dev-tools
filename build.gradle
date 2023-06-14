@@ -1,13 +1,13 @@
 plugins {
     id "java"
-    id 'org.jetbrains.intellij' version '1.9.0'
+    id 'org.jetbrains.intellij' version '1.14.1'
 }
 
 group = "com.swissas.tala"
-version = "1.8.4"
+version = "1.8.5"
 
 apply plugin: 'java'
-sourceCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -28,17 +28,18 @@ dependencies {
 apply plugin: 'org.jetbrains.intellij'
 intellij {
     intellij.updateSinceUntilBuild = false
-    plugins = ['java', 'properties', 'svn4idea', 'git4idea']
+    plugins = ['java', 'properties', 'Subversion', 'Git4Idea']
     pluginName = "Swiss-AS Dev-Tools"
     downloadSources = true
-    version = '2021.3.3'
+    version = '2023.1.2'
     buildSearchableOptions.enabled = false
 }
 
 // JAVA compatibility
 compileJava {
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+    options.compilerArgs << '-Xlint:deprecation'
 }
 
 
@@ -53,6 +54,7 @@ publishPlugin {
 
 patchPluginXml {
     changeNotes = """
+<b>V1.8.5</b><pre>Fix broken traffic light refresh with new Intellij UI</pre>
 <b>V1.8.4</b><pre>Prevent exception when no sas warning exist for the team
 Fix broken picture
 update some libraries to latest version

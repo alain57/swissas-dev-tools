@@ -50,7 +50,7 @@ public class WarningContent extends JBTabbedPane implements ToolWindowFactory {
 		if (ProjectUtil.getInstance().isAmosProject(project)) {
 			this.project = project;
 			this.swissAsStorage = SwissAsStorage.getInstance();
-			var contentFactory = ContentFactory.SERVICE.getInstance();
+			var contentFactory = ContentFactory.getInstance();
 			var content = contentFactory.createContent(this, "", false);
 			toolWindow.getContentManager().addContent(content);
 			TimerTask timerTask = new TimerTask() {
