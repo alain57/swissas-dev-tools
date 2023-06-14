@@ -37,7 +37,6 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EditorTextField;

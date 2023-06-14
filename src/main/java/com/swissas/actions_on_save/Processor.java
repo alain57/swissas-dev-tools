@@ -16,7 +16,6 @@ import com.swissas.inspection.ReplaceWithTeamAuthorInspection;
 
 /**
  * Available processors for java.
- *
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */

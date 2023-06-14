@@ -94,7 +94,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		}
 		
 		@Override
-		public void visitLiteralExpression(PsiLiteralExpression expression) {
+		public void visitLiteralExpression(@NotNull PsiLiteralExpression expression) {
 			super.visitLiteralExpression(expression);
 			int minSize = Integer.parseInt(
 					SwissAsStorage.getInstance().getMinWarningSize());

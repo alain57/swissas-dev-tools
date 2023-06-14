@@ -71,19 +71,19 @@ class Bulb extends JPanel {
     public void paintComponent(Graphics g){
         g.setColor(JBColor.background());
         g.fillRect(0,0,getWidth(),getHeight());
-        switch (this.currentState){
-            case ON:
-                g.setColor( this.onColor);
-                g.fillOval(this.border, this.border,2* this.radius,2* this.radius);
-                break;
-            case BLINKING:
+        switch (this.currentState) {
+            case ON -> {
+                g.setColor(this.onColor);
+                g.fillOval(this.border, this.border, 2 * this.radius, 2 * this.radius);
+            }
+            case BLINKING -> {
                 g.setColor(this.blinkingCurrentOn ? this.onColor : this.onColor.darker().darker().darker());
-                g.fillOval(this.border, this.border,2* this.radius,2* this.radius);
-                break;
-            default:
-                g.setColor( this.onColor.darker().darker().darker() );
-                g.fillOval(this.border, this.border,2* this.radius,2* this.radius);
-                break;
+                g.fillOval(this.border, this.border, 2 * this.radius, 2 * this.radius);
+            }
+            default -> {
+                g.setColor(this.onColor.darker().darker().darker());
+                g.fillOval(this.border, this.border, 2 * this.radius, 2 * this.radius);
+            }
         }
     }
 }

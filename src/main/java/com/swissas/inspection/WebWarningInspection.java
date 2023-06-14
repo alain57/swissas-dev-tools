@@ -56,7 +56,7 @@ public class WebWarningInspection extends LocalInspectionTool {
 		}
 		
 		@Override
-		public void visitTypeElement(PsiTypeElement expression) {
+		public void visitTypeElement(@NotNull PsiTypeElement expression) {
 			super.visitTypeElement(expression);
 			PsiElement firstChild = expression.getFirstChild();
 			if(firstChild instanceof PsiJavaCodeReferenceElement) {
@@ -66,7 +66,7 @@ public class WebWarningInspection extends LocalInspectionTool {
 		}
 		
 		@Override
-		public void visitReferenceExpression(PsiReferenceExpression expression) {
+		public void visitReferenceExpression(@NotNull PsiReferenceExpression expression) {
 			super.visitReferenceExpression(expression);
 			registerProblem(expression, expression.resolve());
 		}

@@ -162,7 +162,7 @@ public final class WarningContentHelper {
                                   .map(Message.class::cast)
                                   .anyMatch(message -> hasSimilarMessage(message, similarMessage)));
         }
-        if(files.count() > 0L) {
+        if(files.findAny().isPresent()) {
             return true;
         }
         for (Directory subDir : subDirs) {

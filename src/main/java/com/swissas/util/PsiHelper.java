@@ -34,7 +34,6 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypes;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;

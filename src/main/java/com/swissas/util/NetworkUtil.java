@@ -1,7 +1,6 @@
 package com.swissas.util;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;

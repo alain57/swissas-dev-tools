@@ -13,7 +13,7 @@ class MissingAuthorInspectionProvider implements InspectionToolProvider {
     @SuppressWarnings("unchecked")
     @NotNull
     @Override
-    public Class<? extends LocalInspectionTool>[] getInspectionClasses() {
+    public Class<? extends LocalInspectionTool> @NotNull [] getInspectionClasses() {
         return new Class[]{MissingAuthorInspection.class};
     }
 }

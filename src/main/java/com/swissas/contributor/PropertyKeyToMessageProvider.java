@@ -27,8 +27,8 @@ public class PropertyKeyToMessageProvider extends PsiReferenceProvider {
 	
 	@Override
 	@NotNull
-	public PsiReference[] getReferencesByElement(@NotNull PsiElement element,
-	                                             @NotNull ProcessingContext context) {
+	public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element,
+	                                                       @NotNull ProcessingContext context) {
 		if(element instanceof PropertyKeyImpl) {
 			PropertyKeyImpl key = (PropertyKeyImpl) element;
 			return Optional.ofNullable(key.getContainingFile())

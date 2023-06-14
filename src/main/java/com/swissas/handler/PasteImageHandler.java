@@ -9,7 +9,6 @@ import javax.swing.ImageIcon;
 
 import com.intellij.diagnostic.PluginException;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Caret;

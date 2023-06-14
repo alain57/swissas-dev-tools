@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.vcs.actions.ShowAnnotateOperationsPopup;
 import com.intellij.openapi.vcs.annotate.AnnotationGutterActionProvider;
 import com.intellij.openapi.vcs.annotate.FileAnnotation;
-import com.intellij.openapi.vcs.annotate.UpToDateLineNumberListener;
 import com.intellij.openapi.vcs.history.VcsRevisionNumber;
 import com.swissas.util.ShowLetterCodeInformationHelper;
 import icons.SwissAsIcons;

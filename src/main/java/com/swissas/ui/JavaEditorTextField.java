@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorTextField;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * own Editor class to prevent typing all this in other classes
@@ -17,7 +18,7 @@ public class JavaEditorTextField extends EditorTextField {
 	}
 	
 	@Override
-	protected EditorEx createEditor() {
+	protected @NotNull EditorEx createEditor() {
 		EditorEx editor = super.createEditor();
 		editor.setVerticalScrollbarVisible(true);
 		editor.setHorizontalScrollbarVisible(true);

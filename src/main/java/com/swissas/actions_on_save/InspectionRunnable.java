@@ -19,7 +19,6 @@ import static com.swissas.actions_on_save.SaveActionManager.LOGGER;
 
 /**
  * Implements a runnable for inspections commands.
- *
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */

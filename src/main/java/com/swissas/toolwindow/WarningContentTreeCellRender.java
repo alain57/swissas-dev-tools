@@ -49,19 +49,17 @@ class WarningContentTreeCellRender extends DefaultTreeCellRenderer {
         p.add(text);
         JBLabel amount;
         switch (node.getTreeType()) {
-            case FILE:
+            case FILE -> {
                 text.setIcon(AllIcons.FileTypes.Java);
                 amount = new JBLabel("( " + node.getUnmarkedCount() + ")");
                 p.add(amount);
-                break;
-            case DIRECTORY:
+            }
+            case DIRECTORY -> {
                 text.setIcon(AllIcons.Nodes.Folder);
                 amount = new JBLabel("( " + node.getUnmarkedCount() + ")");
                 p.add(amount);
-                break;
-            default:
-                text.setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
-                break;
+            }
+            default -> text.setIcon(node.isCritical() ? SwissAsIcons.CRITICAL : SwissAsIcons.WARNING);
         }
         return p;
     }

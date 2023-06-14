@@ -9,7 +9,6 @@ import com.intellij.psi.PsiFile;
 /**
  * Abstracts a save command with a {@link BiFunction} from pair ({@link Project}, {@link PsiFile}[])
  * to {@link Runnable}. The entry point is {@link #execute()}.
- * 
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */
