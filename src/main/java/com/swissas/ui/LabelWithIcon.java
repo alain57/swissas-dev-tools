@@ -38,8 +38,8 @@ class LabelWithIcon extends JLabel {
 
     void setData(LabelData data) {
         this.data = data;
-        this.currentIcon = this.data.getWarningType().getIcon();
-        setText(data.getName());
+        this.currentIcon = this.data.warningType().getIcon();
+        setText(data.name());
     }
     
 
@@ -61,21 +61,21 @@ class LabelWithIcon extends JLabel {
         
         g2d.drawImage(ImageUtility.getInstance().iconToImage(this.currentIcon), MARGIN + 13 - this.currentIcon.getIconWidth() / 2, MARGIN + 13 - this.currentIcon.getIconHeight() / 2, null);
 
-        int bubbleWith = this.data.getNewMessages() > 99 ? halfSize + 4 : halfSize;
-        int bubbleXPos = this.data.getNewMessages() > 99 ? getWidth() - SIZE - MARGIN -2 : getWidth() - SIZE - MARGIN;
+        int bubbleWith = this.data.newMessages() > 99 ? halfSize + 4 : halfSize;
+        int bubbleXPos = this.data.newMessages() > 99 ? getWidth() - SIZE - MARGIN -2 : getWidth() - SIZE - MARGIN;
         paintTextAndIcon(g2d, halfSize, bubbleWith, bubbleXPos);
         
         super.paintComponent(g);
     }
 
     private void paintTextAndIcon(Graphics2D g2d, int halfSize, int bubbleWith, int bubbleXPos) {
-        if (this.data.getNewMessages() > 0) {
+        if (this.data.newMessages() > 0) {
             g2d.setPaint(this.selected ? JBColor.WHITE : SELECTION_COLOR);
             g2d.fill(new Ellipse2D.Double(bubbleXPos, getHeight() / 2 - 9, bubbleWith, halfSize));
             if(this.selected){
                 g2d.setPaint(SELECTION_COLOR);
             }
-            final String text = "" + this.data.getNewMessages();
+            final String text = "" + this.data.newMessages();
             final Font oldFont = g2d.getFont();
             g2d.setFont(oldFont.deriveFont(oldFont.getSize() - 1f));
             final FontMetrics fm = g2d.getFontMetrics();

@@ -211,7 +211,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 				checkBox.setForeground(JBColor.GREEN);
 				checkBox.setToolTipText("PrimaryKey getter (mandatory in case of mapping)");
 				this.getterPanel.add(checkBox);
-				this.getterCheckboxes.add(0, checkBox);
+				this.getterCheckboxes.addFirst(checkBox);
 				this.ddPkColumn = PsiHelper.getInstance().getDDPkForPsiClass(getter);
 				this.pkGetter = checkBox;
 			}else {

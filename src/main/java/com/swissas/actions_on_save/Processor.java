@@ -8,8 +8,8 @@ import java.util.stream.Stream;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+import com.intellij.codeInspection.SuppressionAnnotationInspection;
 import com.siyeh.ig.inheritance.MissingOverrideAnnotationInspection;
-import com.siyeh.ig.maturity.SuppressionAnnotationInspection;
 import com.siyeh.ig.style.UnqualifiedFieldAccessInspection;
 import com.swissas.inspection.MissingAuthorInspection;
 import com.swissas.inspection.ReplaceWithTeamAuthorInspection;
@@ -38,11 +38,11 @@ public enum Processor {
 	;
 	
 	private final InspectionAction inspectionAction;
-	private final LocalInspectionTool inspection;
+	private final Supplier<LocalInspectionTool> inspectionSupplier;
 	
-	Processor(InspectionAction inspectionAction, Supplier<LocalInspectionTool> inspection) {
+	Processor(InspectionAction inspectionAction, Supplier<LocalInspectionTool> inspectionSupplier) {
 		this.inspectionAction = inspectionAction;
-		this.inspection = inspection.get();
+		this.inspectionSupplier = inspectionSupplier;
 	}
 	
 	public InspectionAction getInspectionAction() {
@@ -57,7 +57,7 @@ public enum Processor {
 	}
 	
 	public LocalInspectionTool getInspection() {
-		return this.inspection;
+		return this.inspectionSupplier.get();
 	}
 	
 	public static Stream<Processor> stream() {

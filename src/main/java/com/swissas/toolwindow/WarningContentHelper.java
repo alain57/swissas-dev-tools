@@ -66,8 +66,7 @@ public final class WarningContentHelper {
                 return;
             }
             currentElement.setMine(((File)element).isMine());
-        }else if(element instanceof Message) {
-            var message = (Message)element; 
+        }else if(element instanceof Message message) {
             currentElement.setCurrentType(WarningContentTreeNode.TreeType.MESSAGE);
             if(onlyCritical && !message.isCritical() || !hasSimilarMessage(message, similarMessage)) {
                 return;
@@ -130,7 +129,7 @@ public final class WarningContentHelper {
                                           .map(Directory.class::cast)
                                           .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).collect(Collectors.toList());
         if(subDirs.size() == 1) {
-            var childDirectory = subDirs.get(0);
+            var childDirectory = subDirs.getFirst();
             sb.append("/");
             dir =  getSingleDirectoryPath(sb, childDirectory, filteredResponsible, onlyCritical, similarMessage);
         }else {

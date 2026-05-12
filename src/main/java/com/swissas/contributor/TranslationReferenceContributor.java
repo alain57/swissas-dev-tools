@@ -22,9 +22,8 @@ public class TranslationReferenceContributor extends PsiReferenceContributor {
 		registrar.registerReferenceProvider(PlatformPatterns.psiElement().and(new FilterPattern(new ElementFilter() {
 			@Override
 			public boolean isAcceptable(Object element, @Nullable PsiElement context) {
-				if (element instanceof PropertyKeyImpl) {
-					PropertyKeyImpl propertyKey = (PropertyKeyImpl) element;
-					PsiFile propertyFile = propertyKey.getContainingFile();
+				if (element instanceof PropertyKeyImpl propertyKey) {
+                    PsiFile propertyFile = propertyKey.getContainingFile();
 					return STD.equals(propertyFile.getName());
 				}
 				return false;

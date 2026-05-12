@@ -18,11 +18,9 @@ public enum InspectionAction {
 	;
 	
 	private final String text;
-	private final SwissAsStorage storage;
 	
 	InspectionAction(String text){
 		this.text = text;
-		this.storage = SwissAsStorage.getInstance();
 	}
 	
 	public String getText(){
@@ -30,20 +28,18 @@ public enum InspectionAction {
 	}
 	
 	public boolean isEnabled() {
-		switch (this) {
-			case MISSING_AUTHOR:
-				return this.storage.isFixMissingAuthor();
-			case MISSING_OVERRIDE_ANNOTATION:
-				return this.storage.isFixMissingOverride();
-			case UNQUALIFIED_FIELD_ACCESS:
-				return this.storage.isFixMissingThis();
-			case SUPPRESS_ANNOTATION:
-				return this.storage.isFixUnusedSuppressWarning();
-			case USE_TEAM_AUTHOR:
-				return this.storage.isConvertToTeam();
-			default:
-				throw new IllegalArgumentException("case not defined");
+		SwissAsStorage storage = SwissAsStorage.getInstance();
+		if (storage == null) {
+			return false;
 		}
+        return switch (this) {
+            case MISSING_AUTHOR -> storage.isFixMissingAuthor();
+            case MISSING_OVERRIDE_ANNOTATION -> storage.isFixMissingOverride();
+            case UNQUALIFIED_FIELD_ACCESS -> storage.isFixMissingThis();
+            case SUPPRESS_ANNOTATION -> storage.isFixUnusedSuppressWarning();
+            case USE_TEAM_AUTHOR -> storage.isConvertToTeam();
+            default -> throw new IllegalArgumentException("case not defined");
+        };
 	}
 	
 }

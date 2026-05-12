@@ -3,7 +3,7 @@
     <name>Swiss-AS Dev-Tools</name>
     <vendor email="alain57@gmail.com" url="https://www.linkedin.com/in/alain-tavan">Tavan Alain</vendor>
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-    <idea-version since-build="231.6890.12"/>
+    <idea-version since-build="261.0"/>
     <description><![CDATA[
     A Personal Plugin built during my free time to make IntelliJ more Swiss-AS compatible (traffic light, sonar critical warnings, Multilangue, etc...)
     ]]></description>
@@ -19,10 +19,46 @@
                                  instance="com.swissas.config.SwissAsConfig" />
         <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckingFactory"/>
-        <inspectionToolProvider implementation="com.swissas.inspection.MissingAuthorInspectionProvider"/>
-        <inspectionToolProvider implementation="com.swissas.inspection.MissingTranslationInspectionProvider" />
-        <inspectionToolProvider implementation="com.swissas.inspection.ReplaceWithTeamAuthorInspectionProvider" />
-        <inspectionToolProvider implementation="com.swissas.inspection.WebWarningInspectionProvider" />
+        <localInspection language="JAVA"
+                         displayName="Missing @Author"
+                         shortName="MissingAuthor"
+                         groupPath="Java"
+                         groupName="Swiss-AS"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="com.swissas.inspection.MissingAuthorInspection"/>
+        <localInspection language="JAVA"
+                         displayName="Missing Translation"
+                         shortName="MissingTranslation"
+                         groupPath="Java"
+                         groupName="Swiss-AS"
+                         enabledByDefault="true"
+                         level="WARNING" 
+                         implementationClass="com.swissas.inspection.MissingTranslationInspection" />
+        <localInspection language="JAVA"
+                         displayName="Replace with Team Author"
+                         shortName="ReplaceTeamAuthor"
+                         groupPath="Java"
+                         groupName="Swiss-AS"
+                         enabledByDefault="true"
+                         level="WARNING" 
+                         implementationClass="com.swissas.inspection.ReplaceWithTeamAuthorInspection" />
+        <localInspection language="JAVA"
+                         displayName="Wrong api usage"
+                         shortName="WrongApiUsage"
+                         groupPath="Java"
+                         groupName="Swiss-AS"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="com.swissas.inspection.WebWarningInspection" />
+        <localInspection language="JAVA"
+                         displayName="Unqualified field access (Missing 'this.')"
+                         shortName="UnqualifiedFieldAccess"
+                         groupPath="Java"
+                         groupName="Swiss-AS"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="com.siyeh.ig.style.UnqualifiedFieldAccessInspection"/>
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
         <statusBarWidgetFactory id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetFactory"/>
@@ -30,6 +66,8 @@
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenCaseAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />
         <editorActionHandler action="EditorPaste" implementationClass="com.swissas.handler.PasteImageHandler" order="first" />
+        <applicationService serviceImplementation="com.swissas.actions_on_save.SaveActionManager"/>
+        <applicationInitializedListener implementation="com.swissas.actions_on_save.SaveActionManagerCodeInsightInitializer"/>
     </extensions>
     
     <actions>

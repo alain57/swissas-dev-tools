@@ -33,18 +33,13 @@ public class SaveActionManager implements FileDocumentManagerListener {
 	
 	public static final Logger LOGGER = Logger.getInstance(SaveActionManager.class);
 	
-	private static SaveActionManager instance;
 	private final List<Processor> processors;
 	private boolean running;
-	
-	
-	public static  SaveActionManager getInstance(){
-		if(instance == null){
-			instance = new SaveActionManager();
-		}
-		return instance;
+
+
+	public static SaveActionManager getInstance() {
+		return ApplicationManager.getApplication().getService(SaveActionManager.class);
 	}
-	
 	
 	private SaveActionManager() {
 		this.processors = new ArrayList<>();

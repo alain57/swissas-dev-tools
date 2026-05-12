@@ -29,9 +29,8 @@ public class PropertyKeyToMessageProvider extends PsiReferenceProvider {
 	@NotNull
 	public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element,
 	                                                       @NotNull ProcessingContext context) {
-		if(element instanceof PropertyKeyImpl) {
-			PropertyKeyImpl key = (PropertyKeyImpl) element;
-			return Optional.ofNullable(key.getContainingFile())
+		if(element instanceof PropertyKeyImpl key) {
+            return Optional.ofNullable(key.getContainingFile())
 			                                .map(PsiFile::getContainingDirectory)
 			                                .map(dir -> dir.findFile(MESS))
 			                                .map(PsiJavaFile.class::cast)

@@ -48,11 +48,10 @@ public class PasteImageHandler extends EditorActionHandler implements EditorText
 			return;
 		}
 		
-		if(transferable.isDataFlavorSupported(DataFlavor.imageFlavor) && editor.getComponent() instanceof DragDropTextPane) {
+		if(transferable.isDataFlavorSupported(DataFlavor.imageFlavor) && editor.getComponent() instanceof DragDropTextPane dropTextPane) {
 			Image imageFromClipboard = ImageUtility.getInstance().getImageFromClipboard();
 			if (imageFromClipboard != null) {
-				DragDropTextPane dropTextPane = (DragDropTextPane)editor.getComponent();
-				dropTextPane.insertIcon(new ImageIcon(imageFromClipboard));
+                dropTextPane.insertIcon(new ImageIcon(imageFromClipboard));
 			}
 			return;
 		}

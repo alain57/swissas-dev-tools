@@ -1,59 +1,74 @@
 plugins {
-    id "java"
-    id 'org.jetbrains.intellij' version '1.14.1'
+    id 'java'
+    id 'org.jetbrains.intellij.platform' version '2.16.0'
 }
 
 group = "com.swissas.tala"
-version = "1.8.5"
-
-apply plugin: 'java'
-sourceCompatibility = JavaVersion.VERSION_17
+version = "1.8.6"
 
 repositories {
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    testImplementation 'org.assertj:assertj-core:3.22.0'
-    testImplementation 'org.mockito:mockito-core:4.5.1'
-    implementation  "org.jsoup:jsoup:1.15.3"
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
-    implementation  "javax.mail:mail:1.4.7"
-}
-// See https://github.com/JetBrains/gradle-intellij-plugin/
-apply plugin: 'org.jetbrains.intellij'
-intellij {
-    intellij.updateSinceUntilBuild = false
-    plugins = ['java', 'properties', 'Subversion', 'Git4Idea']
-    pluginName = "Swiss-AS Dev-Tools"
-    downloadSources = true
-    version = '2023.1.2'
-    buildSearchableOptions.enabled = false
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
-// JAVA compatibility
-compileJava {
-    sourceCompatibility = "17"
-    targetCompatibility = "17"
-    options.compilerArgs << '-Xlint:deprecation'
-}
-
-
-
-test {
+tasks.test {
     useJUnitPlatform()
 }
 
-publishPlugin {
-    token.set(System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")) //env var
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+    testImplementation 'org.assertj:assertj-core:3.27.7'
+    testImplementation 'org.mockito:mockito-core:4.5.1'
+    implementation  "org.jsoup:jsoup:1.15.3"
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation  "javax.mail:mail:1.4.7"
+    implementation 'info.debatty:java-string-similarity:2.0.0'
+    intellijPlatform {
+        intellijIdea("2026.1.2")
+        bundledPlugin 'com.intellij.java'
+        bundledPlugin 'com.intellij.properties'
+//        bundledPlugin 'Subversion'
+        bundledPlugin 'Git4Idea'
+    }
 }
+intellijPlatform  {
+    projectName = "Swiss-AS Dev-Tools"
+    buildSearchableOptions = true
+    autoReload = true
+    
 
-patchPluginXml {
-    changeNotes = """
+    pluginConfiguration {
+        id = "swiss-as-dev-tool"
+        name = "Swiss-AS Dev-Tools"
+        version = "1.8.6"
+        ideaVersion {
+            sinceBuild = "261"
+        }
+
+       
+        vendor {
+            name = "Alain Tavan"
+            email = "alain57@gmail.com"
+            url = "https://github.com/alain57/swissas-dev-tools"
+        }
+        
+        changeNotes = """
+<b>V1.8.6</b><pre>update project with latest gradle, latest IntelliJ gradle plugin, 
+get rid of some exception and make the plugin better work with newer IJ
+refactor the save action and traffic light code to be more robust and prevent some exception</pre>
+</pre>
 <b>V1.8.5</b><pre>Fix broken traffic light refresh with new Intellij UI
 Update to newest JSOUP to prevent XSS vulnerability
 </pre>
@@ -65,208 +80,15 @@ Updated the build.gradle to be compliant with latest maven/jetbrains intellij pl
 <b>V1.8.2</b><pre>an employee got a new 4LC what is not the normal process :/ and this generated a duplicate key exception breaking the plugin for all users :/
 Use up to date JSoup as there is a critical security issue</pre>
 <b>V1.8.1</b><pre>Allow 2LC as a new coworker had such letter code</pre>
-<b>V1.8.0</b><pre>
-Don't replace 4LC with Team account on stable as this should not be patched down !
-Fix smart folders in SAS warning tab for sonar critical only view 
-Code cleanup
-Get rid of an exception that happens on network issue.
-</pre>
-<b>V1.7.9</b><pre>Prevent a potential NPE
-fix smart folders in the SAS warning tab
-Add a Team Todo tab within the SAS Warning view
-</pre>
-<b>V1.7.8</b><pre>Fix not working SAS warning tab for new employee or team containing new employee
-</pre>
-<b>V1.7.7</b><pre>The IDE now clearly see that a _Message field is linked to a standard.properties key. If you rename one, it will rename the other at the same time.
-Fixed a few small bugs and cleaned the code to avoid potential exceptions
-</pre>
-<b>V1.7.6</b><pre>
-small bugfixes
-</pre>
-<b>V1.7.5</b><pre>
-Fixed the DTO generator (Thank you Jacques for the help :) )
-As asked by Philippe, use a dedicated IntelliJ token for Jenkins
-</pre>
-<b>V1.7.5</b><pre>
-Remove move to server panel as this project is finished
-Use the new Server for the findings in the SAS Warning Tab
-Code cleanups (prevent some potential NPE and replace code that will be removed in 2021)
-Improve the warning tabs :
-- It is now possible to collapse and expand all with dedicated icons on the left
-- It is now possible to filter the result for team members
-- Right click on an item offers the possibility to find similar issues and show them on new tabs
-- User can type text and use up and down arrow to go to next/previous found item.
-</pre>
-<b>V1.7.4</b><pre>
-Add Discourage Access for Server Code on Web Module
-</pre>
-<b>V1.7.3</b><pre>
-Removed Move to server tab
-Rename Move To server (Team) in Move to server 
-Don't log network timeout as errors
-</pre>
-<b>V1.7.2</b><pre>
-Fixed the not working auto completion in the setting menu
-Fixed the translation that in some usecase was still writting %s%s when just one %s was needed
-<b>V1.7.1</b><pre>
-When marking content in SAS warning view as done, don't count it.
-Refactored some code and fix some minor issues
-</pre>
-<b>V1.7.0</b><pre>
-Fix a performance issue at startup
-Improve the profile picture loading (loader icon + background download)
-Fixed the not working who is for teams.
-Fixed the some incompatibilities with the T_MOCs git setup.
-Show SAS warnings in a smart folder structure (no need to expand 50 different folder with just one subfolder)
-Add a total aside of the SAS warning folder/file to have a clear overview how much remains to be fixed
-Don't bother with the pre commit message on git.
-</pre>
-<b>V1.6.9</b><pre>
-Higlight in red my assigned work on the team view for AMOSup
-Don't crash because people give the same RPC impl name to two different RPC :/ 
-</pre>
-<b>V1.6.8b</b><pre>
-Get the DDRow from the pk getter defined in the BO
-Set the AmosBeanInfo optional in the setting menu and disabled per default waiting to see how the DtoDataSource will be done</pre>
-<b>V1.6.8</b><pre>
-Check 6 RpcRegistries instead of one for the RPC implementation
-Fixed the primarykey check in toDto
-Make the Dto generator window non modal
-Automatically add annotation to Dto for the DataSourceDto
-Reformat and organize imports on the Dto/Mapping classes
-</pre>
+"""
+    }
 
-<b>V1.6.7</b><pre>
-Prevent NPE in case of strange BO (without PK)
-Add search feature for Generator to filter getters
-</pre>
-<b>V1.6.6b</b><pre>
-Fix a small bug that invert the toDto and copyToBo method
-Add a log in case of project wrongly setup</pre>
-<b>V1.6.6</b><pre>
-Add futher methods to generator : save/delete/list convert
-Add imports in the generated code
-Add customized equals/hashcode if the pk getter is selected
-</pre>
-<b>V1.6.5</b><pre>
-Remove team account from reviewer list
-Generate saveToBo with automatic detection of findBy method to insert or update a BO
-Put the Primary Key getter in green and in top of the getter list
-</pre>
-<b>V1.6.4</b><pre>
-Add BO to DTO generators with inner class mapper
-Adapt the code to work for Team class owner
-Add an option to automatically change the author to the team when modifying a class of my team members
-Add some Icons
-</pre>
-<b>V1.6.3</b><pre>
-Fixed a memory leak that happened on some usecases for CTRL + mouse over a translation
-Prevent generating translation with too many "%s"
-Allow reviews from External members (need to type the LC)
-Allow No Review (need to type it to make this less conveniant)
-The reviewer window does not appear if no action is required from user if he already wrote the review text and does not need to send information mail
-Add two "move to server" tabs on the SAS warning panel
-</pre>
-<b>V1.6.2</b><pre>
-Fixed some small bugs and removed some code warnings
-Changed the fix release blocker button logic to prevent potential miss-click
-</pre>
-<b>V1.6.1</b><pre>
-Don't check for graphical UI changes in the unpublic folders
-Adapt some part of the code based on feedback of Sergey Ignatov and Vladimir Schneider (thanks for helping)
-Send the mail only once the commit was confirmed
-Add some basic validation on the settings panel
-Sort the list of reviewer and exclude yourself from the list
-Improve the regex to detect support case number
-</pre>
-<b>V1.6.0</b><pre>Use combobox for the LetterCode information menu
-Add picture in LetterCode information menu
-Add Who is this in the Annotate menu
-Add show support case within the Annotate menu
-Add show review within the Annotate menu
-Add new configurations in the settings menu
-Add precommit code review condition (configurable in the settings menu)
-Add Inform QA/Support/Documentation per mail if Client/Web changes
-Add possibility to add picture to the Information Mail per drag and drop (copy paste is not yet workin with intellij)
-Disable inspection, bulb and SAS warning on non SAS projects 
-Adapt the lamp logic to be smarter : red => the branch you are is broken, yellow => another branch is broken, green => all is ok
-Show the lamp color of the branch you currently are working
-Adapt the plugin to be ready for loading without IntelliJ restart (planned for 2020.1)
-Important Code cleaning.
-</pre>
-<b>V1.5.13</b><pre>exclude annotation and fireIndexedPropertyChange from missing translation</pre>
-<b>V1.5.12</b><pre>fix a bug in the Information about a lettercode menu
-Fixed a bug in the "Only check changed lines" logic
-Fixed a bug that added a translated import twice
-Detects NOSOL issue and the quickfix to mark it as NOSOL
-<b>V1.5.11</b><pre>add a new menu entry to get information about a given Letter Code
-fixed incompatibility with Intellij 2019.3 (github issue #2 Thanks Roman for the information)</pre>
-<b>V1.5.10</b><pre>Prevent exception from happening when the traffic light URL is null (in case of QA Failing tests)
-Prevent exception on CTRL + mouse hover on older stable
-Prevent translating any kind of String containing only a filename with a 3 letter extension
-Use newer save action logic (thanks to 
-Revert back to one setting for all projects (you may need to configure back the settings)
-</pre>
-<b>V1.5.9</b><pre>Add missing translation quickfix in case of array initialization code for ex <code>Charsequence[] array = new Charsequence[]{"one string tro translate"}</code>
-Fix an issue that new files where not checked for missing translation
-Add "fix release blocker" option in the pre commit dialog
-</pre>
-<b>V1.5.8</b><pre>Add an option to only check for missing translation on changed line (prevent having file with tons of warnings)
-Fix a false positive missing translation on exeption with concatenation
-Don't warn about missing translation in firePropertyChange
-Disable the unused suppress annotation as it current implementation is not working correctly
-</pre>
-<b>V1.5.7</b><pre>Fix a potential NPE
-Add a dependency for validation of jetbrains repository
-</pre>
-<b>V1.5.6</b><pre>Implement the find by usage for the Properties file
-Fixed a small mistake in the configuration storage
-Better warning icons for dark mode
-Adapt gradle built script for 2019.2.
-Fixed plugin home page and vendor name
-</pre>
-<b>V1.5.5</b><pre>Auto import was not working correctly when fixing all missing translation
-Constants where not replaced with %s during translation
-Missing translation was missing following case : booleanValue ? "one not translated string" : "another not translated string"</pre>
-<b>V1.5.4</b><pre>CTRL + click on Translatable will now open the Standard.properties instead of the _Message class
-Save Properties the right way (undo/redo will work)
-Only add the translate and tooltip quickfixes for amos 19.6 and preview (old amos only have the NO_EXT option)
-Fixed some small bugs
-</pre>
-<b>V1.5.3</b><pre>important performance fix in the translate inspection
-Fix several small bugs
-Refactor some code to make it a lot more easier to understand
-Separate UI from Configuration</pre>
-<b>V1.5.2</b><pre>Redesign the configuration panel and add an option to limit the translation warning to a specific length (per default 5)
-The Letter code field is now an autocompleted combobox
-Don't show translation warnings for TestClasses, Loggers, assertEquals, withHistory methods and for .tpl file name
-Fix errors in the translation key generation :  all non alphanumeric chars are now filtered!
-Automatically import the generated translation
-Rename the plugin as there was a typo in the name
-</pre>
-<b>V1.5.1</b><pre>Generated translation always use the amos/share/multiLanguage/Standards known key words
-Translation will auto correct common mistakes (for ex work order instead of Workorder)
-Fix a bug in the class owner logic
-Fix a bug in the translation process resulting with two %s
-</pre>
-<b>V1.5</b><pre>CTRL + mouse over on MULTILANGUE_TXT or MULTILANGUE_TT to display it translation
-Add inspection that checks for missing Translation with 3 quickfixes (add NO_EXT / Translate / Translate tooltip)
-Add a mouse menu to show author information
-Change the way the plugin know the icons and add a plugin icon
-Settings saved per project
-Various small code changes
-</pre>
-<b>V1.4.3</b><pre>Fix the predefined size of the pre commit error message as the editorPane is not capable to calculate it</pre>
-<b>V1.4.2:</b><pre>Pre commit message is now a custom dialog where user can see the traffic light message and click on it
-Fix dark mode bulb color</pre>
-<b>V1.4.1:</b><pre>Fix some plugin exceptions (mostly in the traffic light)
-Traffic light shows the reason of the color on mouse over</pre>
-<b>V1.4  :</b><pre>Apply menu changes without require a restart (for ex to see coworker findings)
-Add an option to be warned when commit can be done after a non green commit warning
-Fix the histeric blinking lamp</pre>
-<b>V1.3.1:</b><pre>Fix an exception for IntelliJ 2017 as an Interface is defined differently in 2018 version</pre>
-<b>V1.3  :</b><pre>Use properties files for urls and i18n<br>Better way to save settings<br>Automatically add this to instance fields<br>Automatically add @override to overriden methods<br>Automatically add @author to classes without it<br>Automatically remove suppress warning if no warning is present</pre><br>
-<b>V1.2  :</b><pre>Check for traffic light before commit, fix some small bugs</pre><br>
-<b>V1.1  :</b><pre>Adapt the gradle build to prevent having a minimum version of IntelliJ</pre><br>
-<b>V1.0  :</b><pre>First release</pre>"""
+    publishing {
+        host = ""
+        token = System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")
+        channels = ["default"]
+        ideServices = false
+        hidden = false
+    }
+
 }

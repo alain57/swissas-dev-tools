@@ -16,7 +16,6 @@ import com.intellij.psi.util.PsiLiteralUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SwissAsStorage;
 import groovy.json.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -182,8 +181,7 @@ public class TranslateQuickFix implements LocalQuickFix {
             StringBuilder stringBuilder = new StringBuilder();
             List<PsiElement> psiElements = getElementsItemsToTranslate(element);
             for (PsiElement psiElement : psiElements) {
-                if(psiElement instanceof PsiLiteralExpressionImpl){
-                    PsiLiteralExpressionImpl psiLiteralExpression = (PsiLiteralExpressionImpl)psiElement;
+                if(psiElement instanceof PsiLiteralExpressionImpl psiLiteralExpression){
                     if(JavaTokenType.STRING_LITERAL.equals(psiLiteralExpression.getLiteralElementType())){
                         stringBuilder.append(PsiLiteralUtil.getStringLiteralContent(psiLiteralExpression));
                     }else {
@@ -220,9 +218,14 @@ public class TranslateQuickFix implements LocalQuickFix {
         String withoutPercent = properpertyString.replaceAll("(%s)+", "_");
         String capitalizeFully = StringEscapeUtils.unescapeJava(withoutPercent)
                                         .toUpperCase().replaceAll("[^A-Z0-9 ]", "")
-                                        .replaceAll(" ", "_");
-        capitalizeFully = StringUtils.removeEnd(capitalizeFully, "_");
-        capitalizeFully = StringUtils.removeStart(capitalizeFully, "_");
+                                        .replace(" ", "_");
+        if (capitalizeFully.startsWith("_")) {
+            capitalizeFully = capitalizeFully.substring(1);
+        }
+
+        if (capitalizeFully.endsWith("_")) {
+            capitalizeFully = capitalizeFully.substring(0, capitalizeFully.length() - 1);
+        }
         if(capitalizeFully.length() > 36){
             capitalizeFully = capitalizeFully.substring(0, 36);
         }

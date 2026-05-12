@@ -490,7 +490,7 @@ public class PsiHelper {
 		if(staticMethods.isEmpty()) {
 			return new Pair<>(null, null);
 		}
-		return new Pair<>(result, staticMethods.get(staticMethods.size() - 1));
+		return new Pair<>(result, staticMethods.getLast());
 	}
 	
 	@NotNull 
