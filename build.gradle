@@ -50,7 +50,7 @@ intellijPlatform  {
     
 
     pluginConfiguration {
-        id = "swiss-as-dev-tool"
+        id = "com.swissas.tala.swissas"
         name = "Swiss-AS Dev-Tools"
         version = "1.8.6"
         ideaVersion {
@@ -84,11 +84,7 @@ Use up to date JSoup as there is a critical security issue</pre>
     }
 
     publishing {
-        host = ""
-        token = System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")
-        channels = ["default"]
-        ideServices = false
-        hidden = false
+        token.set(providers.gradleProperty("intellijPublishToken"))
     }
 
 }
