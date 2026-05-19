@@ -1,123 +1,132 @@
 package com.swissas.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ProjectUtilTest {
-	@Mock
-	Module shared;
-	@InjectMocks
-	ProjectUtil projectUtil;
 
-	@BeforeEach
-	void setUp() {
-		MockitoAnnotations.openMocks(this);
+	private ProjectUtil projectUtil;
+	private VirtualFile root;
+
+    @BeforeEach
+	void setUp() throws IOException {
+
+        this.root = mock(VirtualFile.class);
+        Module shared = mock(Module.class);
+
+		when(this.root.getPath())
+				.thenReturn("x:/somestuff/19.6/amos_shared/");
+
+		VirtualFile props = mock(VirtualFile.class);
+		when(this.root.findChild("amos.properties")).thenReturn(props);
+
+		when(props.getInputStream()).thenReturn(
+				new ByteArrayInputStream("target.branch=19.6".getBytes())
+		);
+
+        this.projectUtil = new ProjectUtil() {
+
+			@Override
+			protected VirtualFile[] getContentRoots(Module module) {
+				return new VirtualFile[]{ProjectUtilTest.this.root};
+			}
+
+			@Override
+			public boolean isGitProject() {
+				return true; 
+			}
+		};
+
+        this.projectUtil.shared = shared;
+        this.projectUtil.shouldSearchDefaultBranch = true;
 	}
 
-	
 	@Test
 	void testConvertBranchShouldNotConvertName() {
-		String branch = "19.6";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isEqualTo(branch);
+		assertThat(this.projectUtil.convertToCorrectBranch("19.6"))
+				.isEqualTo("19.6");
 	}
 
 	@Test
 	void testConvertBranchShouldConvertNameToPreview() {
-		String branch = "trunk";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isNotEqualTo(branch);
-		assertThat(result).isEqualTo("preview");
+		assertThat(this.projectUtil.convertToCorrectBranch("trunk"))
+				.isEqualTo("preview");
 	}
-	
+
 	@Test
 	void testConvertBranchShouldConvertNameWithNoSeparator() {
-		String branch = "196";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isNotEqualTo(branch);
-		assertThat(result).isEqualTo("19.6");
+		assertThat(this.projectUtil.convertToCorrectBranch("196"))
+				.isEqualTo("19.6");
 	}
-	
+
 	@Test
 	void testConvertBranchShouldConvertNameWithWrongSeparator() {
-		String branch = "19-6";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isNotEqualTo(branch);
-		assertThat(result).isEqualTo("19.6");
+		assertThat(this.projectUtil.convertToCorrectBranch("19-6"))
+				.isEqualTo("19.6");
 	}
-	
+
 	@Test
 	void testConvertBranchShouldConvertNameWithWrongPrefix() {
-		String branch = "v19.6";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isNotEqualTo(branch);
-		assertThat(result).isEqualTo("19.6");
+		assertThat(this.projectUtil.convertToCorrectBranch("v19.6"))
+				.isEqualTo("19.6");
 	}
-	
+
 	@Test
 	void testConvertBranchShouldConvertNameMissingPrefix() {
-		String branch = "1220";
-		String result = this.projectUtil.convertToCorrectBranch(branch);
-		assertThat(result).isNotEqualTo(branch);
-		assertThat(result).isEqualTo("V12-20");
+		assertThat(this.projectUtil.convertToCorrectBranch("1220"))
+				.isEqualTo("V12-20");
 	}
-	
+
 	@Test
 	void testConvertBranchNoNPEOnNull() {
-		String result = this.projectUtil.convertToCorrectBranch(null);
-		assertThat(result).isEqualTo("preview");
+		assertThat(this.projectUtil.convertToCorrectBranch(null))
+				.isEqualTo("preview");
 	}
-	
 
 	@Test
 	void testGetProjectDefaultBranchShouldReturnNull() {
-		this.projectUtil.shouldSearchDefaultBranch = false;
-		String result = this.projectUtil.getProjectDefaultBranch();
-		assertThat(result).isNull();
+        this.projectUtil.shouldSearchDefaultBranch = false;
+
+		assertThat(this.projectUtil.getProjectDefaultBranch())
+				.isNull();
 	}
 
 	@Test
 	void testGetProjectDefaultBranchShouldReturnPreviewWithoutSearching() {
-		String preview = "preview";
-		this.projectUtil.shouldSearchDefaultBranch = false;
-		this.projectUtil.projectDefaultBranch = preview;
-		String result = this.projectUtil.getProjectDefaultBranch();
-		assertThat(result).isEqualTo(preview);
+
+        this.projectUtil.shouldSearchDefaultBranch = false;
+        this.projectUtil.projectDefaultBranch = "preview";
+
+		assertThat(this.projectUtil.getProjectDefaultBranch())
+				.isEqualTo("preview");
 	}
 
 	@Test
-	void testGetProjectDefaultBranchShouldFindBranch(){
-		String preview = "19.6";
-		String pathWithPreview = "x:/somestuff/19.6/amos_shared/";
-		this.projectUtil.shouldSearchDefaultBranch = true;
-		when(this.shared.getModuleFilePath()).thenReturn(pathWithPreview);
-		String result = this.projectUtil.getProjectDefaultBranch();
-		assertThat(result).isEqualTo(preview);
+	void testGetProjectDefaultBranchShouldFindBranch() {
+
+		assertThat(this.projectUtil.getProjectDefaultBranch())
+				.isEqualTo("19.6");
 	}
-	
 
 	@Test
-	void testGetBranchOfMajorAndMinorVersionShouldReturnNewStyle(){
-		int majorVersion = 19;
-		int minorVersion = 6;
-		String result = this.projectUtil.getBranchOfMajorAndMinorVersion(majorVersion
-		                                                                , minorVersion);
-		assertThat(result).isEqualTo("19.6");
+	void testGetBranchOfMajorAndMinorVersionShouldReturnNewStyle() {
+		assertThat(this.projectUtil.getBranchOfMajorAndMinorVersion(19, 6))
+				.isEqualTo("19.6");
 	}
-	
+
 	@Test
-	void testGetBranchOfMajorAndMinorVersionShouldReturnOldStyle(){
-		int majorVersion = 12;
-		int minorVersion = 10;
-		String result = this.projectUtil.getBranchOfMajorAndMinorVersion(majorVersion
-				, minorVersion);
-		assertThat(result).isEqualTo("V12-10");
+	void testGetBranchOfMajorAndMinorVersionShouldReturnOldStyle() {
+		assertThat(this.projectUtil.getBranchOfMajorAndMinorVersion(12, 10))
+				.isEqualTo("V12-10");
 	}
 }

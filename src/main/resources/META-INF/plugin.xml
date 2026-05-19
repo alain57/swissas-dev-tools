@@ -67,7 +67,6 @@
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />
         <editorActionHandler action="EditorPaste" implementationClass="com.swissas.handler.PasteImageHandler" order="first" />
         <applicationService serviceImplementation="com.swissas.actions_on_save.SaveActionManager"/>
-        <applicationInitializedListener implementation="com.swissas.actions_on_save.SaveActionManagerCodeInsightInitializer"/>
     </extensions>
     
     <actions>

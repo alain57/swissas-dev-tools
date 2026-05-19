@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vcs.AbstractVcs;
 import com.intellij.openapi.vcs.FilePath;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,7 +40,7 @@ public class ProjectUtil {
 	protected String  projectDefaultBranch      = null;
 	protected boolean shouldSearchDefaultBranch = false;
 	
-	private ProjectUtil() {
+	ProjectUtil() {
 		
 	}
 	
@@ -116,13 +117,14 @@ public class ProjectUtil {
 	public boolean isPreviewProject() {
 		return PREVIEW.equalsIgnoreCase(convertToCorrectBranch(this.projectDefaultBranch));
 	}
-	
+
 	public boolean isGitProject() {
-		try {
-			return this.shared.getModuleFilePath().toLowerCase().contains("git");
-		}catch (Exception e) {
-			return false;
-		}
+		return Optional.ofNullable(this.shared)
+				.flatMap(this::getModuleRoot)
+				.map(VirtualFile::getPath)
+				.map(String::toLowerCase)
+				.map(path -> path.contains("git"))
+				.orElse(false);
 	}
 	
 	String getProjectDefaultBranch() {
@@ -131,11 +133,10 @@ public class ProjectUtil {
 			if(isGitProject()) {
 				Properties prop = new Properties();
 
-				VirtualFile propertiesFile = Optional.ofNullable(this.shared.getModuleFile())
-						.map(VirtualFile::getParent)
-						.map(VirtualFile::getParent)
-						.map(vf -> vf.findChild("amos.properties")).orElseThrow(() -> new IllegalStateException("Could not find the amos.properties file"));
-				
+				VirtualFile propertiesFile = Optional.ofNullable(this.shared)
+						.flatMap(this::getModuleRoot)
+						.map(root -> root.findChild("amos.properties"))
+						.orElseThrow(() -> new IllegalStateException("Could not find amos.properties"));				
 				try {
 					prop.load(propertiesFile.getInputStream());
 				} catch (IOException e) {
@@ -144,9 +145,14 @@ public class ProjectUtil {
 				this.projectDefaultBranch = prop.getProperty("target.branch");
 				
 			}else {
-				Matcher matcher = AMOS_SHARED_DIRECTORY_PATTERN
-						.matcher(this.shared.getModuleFilePath());
-				if (matcher.find()) {
+				Matcher matcher =
+						Optional.ofNullable(this.shared)
+								.flatMap(this::getModuleRoot)
+								.map(VirtualFile::getPath)
+								.map(AMOS_SHARED_DIRECTORY_PATTERN::matcher)
+								.orElse(null);
+
+				if (matcher != null && matcher.find()) {
 					this.projectDefaultBranch = matcher.group(1);
 				}
 			}
@@ -156,6 +162,20 @@ public class ProjectUtil {
 	
 	public Module getShared() {
 		return this.shared;
+	}
+
+	protected VirtualFile[] getContentRoots(Module module) {
+		return ModuleRootManager
+				.getInstance(module)
+				.getContentRoots();
+	}
+
+	private Optional<VirtualFile> getModuleRoot(Module module) {
+		VirtualFile[] roots = getContentRoots(module);
+
+		return roots.length > 0
+				? Optional.of(roots[0])
+				: Optional.empty();
 	}
 	
 }

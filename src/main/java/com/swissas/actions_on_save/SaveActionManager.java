@@ -1,7 +1,9 @@
 package com.swissas.actions_on_save;
 
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -29,7 +31,9 @@ import static java.util.Optional.ofNullable;
  * @author Tavan Alain
  * @see Engine
  */
-public class SaveActionManager implements FileDocumentManagerListener {
+@Service(Service.Level.APP)
+public final class SaveActionManager
+		implements FileDocumentManagerListener, Disposable {
 	
 	public static final Logger LOGGER = Logger.getInstance(SaveActionManager.class);
 	
@@ -40,10 +44,27 @@ public class SaveActionManager implements FileDocumentManagerListener {
 	public static SaveActionManager getInstance() {
 		return ApplicationManager.getApplication().getService(SaveActionManager.class);
 	}
-	
-	private SaveActionManager() {
+
+	public SaveActionManager() {
+
 		this.processors = new ArrayList<>();
 		this.running = false;
+
+		addProcessors(Processor.stream());
+
+		ApplicationManager.getApplication()
+				.getMessageBus()
+				.connect(this)
+				.subscribe(
+						FileDocumentManagerListener.TOPIC,
+						this
+				);
+	}
+
+	@Override
+	public void dispose() {
+		// vide
+		// connect(this) gère le cleanup automatiquement
 	}
 	
 	public void addProcessors(Stream<Processor> processors) {
