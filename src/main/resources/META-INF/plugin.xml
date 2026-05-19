@@ -51,14 +51,6 @@
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="com.swissas.inspection.WebWarningInspection" />
-        <localInspection language="JAVA"
-                         displayName="Unqualified field access (Missing 'this.')"
-                         shortName="UnqualifiedFieldAccess"
-                         groupPath="Java"
-                         groupName="Swiss-AS"
-                         enabledByDefault="true"
-                         level="WARNING"
-                         implementationClass="com.siyeh.ig.style.UnqualifiedFieldAccessInspection"/>
         <gotoDeclarationHandler implementation="com.swissas.handler.TranslateGoToDeclaration" />
         <lang.documentationProvider order="first" language="JAVA" implementationClass="com.swissas.provider.TranslationDocumentationProvider" />
         <statusBarWidgetFactory id="trafficLightPanel" implementation="com.swissas.widget.TrafficLightPanelWidgetFactory"/>
