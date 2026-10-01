@@ -1,5 +1,6 @@
 package com.swissas.ui;
 
+import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -66,24 +67,29 @@ public class DragDropTextPane extends JTextPane implements DropTargetListener, D
 	@Override
 	public void drop(DropTargetDropEvent dropTargetDropEvent) {
 		Transferable transferable = dropTargetDropEvent.getTransferable();
-		for (DataFlavor d : transferable.getTransferDataFlavors()) {
-			dropTargetDropEvent
-					.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-			try {
-				((List<File>) transferable.getTransferData(d)).forEach(this::insertIfImage);
-			} catch (UnsupportedFlavorException | IOException e) {
-				LOGGER.error(e);
-			}
+		if (!transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+			dropTargetDropEvent.rejectDrop();
+			return;
 		}
-		dropTargetDropEvent.getDropTargetContext().dropComplete(true);
+		dropTargetDropEvent.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+		boolean success = false;
+		try {
+			((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor)).forEach(this::insertIfImage);
+			success = true;
+		} catch (UnsupportedFlavorException | IOException e) {
+			LOGGER.error(e);
+		}
+		dropTargetDropEvent.getDropTargetContext().dropComplete(success);
 	}
 	
 	private void insertIfImage(File file) {
 		String mimetype = new MimetypesFileTypeMap().getContentType(file);
-		String type = mimetype.split("/")[0];
-		if ("image".equals(type)) {
+		if (mimetype.startsWith("image/")) {
 			try {
-				insertIcon(new ImageIcon(ImageIO.read(file)));
+				Image image = ImageIO.read(file);
+				if (image != null) {
+					insertIcon(new ImageIcon(image));
+				}
 			} catch (IOException e) {
 				LOGGER.error(e);
 			}

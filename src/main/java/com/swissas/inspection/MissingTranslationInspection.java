@@ -7,8 +7,8 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.ex.LineStatusTracker;
 import com.intellij.openapi.vcs.ex.LineStatusTrackerI;
 import com.intellij.openapi.vcs.ex.Range;
@@ -57,7 +57,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 		LocalQuickFix noSolFix = new MarkAsIgnoredQuickfix("/*NOSQL*/");
 		LocalQuickFix[] fixes = SwissAsStorage.getInstance().isNewTranslation() ? new LocalQuickFix[]{ignoreFix, translateFix, translateTooltipFix} : new LocalQuickFix[]{ignoreFix};
 		
-		if (holder.getFile().getName().endsWith("Test.java") || !ProjectUtil.getInstance().isAmosProject(holder.getProject())) {
+		if (holder.getFile().getName().endsWith("Test.java") || !ProjectUtil.getInstance(holder.getProject()).isAmosProject()) {
 			return super.buildVisitor(holder, isOnTheFly);
 		}
 		
@@ -67,52 +67,82 @@ class MissingTranslationInspection extends LocalInspectionTool {
 	
 	static class MyJavaElementVisitor extends JavaElementVisitor {
 		
+		private static final String MISSING_NOSQL_MESSAGE       = ResourceBundle.getBundle("texts").getString("missing.nosql");
+		private static final String MISSING_TRANSLATION_MESSAGE = ResourceBundle.getBundle("texts").getString("missing.translation");
+		private static final Pattern SQL_PATTERN = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*", Pattern.CASE_INSENSITIVE);
+		private static final Pattern FILENAME_PATTERN = Pattern.compile("^[^.]+\\.\\w{3}$");
+		private static final Pattern IS_IN_METHODS = Pattern.compile(".*(Exception|firePropertyChange|fireIndexedPropertyChange|assertEquals|MultiLang(Text|ToolTip)|getLogger\\(\\).*|WithHistory)$");
+		
 		private final ProblemsHolder  holder;
 		private final LocalQuickFix[] fixes;
 		private final LocalQuickFix   noSqlFix;
-		private final Pattern         filenamePattern;
-		private final Pattern         sqlPattern;
-		private final Pattern         isInMethods;
 		private final boolean         noSvn;
 		private final List<Range>     rangesToCheck;
+		private final Document        document;
+		private final int             minSize;
+		private final boolean         onlyCheckChangedLines;
 		
 		MyJavaElementVisitor(@NotNull ProblemsHolder holder, @NotNull LocalQuickFix[] fixes, @NotNull LocalQuickFix noSqlFix) {
-			this.sqlPattern = Pattern.compile(".*(DELETE|INSERT|UPDATE|SELECT).*", Pattern.CASE_INSENSITIVE);
-			this.filenamePattern = Pattern.compile("^[^.]+\\.\\w{3}$");
-			this.isInMethods = Pattern.compile(".*(Exception|firePropertyChange|fireIndexedPropertyChange|assertEquals|MultiLang(Text|ToolTip)|getLogger\\(\\).*|WithHistory)$");
 			this.noSqlFix = noSqlFix;
 			this.holder = holder;
-			this.fixes = fixes;
+			this.fixes = fixes.clone();
 			VirtualFile virtualFile = holder.getFile().getVirtualFile();
 			Project project = holder.getProject();
-			LineStatusTracker<?> lineStatusTracker = LineStatusTrackerManager.getInstance(project).getLineStatusTracker(virtualFile);
+			LineStatusTracker<?> lineStatusTracker = virtualFile == null ? null
+			                                                                    : LineStatusTrackerManager.getInstance(project).getLineStatusTracker(virtualFile);
 			this.rangesToCheck = Optional.ofNullable(lineStatusTracker).map(LineStatusTrackerI::getRanges)
 										 .map(ArrayList<Range>::new)
 										 .orElse(new ArrayList<>());
 			this.rangesToCheck.removeIf(e -> e.getType() == Range.DELETED);
 			this.noSvn = this.rangesToCheck.isEmpty();
+			this.document = holder.getFile().getViewProvider().getDocument();
+			this.minSize = readMinSize();
+			this.onlyCheckChangedLines = SwissAsStorage.getInstance().isTranslationOnlyCheckChangedLine();
+		}
+		
+		private static int readMinSize() {
+			try {
+				return Integer.parseInt(SwissAsStorage.getInstance().getMinWarningSize());
+			} catch (NumberFormatException e) {
+				return 0;
+			}
 		}
 		
 		@Override
 		public void visitLiteralExpression(@NotNull PsiLiteralExpression expression) {
 			super.visitLiteralExpression(expression);
-			int minSize = Integer.parseInt(
-					SwissAsStorage.getInstance().getMinWarningSize());
-			int textOffset = expression.getTextOffset();
-			int lineNumber = StringUtil.offsetToLineNumber(
-					expression.getContainingFile().getText(), textOffset);
-			boolean shouldCheckFile = this.noSvn || !SwissAsStorage.getInstance().isTranslationOnlyCheckChangedLine() || this.rangesToCheck.stream().anyMatch(
-					r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
-			if (shouldCheckFile) {
-				Object expressionValue = expression.getValue();
-				if (expressionValue instanceof String && ((String) expressionValue).length() >= minSize &&
-						!this.filenamePattern.matcher((String) expressionValue).matches()) {
-					if (this.sqlPattern.matcher((String) expressionValue).matches()) {
-						checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
-					}
-					checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
-				}
+			if (!(expression.getValue() instanceof String expressionValue)
+			    || expressionValue.length() < this.minSize
+			    || FILENAME_PATTERN.matcher(expressionValue).matches()) {
+				return;
 			}
+			if (!shouldCheckLineOf(expression)) {
+				return;
+			}
+			if (SQL_PATTERN.matcher(expressionValue).matches()) {
+				checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(expression);
+			}
+			checkHierrarchyAndRegisterMissingTranslationProblemIfNeeded(expression);
+		}
+		
+		/**
+		 * Uses the document to get the line number instead of rebuilding and scanning the whole
+		 * file text for every single literal (which was quadratic on big files).
+		 */
+		private boolean shouldCheckLineOf(@NotNull PsiLiteralExpression expression) {
+			if (this.noSvn || !this.onlyCheckChangedLines) {
+				return true;
+			}
+			if (this.document == null) {
+				return true;
+			}
+			int textOffset = expression.getTextOffset();
+			if (textOffset < 0 || textOffset > this.document.getTextLength()) {
+				return true;
+			}
+			int lineNumber = this.document.getLineNumber(textOffset);
+			return this.rangesToCheck.stream()
+			                         .anyMatch(r -> lineNumber >= r.getLine1() && lineNumber <= r.getLine2());
 		}
 		
 		private void checkHierarchyAndRegisterMissingNoSOLProblemIfNeeded(PsiLiteralExpression expression) {
@@ -122,7 +152,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 					boolean wasRegisteredOnParent = registerNoSOLProblemOnParentIfRequired(parent, expression);
 					boolean wasRegisterOnGrandParent = registerNoSOLProblemOnGrandParentIfRequired(parent, wasRegisteredOnParent);
 					if(!wasRegisteredOnParent && !wasRegisterOnGrandParent) { //don't care about the parent special cases, the issue is on the expression itself
-						this.holder.registerProblem(expression, ResourceBundle.getBundle("texts").getString("missing.nosql"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
+						this.holder.registerProblem(expression, MISSING_NOSQL_MESSAGE, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.noSqlFix);
 					}
 				}
 			}
@@ -140,7 +170,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 			boolean result = elementToNullCheck != null;
 			if (result) {
 				this.holder
-						.registerProblem(elementToHighlight, ResourceBundle.getBundle("texts").getString("missing.nosql"),
+						.registerProblem(elementToHighlight, MISSING_NOSQL_MESSAGE,
 						                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
 						                 this.noSqlFix);
 			}
@@ -153,7 +183,7 @@ class MissingTranslationInspection extends LocalInspectionTool {
 				PsiElement grandParent = parent.getParent();
 				if (grandParent instanceof PsiAssignmentExpression
 				    || grandParent instanceof PsiLocalVariable) {
-					this.holder.registerProblem(parent, ResourceBundle.getBundle("texts").getString("missing.nosql"),
+					this.holder.registerProblem(parent, MISSING_NOSQL_MESSAGE,
 					                            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
 					                            this.noSqlFix);
 					wasRegistered = true;
@@ -176,20 +206,20 @@ class MissingTranslationInspection extends LocalInspectionTool {
 					registerProblemIfParentPreviousSiblingNotInMethods(expression, parentPrevSibling);
 				} else if (parent instanceof PsiPolyadicExpression) {
 					if (grandParent instanceof PsiAssignmentExpression || grandParent instanceof PsiLocalVariable) {
-						this.holder.registerProblem(parent, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+						this.holder.registerProblem(parent, MISSING_TRANSLATION_MESSAGE, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 					} else {
 						PsiElement beforeGrandParent = getPrevNotEmptySpaces(parent.getParent());
 						registerProblemIfParentPreviousSiblingNotInMethods(parent, beforeGrandParent);
 					}
 				} else { //don't care about the parent special cases, the issue is on the expression itself
-					this.holder.registerProblem(expression, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+					this.holder.registerProblem(expression, MISSING_TRANSLATION_MESSAGE, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 				}
 			}
 		}
 
 		private void registerProblemIfParentPreviousSiblingNotInMethods(@NotNull PsiElement currentElement, PsiElement parentPrevSibling) {
-			if (parentPrevSibling != null && !this.isInMethods.matcher(parentPrevSibling.getText()).matches()) {
-				this.holder.registerProblem(currentElement, ResourceBundle.getBundle("texts").getString("missing.translation"), ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
+			if (parentPrevSibling != null && !IS_IN_METHODS.matcher(parentPrevSibling.getText()).matches()) {
+				this.holder.registerProblem(currentElement, MISSING_TRANSLATION_MESSAGE, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, this.fixes);
 			}
 		}
 

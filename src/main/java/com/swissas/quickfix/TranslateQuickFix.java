@@ -10,12 +10,13 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiLiteralUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.swissas.util.SwissAsStorage;
-import groovy.json.StringEscapeUtils;
+import com.swissas.util.TranslationHelper;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         Set<String> keysInProperties = properties.getNamesMap().keySet();
         String fullKey = properties.getNamesMap().entrySet()
                                    .stream()
-                                   .filter(e -> e.getValue().equals(propertyValue))
+                                   .filter(e -> propertyValue.equals(e.getValue()))
                                    .map(Entry::getKey)
                                    .findFirst()
                                    .orElse(null);
@@ -109,15 +110,7 @@ public class TranslateQuickFix implements LocalQuickFix {
     @NotNull
     public String generateFullKeyForAlreadyAssignedKey(Set<String> keysInProperties,
                                                        String propertyValue) {
-        String translatedKey = convertPropertyStringToKey(propertyValue);
-        String fullKey;
-        int numberInCaseOfDuplicateKey = 0;
-        fullKey = translatedKey + this.ending;
-        while(keysInProperties.contains(fullKey)) {
-            numberInCaseOfDuplicateKey++;
-            fullKey = translatedKey + "_" + numberInCaseOfDuplicateKey + this.ending;
-        }
-        return fullKey;
+        return TranslationHelper.generateFullKey(keysInProperties, propertyValue, this.ending);
     }
     
     
@@ -195,7 +188,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         }else {
             result = PsiLiteralUtil.getStringLiteralContent((PsiLiteralExpression)element);
         }
-        result = StringEscapeUtils.unescapeJava(result);
+        result = StringUtil.unescapeStringCharacters(result);
         return autoCorrectCommonMistakes(result);
     }
     
@@ -215,48 +208,14 @@ public class TranslateQuickFix implements LocalQuickFix {
     
 
     private String convertPropertyStringToKey(@NotNull String properpertyString) {
-        String withoutPercent = properpertyString.replaceAll("(%s)+", "_");
-        String capitalizeFully = StringEscapeUtils.unescapeJava(withoutPercent)
-                                        .toUpperCase().replaceAll("[^A-Z0-9 ]", "")
-                                        .replace(" ", "_");
-        if (capitalizeFully.startsWith("_")) {
-            capitalizeFully = capitalizeFully.substring(1);
-        }
-
-        if (capitalizeFully.endsWith("_")) {
-            capitalizeFully = capitalizeFully.substring(0, capitalizeFully.length() - 1);
-        }
-        if(capitalizeFully.length() > 36){
-            capitalizeFully = capitalizeFully.substring(0, 36);
-        }
-        return capitalizeFully;
+        return TranslationHelper.convertPropertyStringToKey(properpertyString);
     }
 
-    @NonNls
     private String autoCorrectCommonMistakes(String sentence){
-        return sentence == null ? null : sentence.replaceAll("\\b[wW]ork[ -]?[oO]rder\\b", "@WORKORDER@")
-        .replaceAll("\\bWO\\b", "@WO@")
-        .replaceAll("\\baircraft\\b", "@AIRCRAFT@")
-        .replaceAll("\\bAC\\b", "@AC@")
-        .replaceAll("\\b[pP]art[ -]?[nN]umber\\b", "@PART_NUMBER@")
-        .replaceAll("\\bPN\\b", "P/N")
-        .replaceAll("\\b[sS]erial[ -]?[nN]umber\\b", "@SERIAL_NUMBER@")
-        .replaceAll("\\bSN\\b", "@SN@")
-        .replaceAll("\\bAmos\\b", "@AMOS@")
-        .replaceAll("[wW]ork[ -]?[pP]ackage\\b", "@WORKPACKAGE@")
-        .replaceAll("\\bWP\\b", "@WP@")
-        .replaceAll("\\b([aA])nalyze\\b", "$1nalyse")
-        .replaceAll("\\bCenter\\b","Centre");
+        return TranslationHelper.autoCorrectCommonMistakes(sentence);
     }
 
-    @NonNls
     private String replaceWithKnownKeys(@NotNull String sentence){
-        String result = sentence;
-        for (Map.Entry<Object, Object> objectObjectEntry : this.sharedProperties.entrySet()) {
-            String key = "@" + objectObjectEntry.getKey() + "@";
-            String value = "\\b" + objectObjectEntry.getValue() + "\\b";
-            result = result.replaceAll(value, key);
-        }
-        return result;
+        return TranslationHelper.replaceWithKnownKeys(sentence, this.sharedProperties);
     }
 }

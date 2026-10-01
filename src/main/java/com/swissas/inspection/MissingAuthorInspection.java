@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An inspection for missing author in the java files.
- * It will automatically add a default javadoc author template if none is present.
+ * It will automatically add a default Javadoc author template if none is present.
  * @author Tavan Alain
  */
 
@@ -51,7 +51,7 @@ public class MissingAuthorInspection extends LocalInspectionTool{
             @Override
             public void visitJavaFile(@NotNull PsiJavaFile file) {
                 super.visitJavaFile(file);
-                if (ProjectUtil.getInstance().isAmosProject(file.getProject())) {
+                if (ProjectUtil.getInstance(file.getProject()).isAmosProject()) {
                     PsiClass[] classes = file.getClasses();
                     if (classes.length > 0) {
                         PsiClass firstClass = classes[0];

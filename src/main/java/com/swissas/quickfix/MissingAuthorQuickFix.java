@@ -19,6 +19,7 @@ import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,6 +48,25 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
         return InspectionsBundle.message("inspection.javadoc.problem.add.tag.family");
     }
 
+    /**
+     * Adds the author line just before the end of the doc comment, a one line doc comment (/** text *&#47;) is
+     * first converted to a multi lines one.
+     */
+    static String addAuthorToDocComment(String docComment, String author) {
+        List<String> lines = Stream.of(docComment.split("\n")).collect(Collectors.toList());
+        if (lines.size() == 1) {
+            String description = docComment.trim().replaceFirst("^/\\*+", "").replaceFirst("\\*+/$", "").trim();
+            lines = new ArrayList<>();
+            lines.add("/**");
+            if (!description.isEmpty()) {
+                lines.add(" * " + description);
+            }
+            lines.add(" */");
+        }
+        lines.add(lines.size() - 1, AUTHOR + author);
+        return StringUtil.join(lines, "\n");
+    }
+
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
         PsiElement startElement = descriptor.getStartElement();
@@ -62,9 +82,8 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
                                .orElse(null);
             
         } else if (startElement instanceof PsiDocComment) {
-            List<String> lines = Stream.of(startElement.getText().split("\n")).collect(Collectors.toList());
-            lines.add(lines.size() - 1, AUTHOR + this.swissAsStorage.getFourLetterCode());
-            PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText(StringUtil.join(lines, "\n"));
+            PsiDocComment docComment = JavaPsiFacade.getInstance(project).getElementFactory().createDocCommentFromText(
+                    addAuthorToDocComment(startElement.getText(), this.swissAsStorage.getFourLetterCode()));
             startElement.replace(docComment);
         } else {
             PsiDocComment docComment = PsiTreeUtil.getParentOfType(startElement, PsiDocComment.class);
@@ -75,8 +94,8 @@ public class MissingAuthorQuickFix implements LocalQuickFix {
         }
         if (addedTag != null) {
             PsiElement sibling = addedTag.getNextSibling();
-            if (sibling != null) {
-                ((Navigatable) sibling).navigate(true);
+            if (sibling instanceof Navigatable navigatable) {
+                navigatable.navigate(true);
             }
         }
     }

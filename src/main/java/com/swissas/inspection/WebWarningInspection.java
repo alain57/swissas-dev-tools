@@ -8,13 +8,14 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaElementVisitor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiTypeElement;
-import com.intellij.psi.impl.source.PsiJavaCodeReferenceElementImpl;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public class WebWarningInspection extends LocalInspectionTool {
@@ -39,8 +40,9 @@ public class WebWarningInspection extends LocalInspectionTool {
 	@NotNull
 	@Override
 	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
-		if(Optional.ofNullable(ProjectRootManager.getInstance(holder.getProject()).getFileIndex()
-		                     .getModuleForFile(holder.getFile().getVirtualFile())).map(Module::getName)
+		VirtualFile virtualFile = holder.getFile().getVirtualFile();
+		if(virtualFile != null && Optional.ofNullable(ProjectRootManager.getInstance(holder.getProject()).getFileIndex()
+		                     .getModuleForFile(virtualFile)).map(Module::getName)
 				.filter(name -> name.contains("amos_web")).isPresent()){
 			return new WebElementVisitor(holder);
 		}
@@ -59,9 +61,8 @@ public class WebWarningInspection extends LocalInspectionTool {
 		public void visitTypeElement(@NotNull PsiTypeElement expression) {
 			super.visitTypeElement(expression);
 			PsiElement firstChild = expression.getFirstChild();
-			if(firstChild instanceof PsiJavaCodeReferenceElement) {
-				PsiElement element = ((PsiJavaCodeReferenceElementImpl) firstChild).resolve();
-				registerProblem(expression, element);
+			if(firstChild instanceof PsiJavaCodeReferenceElement reference) {
+				registerProblem(expression, reference.resolve());
 			}
 		}
 		
@@ -72,10 +73,12 @@ public class WebWarningInspection extends LocalInspectionTool {
 		}
 		
 		private void registerProblem(PsiElement expression, PsiElement resolvedElement) {
-			String moduleName = resolvedElement == null ? "" :
+			PsiFile resolvedFile = resolvedElement == null ? null : resolvedElement.getContainingFile();
+			VirtualFile resolvedVirtualFile = resolvedFile == null ? null : resolvedFile.getVirtualFile();
+			String moduleName = resolvedVirtualFile == null ? "" :
 			                    Optional.ofNullable(ProjectRootManager.getInstance(resolvedElement.getProject()))
 			        .map(ProjectRootManager::getFileIndex)
-			        .map(e -> e.getModuleForFile(resolvedElement.getContainingFile().getVirtualFile()))
+			        .map(e -> e.getModuleForFile(resolvedVirtualFile))
 			        .map(Module::getName)
 			        .orElse("");
 			if (moduleName.contains("amos_server")) {

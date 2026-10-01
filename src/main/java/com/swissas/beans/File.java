@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.swissas.util.SwissAsStorage;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
 /**
@@ -22,12 +23,15 @@ public class File extends AttributeChildrenBean {
         setPath(fileElement.attr("path"));
         setResponsible(fileElement.attr("responsible"));
         for (Node messageNode : fileElement.childNodes()) {
-            addChildren(new Message(messageNode));
+            //ignore the text nodes (white spaces) between the messages
+            if (messageNode instanceof Element) {
+                addChildren(new Message(messageNode));
+            }
         }
     }
     
     public Set<Message> getNonCriticalMessages() {
-        return getChildren().stream().map(Message.class::cast).filter(Message::isCritical).collect(
+        return getChildren().stream().map(Message.class::cast).filter(message -> !message.isCritical()).collect(
                 Collectors.toSet());
     }
     

@@ -3,12 +3,10 @@ package com.swissas.widget;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.swissas.util.Constants.BLINKING;
@@ -22,10 +20,12 @@ import static com.swissas.util.Constants.ON;
  */
 
 class Bulb extends JPanel {
+    private static final int BLINK_DELAY_MS = 1000;
+
     private final Color onColor;
+    private final Timer blinkTimer;
     private String currentState;
     private boolean blinkingCurrentOn;
-    private final TimerTask timerTask;
     private int radius;
     private int border;
 
@@ -33,15 +33,14 @@ class Bulb extends JPanel {
         this.blinkingCurrentOn = false;
         this.onColor = color;
         this.currentState = OFF;
-        Timer timer = new Timer("blink"/*NON-NLS*/);
-        this.timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                Bulb.this.blinkingCurrentOn = !Bulb.this.blinkingCurrentOn;
-                repaint();
-            }
-        };
-        timer.scheduleAtFixedRate(this.timerTask, 1000, 1000);
+        setOpaque(false);
+        // a Swing timer only runs while blinking and lives on the EDT:
+        // no extra (never stopped) thread per bulb anymore
+        this.blinkTimer = new Timer(BLINK_DELAY_MS, e -> {
+            this.blinkingCurrentOn = !this.blinkingCurrentOn;
+            repaint();
+        });
+        this.blinkTimer.setRepeats(true);
     }
 
     void setRadiusAndBorder(int radius, int border){
@@ -52,15 +51,31 @@ class Bulb extends JPanel {
     void changeState(@NotNull String newState){
         if(!newState.equals(this.currentState)) {
             this.currentState = newState;
-            if (this.currentState.equals(BLINKING)) {
-                this.timerTask.run();
+            if (BLINKING.equals(this.currentState)) {
+                this.blinkingCurrentOn = true;
+                this.blinkTimer.restart();
             } else {
                 this.blinkingCurrentOn = false;
-                this.timerTask.cancel();
+                this.blinkTimer.stop();
             }
+            repaint();
         }
     }
-    
+
+    @Override
+    public void removeNotify() {
+        this.blinkTimer.stop();
+        super.removeNotify();
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        if (BLINKING.equals(this.currentState)) {
+            this.blinkTimer.restart();
+        }
+    }
+
     @Override
     public Dimension getPreferredSize(){
         int size = (this.radius + this.border)*2;
@@ -69,8 +84,6 @@ class Bulb extends JPanel {
 
     @Override
     public void paintComponent(Graphics g){
-        g.setColor(JBColor.background());
-        g.fillRect(0,0,getWidth(),getHeight());
         switch (this.currentState) {
             case ON -> {
                 g.setColor(this.onColor);

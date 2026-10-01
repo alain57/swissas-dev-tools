@@ -13,13 +13,12 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -38,7 +37,7 @@ public final class SaveActionManager
 	public static final Logger LOGGER = Logger.getInstance(SaveActionManager.class);
 	
 	private final List<Processor> processors;
-	private boolean running;
+	private final AtomicBoolean running = new AtomicBoolean(false);
 
 
 	public static SaveActionManager getInstance() {
@@ -47,10 +46,7 @@ public final class SaveActionManager
 
 	public SaveActionManager() {
 
-		this.processors = new ArrayList<>();
-		this.running = false;
-
-		addProcessors(Processor.stream());
+		this.processors = Processor.stream().toList();
 
 		ApplicationManager.getApplication()
 				.getMessageBus()
@@ -63,12 +59,7 @@ public final class SaveActionManager
 
 	@Override
 	public void dispose() {
-		// vide
-		// connect(this) gère le cleanup automatiquement
-	}
-	
-	public void addProcessors(Stream<Processor> processors) {
-		processors.forEach(this.processors::add);
+		// nothing to do: connect(this) takes care of the cleanup
 	}
 	
 	@Override
@@ -85,11 +76,9 @@ public final class SaveActionManager
 		Map<Project, Set<PsiFile>> projectPsiFiles = new HashMap<>();
 		documents.forEach(document -> stream(ProjectManager.getInstance().getOpenProjects())
 				.forEach(project -> ofNullable(PsiDocumentManager.getInstance(project).getPsiFile(document))
-						.map(psiFile -> {
-							Set<PsiFile> psiFiles = projectPsiFiles.getOrDefault(project, new HashSet<>());
-							projectPsiFiles.put(project, psiFiles);
-							return psiFiles.add(psiFile);
-						})));
+						.ifPresent(psiFile -> projectPsiFiles
+								.computeIfAbsent(project, p -> new HashSet<>())
+								.add(psiFile))));
 		projectPsiFiles.forEach(this::guardedProcessPsiFiles);
 	}
 	
@@ -98,16 +87,16 @@ public final class SaveActionManager
 			LOGGER.info("Application is closing, stopping invocation");
 			return;
 		}
+		//only the call that started the processing may release the lock, otherwise a nested save would unlock it too early
+		if (!this.running.compareAndSet(false, true)) {
+			LOGGER.info("Plugin already running, stopping invocation");
+			return;
+		}
 		try {
-			if (this.running) {
-				LOGGER.info("Plugin already running, stopping invocation");
-				return;
-			}
-			this.running = true;
 			Engine engine = new Engine(this.processors, project, psiFiles);
 			engine.processPsiFilesIfNecessary();
 		} finally {
-			this.running = false;
+			this.running.set(false);
 		}
 	}
 	

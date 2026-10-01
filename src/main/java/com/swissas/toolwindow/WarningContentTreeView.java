@@ -31,13 +31,12 @@ import java.util.ResourceBundle;
 
 /**
  * Warning Content UI Panel that contains the tree but also a left and top panel to make the tree more
- * user friendly
+ * user-friendly
  *
  *  @author Tavan Alain
  */
 public class WarningContentTreeView extends JPanel {
     private static final String ROOT                  = "Root";
-    private static final CommonActionsManager ACTIONS_MANAGER = CommonActionsManager.getInstance();
     private final Tree tree;
     private final ComboBox<String> userChoice = new ComboBox<>();
     private final WarningContentTreeCellRender cellRenderer;
@@ -48,10 +47,20 @@ public class WarningContentTreeView extends JPanel {
     private final WarningContent delegate;
     private String name;
     private final String filterSimilar;
+    private final boolean closeable;
 
     public WarningContentTreeView(@NotNull Project project, @NotNull Type type, @NotNull WarningContent delegate,
                                   @Nullable String filterSimilar) {
+        this(project, type, delegate, filterSimilar, false);
+    }
+
+    /**
+     * @param closeable true when the tab can be closed by the user (the "similar findings" tabs)
+     */
+    public WarningContentTreeView(@NotNull Project project, @NotNull Type type, @NotNull WarningContent delegate,
+                                  @Nullable String filterSimilar, boolean closeable) {
         this.project = project;
+        this.closeable = closeable;
         this.type = type;
         this.delegate = delegate;
         this.filterSimilar = filterSimilar;
@@ -79,9 +88,11 @@ public class WarningContentTreeView extends JPanel {
                                                          .addToCenter(scrollPane);
         if(this.filterSimilar == null) {
             borderLayoutPanel.addToTop(topActionBar);
+        }else if(this.closeable) {
+            borderLayoutPanel.addToTop(createCloseBar());
         }
         add(borderLayoutPanel, BorderLayout.CENTER);
-        new TreeSpeedSearch(this.tree, true, e -> WarningContentTreeComparator.getDisplayTextToSort(e.getLastPathComponent().toString()));
+        TreeSpeedSearch.installOn(this.tree, true, e -> WarningContentTreeComparator.getDisplayTextToSort(e.getLastPathComponent().toString()));
     }
 
     private void buildTree() {
@@ -112,12 +123,13 @@ public class WarningContentTreeView extends JPanel {
     private JComponent createLeftActionsToolbar() {
         var group = new DefaultActionGroup();
         final TreeExpander treeExpander = new DefaultTreeExpander(this.tree);
-        group.add(ACTIONS_MANAGER.createExpandAllAction(treeExpander, this.tree));
-        group.add(ACTIONS_MANAGER.createCollapseAllAction(treeExpander, this.tree));
+        CommonActionsManager actionsManager = CommonActionsManager.getInstance();
+        group.add(actionsManager.createExpandAllAction(treeExpander, this.tree));
+        group.add(actionsManager.createCollapseAllAction(treeExpander, this.tree));
         if(isSonarTab() && this.filterSimilar == null){
             group.add(this.criticalActionToggle);
         }
-        return createToolbar(group, false);
+        return createToolbar(group);
     }
 
     private JComponent createTopActionBar() {
@@ -133,10 +145,12 @@ public class WarningContentTreeView extends JPanel {
         content.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         content.add(new JBLabel("Filter Messages for "));
         content.add(this.userChoice);
-        if(this.filterSimilar != null) {
-            JButton closeButton = getCloseButton();
-            content.add(closeButton);
-        }
+        return content;
+    }
+
+    private JComponent createCloseBar() {
+        var content = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        content.add(getCloseButton());
         return content;
     }
 
@@ -152,8 +166,9 @@ public class WarningContentTreeView extends JPanel {
         return closeButton;
     }
 
-    private JComponent createToolbar(final DefaultActionGroup specialGroup, boolean horizontal) {
-        final var toolbar = ActionManager.getInstance().createActionToolbar(this.name, specialGroup, horizontal);
+    private JComponent createToolbar(final DefaultActionGroup specialGroup) {
+        final var toolbar = ActionManager.getInstance().createActionToolbar(this.name, specialGroup, false);
+        toolbar.setTargetComponent(this.tree);
         return toolbar.getComponent();
     }
 }

@@ -10,7 +10,6 @@ import org.jsoup.nodes.Node;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -27,10 +26,15 @@ public final class WarningContentHelper {
     }
     public static void generateTypeFromElementTypeAndAddItToTypeSet(Element elementType,@NotNull Set<Type> types, @NotNull Map<String, Directory> directories) {
         var typeName = elementType.attr("name");
-        var type = new Type(elementType);
-        elementType.childNodes().stream().flatMap(e -> e.childNodes().stream()).forEach(fileNode -> {
+        //the same type is read once per letter code (me, my team, my team members): they must be merged
+        var type = types.stream().filter(t -> typeName.equals(t.getMainAttribute())).findFirst()
+                        .orElseGet(() -> new Type(elementType));
+        //only the elements are interesting, the text nodes (white spaces) are ignored
+        elementType.childNodes().stream().filter(Element.class::isInstance)
+                   .flatMap(e -> e.childNodes().stream()).filter(Element.class::isInstance).forEach(fileNode -> {
             String fullPath = fileNode.attr("path");
-            fullPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+            int lastSlash = fullPath.lastIndexOf('/');
+            fullPath = lastSlash == -1 ? "" : fullPath.substring(0, lastSlash);
             type.addChildren(generateDirectory(directories, fullPath, "", fileNode, typeName));
         });
         types.add(type);
@@ -53,7 +57,10 @@ public final class WarningContentHelper {
     }
 
     private static boolean hasSimilarMessage(Message message, String similarMessage) {
-        double score = similarMessage == null ? Double.MAX_VALUE : JARO_WINKLER.similarity(message.getDescription(), similarMessage);
+        if (similarMessage == null) {
+            return true;
+        }
+        double score = JARO_WINKLER.similarity(message.getDescription(), similarMessage);
         return score > SwissAsStorage.getInstance().getSimilarValue();
     }
     
@@ -71,6 +78,7 @@ public final class WarningContentHelper {
             if(onlyCritical && !message.isCritical() || !hasSimilarMessage(message, similarMessage)) {
                 return;
             }
+            currentElement.setCritical(message.isCritical());
         }
 
         Set<AttributeChildrenBean> children = element.getChildren();
@@ -127,7 +135,7 @@ public final class WarningContentHelper {
         List<Directory> subDirs = children.stream()
                                           .filter(Directory.class::isInstance)
                                           .map(Directory.class::cast)
-                                          .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).collect(Collectors.toList());
+                                          .filter(subDir -> hasFilteredChild(subDir, filteredResponsible, onlyCritical, similarMessage)).toList();
         if(subDirs.size() == 1) {
             var childDirectory = subDirs.getFirst();
             sb.append("/");
@@ -142,12 +150,12 @@ public final class WarningContentHelper {
         List<Directory> subDirs = directory.getChildren().stream()
                 .filter(Directory.class::isInstance)
                 .map(Directory.class::cast)
-                .collect(Collectors.toList());
+                .toList();
         Stream<File> files = directory.getChildren().stream()
                 .filter(File.class::isInstance)
                 .map(File.class::cast);
         if(filteredResponsible != null){
-            files = files.filter(file -> file.getResponsible().equals(filteredResponsible));
+            files = files.filter(file -> !fileNotGoodResponsible(file, filteredResponsible));
         }
         if(onlyCritical) {
             files = files.filter(file -> file.getChildren().stream()

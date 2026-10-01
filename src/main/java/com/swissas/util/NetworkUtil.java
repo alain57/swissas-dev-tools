@@ -38,7 +38,7 @@ public class NetworkUtil {
 	public void refreshUserMap() {
 		Map<String, User> userMap = new TreeMap<>();
 		try {
-			Document doc = Jsoup.connect(STAFF_URL).get();
+			Document doc = Jsoup.connect(STAFF_URL).timeout(20_000).get();
 			Elements select = doc.select("tr.filterrow");
 			for (Element element : select) {
 				String withinTitleHtmlText = element.attr("title").replaceAll("\n+", "<br/>");
@@ -52,7 +52,9 @@ public class NetworkUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error(e);
+			//a network problem must not pop up an IDE fatal error
+			LOGGER.warn("Unable to refresh the user map from " + STAFF_URL, e);
+			return;
 		}
 		SwissAsStorage.getInstance().setUserMap(userMap);
 	}

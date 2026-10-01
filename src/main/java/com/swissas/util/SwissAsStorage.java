@@ -17,6 +17,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.Consumer;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.Transient;
 import com.swissas.beans.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +57,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	private final Map<String, User> userMap;
 	
 	private final Map<String, String> fullNameTo4LcMap;
+	@Transient
 	private       Properties        shareProperties;
+	@Transient
 	private       boolean           isNewTranslation  = false;
 	
 	public SwissAsStorage() {
@@ -94,25 +97,35 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public void setDocuLetterCode(String docuLetterCode) {
-		this.docuLetterCode = docuLetterCode;
+		this.docuLetterCode = docuLetterCode == null ? "" : docuLetterCode;
 		setLetterCodeToFunction(docuLetterCode, this::setDocuMail);
 	}
 	
 	public void setSupportLetterCode(String supportLetterCode) {
-		this.supportLetterCode = supportLetterCode;
+		this.supportLetterCode = supportLetterCode == null ? "" : supportLetterCode;
 		setLetterCodeToFunction(supportLetterCode, this::setSupportMail);
 	}
 	
 	public void setQaLetterCode(String qaLetterCode) {
-		this.qaLetterCode = qaLetterCode;
+		this.qaLetterCode = qaLetterCode == null ? "" : qaLetterCode;
 		setLetterCodeToFunction(qaLetterCode, this::setQaMail);
 	}
 	
 	private void setLetterCodeToFunction(String letterCode, Consumer<String> consumer) {
-		String valueToPass = letterCode.isEmpty() ? null
-		                                          : letterCode.substring(0, letterCode.indexOf(' '))
-		                                            + MAIL_SUFFIX;
-		consumer.consume(valueToPass);
+		consumer.consume(toMail(letterCode));
+	}
+	
+	/**
+	 * @param letterCode a letter code, optionally followed by the name of the person (ex : "ABC (John Doe)")
+	 * @return the mail address of the letter code or null if no letter code was given.
+	 */
+	static String toMail(@Nullable String letterCode) {
+		if (letterCode == null || letterCode.isBlank()) {
+			return null;
+		}
+		String trimmed = letterCode.trim();
+		int separator = trimmed.indexOf(' ');
+		return (separator == -1 ? trimmed : trimmed.substring(0, separator)) + MAIL_SUFFIX;
 	}
 	
 	public String getSupportLetterCode() {
@@ -120,7 +133,7 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	}
 	
 	public void setFourLetterCode(String fourLetterCode) {
-		this.fourLetterCode = fourLetterCode;
+		this.fourLetterCode = fourLetterCode == null ? "" : fourLetterCode;
 		fillMyTeam();
 	}
 	
@@ -162,6 +175,13 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public String getMyTeam() {
 		return "T_" + this.myTeam;
+	}
+	
+	/**
+	 * @return true when the team of the configured 4LC is known.
+	 */
+	public boolean hasTeam() {
+		return !this.myTeam.isEmpty();
 	}
 	
 	public boolean isHorizontalOrientation() {
@@ -297,9 +317,9 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 		this.minWarningSize = minWarningSize;
 	}
 	
-	public Map getShareProperties() {
+	public Map<Object, Object> getShareProperties() {
 		return Optional.ofNullable(this.shareProperties)
-						.map(Collections::unmodifiableMap)
+						.map(p -> Collections.unmodifiableMap((Map<Object, Object>) p))
 						.orElse(Map.of());
 	}
 	

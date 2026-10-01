@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 public class OpenCaseOrReviewAction extends AnAction {
 	private static final int            PATTERN_POSITION = 3;
 	private final        FileAnnotation annotation;
-	private              int            previousLineNumber;
+	private              int            previousLineNumber = -1;
 	private              String         link             = null;
 	private final        Pattern        searchPattern;
 	private final        String         urlPrefix;
@@ -46,7 +46,7 @@ public class OpenCaseOrReviewAction extends AnAction {
 	
 	private void refreshDataAndFields(int lineNumber) {
 		if (this.previousLineNumber != lineNumber) {
-			String message = this.annotation.getHtmlToolTip(lineNumber);
+			String message = lineNumber < 0 ? null : this.annotation.getHtmlToolTip(lineNumber);
 			this.link = null;
 			if (message != null) {
 				Matcher matcher = this.searchPattern.matcher(message);

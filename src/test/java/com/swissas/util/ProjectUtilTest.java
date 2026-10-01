@@ -34,7 +34,7 @@ class ProjectUtilTest {
 				new ByteArrayInputStream("target.branch=19.6".getBytes())
 		);
 
-        this.projectUtil = new ProjectUtil() {
+        this.projectUtil = new ProjectUtil(null) {
 
 			@Override
 			protected VirtualFile[] getContentRoots(Module module) {

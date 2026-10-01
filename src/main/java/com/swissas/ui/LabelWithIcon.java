@@ -71,7 +71,7 @@ class LabelWithIcon extends JLabel {
     private void paintTextAndIcon(Graphics2D g2d, int halfSize, int bubbleWith, int bubbleXPos) {
         if (this.data.newMessages() > 0) {
             g2d.setPaint(this.selected ? JBColor.WHITE : SELECTION_COLOR);
-            g2d.fill(new Ellipse2D.Double(bubbleXPos, getHeight() / 2 - 9, bubbleWith, halfSize));
+            g2d.fill(new Ellipse2D.Double(bubbleXPos, (double) getHeight() / 2 - 9, bubbleWith, halfSize));
             if(this.selected){
                 g2d.setPaint(SELECTION_COLOR);
             }

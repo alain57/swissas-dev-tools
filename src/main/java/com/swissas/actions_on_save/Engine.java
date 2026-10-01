@@ -3,7 +3,9 @@ package com.swissas.actions_on_save;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.swissas.util.ProjectUtil;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
@@ -57,11 +59,11 @@ class Engine {
 		List<SimpleEntry<InspectionAction, Result<ResultCode>>> results = processorsEligible.stream()
 				.peek(command -> LOGGER.info("Execute command " + command + " on " + psiFiles.size() + " files"))
 				.map(command -> new SimpleEntry<>(command.getInspectionAction(), command.execute()))
-				.collect(toList());
+				.toList();
 		LOGGER.info("Exit engine with results "
 				+ results.stream()
 				.map(entry -> entry.getKey() + ":" + entry.getValue())
-				.collect(toList()));
+				.toList());
 	}
 	
 	private boolean isPsiFileEligible(Project project, PsiFile psiFile) {
@@ -73,13 +75,16 @@ class Engine {
 	}
 	
 	private boolean isProjectValid(Project project) {
+		//the fixes are Swiss-AS specific, they must not modify the files of any other project
 		return project.isInitialized()
-				&& !project.isDisposed();
+				&& !project.isDisposed()
+				&& ProjectUtil.getInstance(project).isAmosProject();
 	}
 	
 	private boolean isPsiFileInProject(Project project, PsiFile psiFile) {
-		boolean inProject = ProjectRootManager.getInstance(project)
-				.getFileIndex().isInContent(psiFile.getVirtualFile());
+		VirtualFile virtualFile = psiFile.getVirtualFile();
+		boolean inProject = virtualFile != null && ProjectRootManager.getInstance(project)
+				.getFileIndex().isInContent(virtualFile);
 		if (!inProject) {
 			LOGGER.info("File " + psiFile + " not in current project " + project);
 		}

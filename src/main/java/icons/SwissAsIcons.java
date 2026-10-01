@@ -5,7 +5,7 @@ import javax.swing.Icon;
 import com.intellij.openapi.util.IconLoader;
 
 /**
- * The Icon interface that is used by the plugin xml file
+ * The Icon interface that is used by the plugin XML file
  *
  * @author Tavan Alain
  */

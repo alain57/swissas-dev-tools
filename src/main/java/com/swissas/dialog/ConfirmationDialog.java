@@ -72,7 +72,9 @@ public class ConfirmationDialog extends DialogWrapper {
         trafficMessage.setEditable(false);
         trafficMessage.addHyperlinkListener(event -> {
             if (HyperlinkEvent.EventType.ACTIVATED.equals(event.getEventType())) {
-                BrowserUtil.browse(event.getURL());
+                if (event.getURL() != null) {
+                    BrowserUtil.browse(event.getURL());
+                }
             }
         });
         content.add(commitMessage, BorderLayout.NORTH);

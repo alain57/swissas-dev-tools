@@ -93,9 +93,12 @@ public class SwissAsConfig implements Configurable {
                 this.swissAsStorage.isPreCommitInformOther() != this.configPanel.getPreCommitInformOtherPersonCheckbox().isSelected() ||
                 this.swissAsStorage.isConvertToTeam() != this.configPanel.getConvertToTeamCheckbox().isSelected() ||
                 this.swissAsStorage.isUseAmosBeanAnnotationDto() != this.configPanel.getChkAnnotation().isSelected() ||
-                this.swissAsStorage.getSimilarValue() != getSimilarValue()
-                ;/* ||
-                this.storage.isShowIgnoredValues() != this.chkShowIgnoreLists.isSelected();*/
+                !sameSimilarValue(this.swissAsStorage.getSimilarValue(), getSimilarValue())
+                ;
+    }
+
+    private static boolean sameSimilarValue(double a, double b) {
+        return Double.isFinite(a) && Double.isFinite(b) && Math.abs(a - b) <= 1e-9;
     }
 
     @Override
@@ -145,9 +148,9 @@ public class SwissAsConfig implements Configurable {
                 throw new ConfigurationException(
                         "Please choose a proposed value for the Support field");
             }
-            if(getSimilarValue() < 0d || getSimilarValue() > 1d) {
-                throw new ConfigurationException("The similar value should be between 0 and 1");
-            }
+        }
+        if(Double.isNaN(getSimilarValue()) || getSimilarValue() < 0d || getSimilarValue() > 1d) {
+            throw new ConfigurationException("The similar value should be a number between 0 and 1");
         }
         
         if(!StringUtils.getInstance().isPositiveNumber(this.configPanel.getMinTranslationSize().getText())){
@@ -163,8 +166,16 @@ public class SwissAsConfig implements Configurable {
         return this.configPanel.getQualityLetterBox().getText().trim();
     }
 
+    /**
+     * @return the configured value or NaN when the text is not a number (this method is also called by isModified,
+     * so it must never throw while the user is typing)
+     */
     private double getSimilarValue() {
-        return Double.parseDouble(this.configPanel.getSimilarValue().getText().trim());
+        try {
+            return Double.parseDouble(this.configPanel.getSimilarValue().getText().trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
     }
 
     private String getDocuLetterCode() {

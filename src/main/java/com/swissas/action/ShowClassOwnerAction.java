@@ -7,6 +7,8 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.javadoc.PsiDocTag;
@@ -25,19 +27,33 @@ class ShowClassOwnerAction extends LetterCodeAction {
 	protected ShowClassOwnerAction() {
 	}
 	
+	@Nullable
+	private static String getAuthorValue(PsiDocTag author) {
+		PsiElement value = author.getValueElement();
+		if (value == null) {
+			//author is the entire line, the author tag is the first child, the next is a blank sign followed by the letter code
+			PsiElement blank = author.getFirstChild() == null ? null : author.getFirstChild().getNextSibling();
+			value = blank == null ? null : blank.getNextSibling();
+		}
+		return value == null ? null : value.getText();
+	}
+
 	@Override
 	protected void executeWriteAction(Editor editor, @Nullable Caret caret, DataContext dataContext){
-		PsiFile file = PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(((EditorEx)editor).getVirtualFile());
+		VirtualFile virtualFile = ((EditorEx)editor).getVirtualFile();
+		PsiFile file = virtualFile == null ? null
+		                                   : PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(virtualFile);
 		String errorText = null;
 		String authorString = null;
 		//find the author
-		PsiDocTag author = PsiTreeUtil.collectElementsOfType(file, PsiDocTag.class).stream()
-				.filter(e -> e.getName().equalsIgnoreCase("author")).findFirst().orElse(null);
+		PsiDocTag author = file == null ? null : PsiTreeUtil.collectElementsOfType(file, PsiDocTag.class).stream()
+				.filter(e -> "author".equalsIgnoreCase(e.getName())).findFirst().orElse(null);
 		if(author != null){
-			authorString = author.getFirstChild().getNextSibling().getNextSibling().getText(); //author is the entire line, the author tag is the first child, the next is a blank sign followed by the letter code
-		}else {
+			authorString = getAuthorValue(author);
+		}
+		if(authorString == null) {
 			errorText = "The plugin was not able to find the class author code";
 		}
-		ShowLetterCodeInformationHelper.displayInformation(authorString, errorText);
+		ShowLetterCodeInformationHelper.displayInformation(editor.getProject(), authorString, errorText);
 	}
 }

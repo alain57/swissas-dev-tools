@@ -48,7 +48,7 @@ public class WarningContentMouseAdapter extends MouseAdapter {
 			return;
 		}
 		if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
-			if(ProjectUtil.getInstance().isPreviewProject()) {
+			if(ProjectUtil.getInstance(this.project).isPreviewProject()) {
 				String filePath;
 				if(selectedNode.getTreeType().equals(WarningContentTreeNode.TreeType.MESSAGE)) {
 					int line = Optional.ofNullable(this.tree.getSelectionPath())

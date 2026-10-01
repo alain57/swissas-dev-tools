@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class OpenCaseAnnotationProvider implements AnnotationGutterActionProvider {
 	
-	private static final Pattern SUPPORT_FINDER = Pattern
-			.compile("(#|sc|case|sup|support|story|request) ?(id|no|.)?.(\\d+[`']?\\d+)", Pattern.CASE_INSENSITIVE);
+	static final Pattern SUPPORT_FINDER = Pattern
+			.compile("(#|sc|case|sup|support|story|request)\\W*(id|no)?\\W*(\\d+[`']?\\d+)", Pattern.CASE_INSENSITIVE);
 	
 	
 	@NotNull

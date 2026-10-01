@@ -1,9 +1,7 @@
 package com.swissas.actions_on_save;
 
-import com.intellij.openapi.application.RunResult;
-
 /**
- * Composite of {@link com.intellij.openapi.application.Result} and {@link RunResult}.
+ * Holds the result of a {@link SaveCommand} execution.
  * (based on the code from the save action plugin)
  * @author Tavan Alain
  */

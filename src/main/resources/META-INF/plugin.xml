@@ -17,7 +17,7 @@
         <applicationService order="first" serviceImplementation="com.swissas.util.SwissAsStorage"/>
         <projectConfigurable id="SwissAsSettings" displayName="Swiss AS Settings" 
                                  instance="com.swissas.config.SwissAsConfig" />
-        <toolWindow id="SAS Warnings" secondary="true" anchor="bottom" factoryClass="com.swissas.toolwindow.WarningContent" />
+        <toolWindow id="SAS Warnings" anchor="right" icon="/icons/amos.png" factoryClass="com.swissas.toolwindow.WarningContentToolWindowFactory" />
         <checkinHandlerFactory implementation="com.swissas.checkin.PreCommitCheckingFactory"/>
         <localInspection language="JAVA"
                          displayName="Missing @Author"
@@ -58,7 +58,7 @@
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenCaseAnnotationProvider" />
         <vcsAnnotationGutterActionProvider implementation="com.swissas.provider.OpenReviewAnnotationProvider" />
         <editorActionHandler action="EditorPaste" implementationClass="com.swissas.handler.PasteImageHandler" order="first" />
-        <applicationService serviceImplementation="com.swissas.actions_on_save.SaveActionManager"/>
+        <projectService serviceImplementation="com.swissas.util.ProjectUtil"/>
     </extensions>
     
     <actions>

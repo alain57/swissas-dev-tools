@@ -3,10 +3,15 @@ package com.swissas.widget;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JComponent;
@@ -19,10 +24,14 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.ui.UISettingsListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -44,12 +53,13 @@ import org.jsoup.select.Elements;
 
 import static com.swissas.util.Constants.GREEN;
 import static com.swissas.util.Constants.OFF;
+import static com.swissas.util.Constants.ON;
 import static com.swissas.util.Constants.RED;
 import static com.swissas.util.Constants.YELLOW;
 
 /**
  * Traffic light panel 
- * it will tun on or blink the different lights depending on the read value
+ * it will turn on or blink the different lights depending on the read value
  *
  * @author Tavan Alain
  */
@@ -59,11 +69,19 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     public static final String WIDGET_ID = "trafficLightPanel";
     public static final String WIDGET_DISPLAY_NAME = "Swiss-AS Traffic Light";
 
+    private static final Logger LOGGER = Logger.getInstance("Swiss-as");
+
     private static final int RADIUS_VERTICAL = 4;
     
     private static final int RADIUS_HORIZONTAL = 6;
     private static final int BORDER_VERTICAL = 1;
     private static final int BORDER_HORIZONTAL = 2;
+
+    private static final long REFRESH_DELAY_MS = 30_000L;
+    private static final long USER_REFRESH_DELAY_MS = TimeUnit.DAYS.toMillis(1);
+
+    private static final String SHARED_TRANSLATION_PATH = "amos/share/multiLanguage/Standard.properties";
+
     private final Project project;
     private StatusBar statusBar;
     
@@ -72,27 +90,30 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     private final Bulb yellow;
     private final Bulb red;
     private final JPanel lamps;
-    private final Map<String, String> status = new HashMap<>();
+    private final Map<String, String> status = new ConcurrentHashMap<>();
 
     private final AtomicReference<String> currentBranch = new AtomicReference<>();
 
     private final Alarm refreshAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
+    private final Alarm backgroundAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
 
     private volatile boolean disposed = false;
 
     private boolean informWhenReady;
     private CheckinProjectPanel checkinProjectPanel;
-    private String trafficDetails;
+    private volatile String trafficDetails;
     private final String clickUrl;
     
-    private boolean isRedOrYellowOn = false;
+    private volatile boolean isRedOrYellowOn = false;
 
     public TrafficLightPanel(Project project) {
         this.project = project;
         this.swissAsStorage = SwissAsStorage.getInstance();
-        this.currentBranch.set(ProjectUtil.getInstance().getBranchOfFile(project, null));
         this.clickUrl = ResourceBundle.getBundle("urls").getString("url.trafficlight.click");
         this.lamps = new JPanel();
+        // stay transparent so the status bar background shows through (no gray box / repaint leftovers)
+        setOpaque(false);
+        this.lamps.setOpaque(false);
         this.green =  new Bulb(JBColor.GREEN);
         this.yellow = new Bulb(JBColor.YELLOW);
         this.red = new Bulb(JBColor.RED);
@@ -101,7 +122,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         this.lamps.add(this.green);
         add(this.lamps);
         setOrientation();
-        project.getMessageBus().connect().subscribe(
+        project.getMessageBus().connect(this).subscribe(
                 FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
                     @Override
                     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
@@ -109,7 +130,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                         if (file == null) return;
 
                         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-                            String branch = ProjectUtil.getInstance().getBranchOfFile(project, file);
+                            if (TrafficLightPanel.this.disposed || project.isDisposed()) return;
+                            String branch = ProjectUtil.getInstance(project).getBranchOfFile(file);
 
                             if (branch != null && !branch.equals(TrafficLightPanel.this.currentBranch.get())) {
                                 TrafficLightPanel.this.currentBranch.set(branch);
@@ -136,7 +158,8 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             }
         });
 
-        scheduleRefresh();
+        this.backgroundAlarm.addRequest(this::initProjectData, 0);
+        scheduleUserRefresh(0);
     }
     
     @Override
@@ -144,47 +167,106 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         scheduleRefresh();
     }
 
+    /**
+     * Reads everything that needs the file system: it must not run on the EDT.
+     */
+    private void initProjectData() {
+        if (this.disposed || this.project.isDisposed()) return;
+        this.currentBranch.set(ProjectUtil.getInstance(this.project).getBranchOfFile(null));
+        fillSharedProperties();
+        scheduleRefresh();
+    }
+
+    private void fillSharedProperties() {
+        ProjectUtil projectUtil = ProjectUtil.getInstance(this.project);
+        if (!projectUtil.isAmosProject()) {
+            return;
+        }
+        Module shared = projectUtil.getShared();
+        if (shared == null) {
+            return;
+        }
+        VirtualFile[] sourceRoots = ReadAction.computeBlocking(
+                () -> ModuleRootManager.getInstance(shared).getSourceRoots());
+        if (sourceRoots.length == 0) {
+            return;
+        }
+        VirtualFile propertyFile = sourceRoots[0].findFileByRelativePath(SHARED_TRANSLATION_PATH);
+        if (propertyFile == null) { //older amos release, nothing to do for now
+            return;
+        }
+        Properties properties = new Properties();
+        try (InputStream in = propertyFile.getInputStream()) {
+            properties.load(in);
+            this.swissAsStorage.setNewTranslation(true);
+            this.swissAsStorage.setShareProperties(properties);
+        } catch (IOException e) {
+            LOGGER.warn("Unable to read " + propertyFile.getPath(), e);
+        }
+    }
+
+    private void scheduleUserRefresh(long delay) {
+        if (this.disposed) return;
+        this.backgroundAlarm.addRequest(() -> {
+            if (this.disposed || this.project.isDisposed()) return;
+            if (ProjectUtil.getInstance(this.project).isAmosProject()) {
+                NetworkUtil.getInstance().refreshUserMap();
+            }
+            scheduleUserRefresh(USER_REFRESH_DELAY_MS);
+        }, delay);
+    }
+
     private void scheduleRefresh() {
         if (this.disposed) return;
 
         this.refreshAlarm.cancelAllRequests();
         this.refreshAlarm.addRequest(this::refreshContentSafe, 0);
-        this.refreshAlarm.addRequest(this::refreshContentSafe, 30_000);
-        }
+    }
+
+    /**
+     * Runs on the alarm pooled thread, then re-schedules itself so that the traffic light
+     * really is refreshed every 30 seconds.
+     */
     private void refreshContentSafe() {
         if (this.disposed || this.project.isDisposed()) return;
-    
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
 
-            if (!ProjectUtil.getInstance().isAmosProject(this.project)) return;
+        try {
+            if (!ProjectUtil.getInstance(this.project).isAmosProject()) return;
 
             if (this.swissAsStorage.getFourLetterCode().isEmpty()) {
                 ApplicationManager.getApplication().invokeLater(this::showNotConfiguredPopup);
-            return;
-        }
-            
+                return;
+            }
+
             readTrafficValues();
-            ApplicationManager.getApplication().invokeLater(() -> {
-                if (this.disposed || this.statusBar == null) return;
+            ApplicationManager.getApplication().invokeLater(this::applyTrafficValues);
+        } finally {
+            if (!this.disposed) {
+                this.refreshAlarm.addRequest(this::refreshContentSafe, REFRESH_DELAY_MS);
+            }
+        }
+    }
 
-                this.green.changeState(getStateForColor(GREEN));
-                this.red.changeState(getStateForColor(RED));
-                this.yellow.changeState(getStateForColor(YELLOW));
+    private void applyTrafficValues() {
+        if (this.disposed || this.statusBar == null) return;
 
-                this.isRedOrYellowOn =
-                        !OFF.equals(getStateForColor(RED)) ||
-                        !OFF.equals(getStateForColor(YELLOW));
+        this.green.changeState(getStateForColor(GREEN));
+        this.red.changeState(getStateForColor(RED));
+        this.yellow.changeState(getStateForColor(YELLOW));
 
-                if (this.informWhenReady) {
+        this.isRedOrYellowOn =
+                !OFF.equals(getStateForColor(RED)) ||
+                !OFF.equals(getStateForColor(YELLOW));
+
+        if (this.informWhenReady) {
             displayCommitDialogWhenReady();
         }
 
-                this.statusBar.updateWidget(ID());
-            });
-        });
+        this.statusBar.updateWidget(ID());
     }
 
     private void showNotConfiguredPopup() {
+        if (this.disposed) return;
         JBPopupFactory.getInstance()
                 .createHtmlTextBalloonBuilder(
                         ResourceBundle.getBundle("texts").getString("4lc.not.configured"),
@@ -207,22 +289,28 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
             this.trafficDetails = tickerDetail.html();
         }else {
             this.trafficDetails = null;
-    }
-
         }
+    }
 
 
     public Map<String, String> getSmartTrafficLightColor(Elements tickerDetail) {
+        return computeLampColors(tickerDetail, this.currentBranch.get());
+    }
+
+    /**
+     * Green when the build server is happy, red when the current branch is broken, yellow when only another branch is.
+     */
+    static Map<String, String> computeLampColors(Elements tickerDetail, String branch) {
         Map<String, String> lampColors = new HashMap<>();
         if(tickerDetail != null) {
             Elements trs = tickerDetail.select("tr");
             if (trs.size() == 1 && trs.html().contains("happy.jpg")) {
-                lampColors.put("green", "on");
-            } else if (this.currentBranch.get() != null) {
-                boolean issueOnSameBranch =
-                        trs.html().toLowerCase().contains(this.currentBranch.get());
-                lampColors.put("yellow", issueOnSameBranch ? "off" : "on");
-                lampColors.put("red", issueOnSameBranch ? "on" : "off");
+                lampColors.put(GREEN, ON);
+            } else if (branch != null) {
+                //the branch can contain upper case letters (ex : V12-10) when the html is read in lower case
+                boolean issueOnSameBranch = trs.html().toLowerCase().contains(branch.toLowerCase());
+                lampColors.put(YELLOW, issueOnSameBranch ? OFF : ON);
+                lampColors.put(RED, issueOnSameBranch ? ON : OFF);
             }
         }
 
@@ -230,13 +318,15 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     }
 
     private String getStateForColor(String color) {
-        if (this.status.isEmpty()) return OFF;
         return this.status.getOrDefault(color, OFF);
     }
 
     private void displayCommitDialogWhenReady() {
         if (!this.isRedOrYellowOn) {
             this.informWhenReady = false;
+            if (this.checkinProjectPanel == null) {
+                return;
+            }
 
             Runnable showCommit = () ->
                     AbstractVcsHelper.getInstance(this.project).commitChanges(
@@ -247,16 +337,17 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
                     );
 
             ApplicationManager.getApplication()
-                    .invokeAndWait(showCommit, ModalityState.NON_MODAL);
+                    .invokeAndWait(showCommit, ModalityState.nonModal());
         }
     }
 
     private void showTrafficDetailsNotificationBubble() {
-        if (this.trafficDetails == null) return;
+        String details = this.trafficDetails;
+        if (details == null) return;
 
         JEditorPane pane = new JEditorPane(
                 "text/html",
-                "<html><body style='font-size:14px;'>" + this.trafficDetails + "</body></html>"
+                "<html><body style='font-size:14px;'>" + details + "</body></html>"
         );
 
         pane.setEditable(false);
@@ -333,7 +424,6 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
     @Override
     public void install(@NotNull StatusBar statusBar) {
         this.statusBar = statusBar;
-        scheduleRefresh();
     }
 
     @Override
@@ -343,6 +433,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         this.status.clear();
         this.trafficDetails = null;
         this.currentBranch.set(null);
-        
+        this.checkinProjectPanel = null;
+        this.statusBar = null;
     }
 }

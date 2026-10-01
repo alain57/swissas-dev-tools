@@ -23,7 +23,7 @@ public class WhoIsThisAction extends LetterCodeAction {
 		dialogChooser.show();
 		String authorString = dialogChooser.getInputValue();
 		if(authorString != null) {
-			ShowLetterCodeInformationHelper.displayInformation(authorString, null);
+			ShowLetterCodeInformationHelper.displayInformation(editor.getProject(), authorString, null);
 		}
 	}
 }

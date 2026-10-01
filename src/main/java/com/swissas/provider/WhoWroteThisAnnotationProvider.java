@@ -1,7 +1,5 @@
 package com.swissas.provider;
 
-import java.util.Objects;
-
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.vcs.actions.ShowAnnotateOperationsPopup;
@@ -42,9 +40,10 @@ public class WhoWroteThisAnnotationProvider implements AnnotationGutterActionPro
 		public void actionPerformed(@NotNull AnActionEvent e) {
 			int lineNumber = ShowAnnotateOperationsPopup.getAnnotationLineNumber(e.getDataContext());
 			VcsRevisionNumber lineRevisionNumber = this.annotation.getLineRevisionNumber(lineNumber);
-			String lc = Objects.requireNonNull(this.annotation.getAuthorsMappingProvider())
-			                   .getAuthors().get(lineRevisionNumber);
-			ShowLetterCodeInformationHelper.displayInformation(lc, null);
+			var authorsMappingProvider = this.annotation.getAuthorsMappingProvider();
+			String lc = authorsMappingProvider == null ? null : authorsMappingProvider.getAuthors().get(lineRevisionNumber);
+			ShowLetterCodeInformationHelper.displayInformation(e.getProject(), lc,
+			                                                   lc == null ? "Unable to find the author of this line" : null);
 		}
 	}
 }

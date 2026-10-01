@@ -42,6 +42,10 @@ public class WarningContentTreeNode extends DefaultMutableTreeNode {
         return this.isCritical;
     }
 
+    void setCritical(boolean critical) {
+        this.isCritical = critical;
+    }
+
     private void setMarked(boolean value){
         this.isMarked = value;
     }

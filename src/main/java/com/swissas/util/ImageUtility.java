@@ -1,5 +1,6 @@
 package com.swissas.util;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -30,17 +31,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImageUtility {
 	private static final Logger       LOGGER = Logger.getInstance("Swiss-as");
-	private static       ImageUtility instance;
+	private static final ImageUtility INSTANCE = new ImageUtility();
 	
 	private ImageUtility(){
 		
 	}
 	
 	public static ImageUtility getInstance() {
-		if(instance == null){
-			instance = new ImageUtility();
-		}
-		return instance;
+		return INSTANCE;
 	}
 	
 	public Image getImageFromClipboard() {
@@ -83,20 +81,21 @@ public class ImageUtility {
 	public String imageToBase64Jpeg(ImageIcon imageIcon) {
 		BufferedImage image = new BufferedImage(imageIcon.getIconWidth(),
 		                                        imageIcon.getIconHeight(), BufferedImage.TYPE_INT_RGB);
-		String imageString = null;
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		Graphics g = image.createGraphics();
-		imageIcon.paintIcon(null, g, 0,0);
 		try {
-			ImageIO.write(image, "jpg", bos);
+			//jpeg has no transparency, without a background the transparent pixels would be black
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, image.getWidth(), image.getHeight());
+			imageIcon.paintIcon(null, g, 0,0);
+		} finally {
 			g.dispose();
-			byte[] imageBytes = bos.toByteArray();
-			imageString = Base64.getEncoder().encodeToString(imageBytes);
-			
-			bos.close();
+		}
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			ImageIO.write(image, "jpg", bos);
+			return Base64.getEncoder().encodeToString(bos.toByteArray());
 		} catch (IOException e) {
 			LOGGER.error(e);
+			return null;
 		}
-		return imageString;
 	}
 }

@@ -52,7 +52,7 @@ public class ImportantPreCommits extends JDialog {
 	private static final Pattern START_WITH_SUPPORT_STRING = Pattern
 			.compile("^(#|sc|case|sup|support|story|request) ?(id|no)?.(\\d+[`']?\\d+)", CASE_INSENSITIVE);
 	public static final Pattern REVIEWER                  = Pattern
-			.compile("reviewed by ([a-z]{3,4})", CASE_INSENSITIVE);
+			.compile("reviewed by ([a-z]{2,4})\\b", CASE_INSENSITIVE);
 	private static final String  SELECT_SOMEONE            = "Select a reviewer !";
 	private static final String NO_REVIEW                 = "NO REVIEW";
 	
@@ -138,7 +138,9 @@ public class ImportantPreCommits extends JDialog {
 	
 	private boolean hasLetterCode(){
 		return Optional.ofNullable(this.reviewerComboBox.getSelectedItem())
-				.map(String.class::cast).map(StringUtils.getInstance()::isLetterCode).orElse(false);
+				.map(String.class::cast).map(String::trim)
+				//an empty text is a valid letter code for the settings, but not to choose a reviewer
+				.filter(code -> !code.isEmpty()).map(StringUtils.getInstance()::isLetterCode).orElse(false);
 	}
 	
 	private boolean hasNoReview(){
@@ -178,7 +180,12 @@ public class ImportantPreCommits extends JDialog {
 			SwissAsStorage storage = SwissAsStorage.getInstance();
 			properties.setProperty("mail.smtp.host", "sas-mail.swiss-as.com");
 			List<String> destinationMails = Stream.of(storage.getQaMail(), storage.getDocuMail(), storage.getSupportMail())
-			                                      .filter(Objects::nonNull).collect(Collectors.toList());
+			                                      .filter(mail -> mail != null && !mail.isBlank()).collect(Collectors.toList());
+			if (destinationMails.isEmpty()) {
+				LOGGER.info("No QA/Docu/Support mail configured, the information mail is not sent");
+				dispose();
+				return;
+			}
 			try {
 				Message msg = generateMessage(properties, storage.getMyMail(), destinationMails);
 				Transport.send(msg);
@@ -191,7 +198,7 @@ public class ImportantPreCommits extends JDialog {
 		dispose();
 	}
 	
-	private Message generateMessage(Properties properties, String sender, List<String> destination) throws MessagingException {
+	private Message generateMessage(Properties properties, String sender, List<String> destination) throws MessagingException, AddressException {
 		Session session = Session.getDefaultInstance(properties, null);
 		Message msg = new MimeMessage(session);
 		msg.setFrom(new InternetAddress(sender));
@@ -216,7 +223,9 @@ public class ImportantPreCommits extends JDialog {
 				String imageName = "image_" + imageCounter + ".jpg";
 				String imageContent = ImageUtility.getInstance().imageToBase64Jpeg(image);
 				MimeBodyPart part = addJpegAttachment(imageName, imageContent);
-				multipart.addBodyPart(part);
+				if (part != null) {
+					multipart.addBodyPart(part);
+				}
 				imageCounter++;
 			}
 		return multipart;

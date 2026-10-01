@@ -1,14 +1,13 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij.platform' version '2.16.0'
+    id 'org.jetbrains.intellij.platform' version '2.18.1'
 }
 
 group = "com.swissas.tala"
-version = "1.8.6"
+version = "1.8.7"
 
 repositories {
     mavenCentral()
-
     intellijPlatform {
         defaultRepositories()
     }
@@ -16,7 +15,7 @@ repositories {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -31,12 +30,12 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
     testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'org.mockito:mockito-core:4.5.1'
-    implementation  "org.jsoup:jsoup:1.15.3"
+    implementation  "org.jsoup:jsoup:1.23.2"
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation  "javax.mail:mail:1.4.7"
     implementation 'info.debatty:java-string-similarity:2.0.0'
     intellijPlatform {
-        intellijIdea("2026.1.2")
+        intellijIdea("2026.2.2")
         bundledPlugin 'com.intellij.java'
         bundledPlugin 'com.intellij.properties'
 //        bundledPlugin 'Subversion'
@@ -47,12 +46,14 @@ intellijPlatform  {
     projectName = "Swiss-AS Dev-Tools"
     buildSearchableOptions = true
     autoReload = true
-    
+    // the Ant java compiler used for instrumentation can't be resolved through the corporate Artifactory mirror,
+    // and there are no .form files in the project so nothing needs to be instrumented
+    instrumentCode = false
 
     pluginConfiguration {
         id = "com.swissas.tala.swissas"
         name = "Swiss-AS Dev-Tools"
-        version = "1.8.6"
+        version = "1.8.7"
         ideaVersion {
             sinceBuild = "261"
         }
@@ -65,6 +66,16 @@ intellijPlatform  {
         }
         
         changeNotes = """
+<b>V1.9</b><pre>Fix the not possible to translate issue
+Fix some exceptions
+rebuild the plugin with latest gradle and intellij gradle plugin
+let AI have a look at the code and fix some small finding
+get rid of some deprecated code
+adapt the plugin for enabling it in intellij without restarting the IDE
+fix some performance issues
+an unknown user is again with the anonymous image
+the swiss as panel is now with an amos logo so that it is obvious that this is to help devs find their sonar issues TODOS
+let the AI add tests for the plugin</pre>
 <b>V1.8.6</b><pre>update project with latest gradle, latest IntelliJ gradle plugin, 
 get rid of some exception and make the plugin better work with newer IJ
 refactor the save action and traffic light code to be more robust and prevent some exception</pre>

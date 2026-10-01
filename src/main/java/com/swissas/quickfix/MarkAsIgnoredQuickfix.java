@@ -34,7 +34,8 @@ public class MarkAsIgnoredQuickfix implements LocalQuickFix {
     @NotNull
     @Override
     public String getName() {
-        return ResourceBundle.getBundle("texts").getString("mark.as.no.ext");
+        String key = this.javaComment.contains("NOSQL") ? "mark.as.no.sql" : "mark.as.no.ext";
+        return ResourceBundle.getBundle("texts").getString(key);
     }
 
     @Override

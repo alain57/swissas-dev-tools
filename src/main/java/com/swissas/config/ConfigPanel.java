@@ -268,7 +268,7 @@ class ConfigPanel {
                 //---- similarValue ----
                 this.similarValue.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
                 this.similarValue.setText("0.8");
-                this.similarValue.setToolTipText("higher value = similar closer to identenical");
+                this.similarValue.setToolTipText("higher value = similar closer to identical");
                 panel1.add(this.similarValue, new GridConstraints(3, 1, 1, 1,
                     GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -312,7 +312,7 @@ class ConfigPanel {
 
                 //---- convertToTeamCheckbox ----
                 this.convertToTeamCheckbox.setText(bundle.getString("ConfigPanel.convertToTeamCheckbox.text"));
-                this.convertToTeamCheckbox.setToolTipText("When modifying a class of your team, the author will be transfered to your team account");
+                this.convertToTeamCheckbox.setToolTipText("When modifying a class of your team, the author will be transferred to your team account");
                 panel2.add(this.convertToTeamCheckbox, new GridConstraints(3, 0, 1, 1,
                     GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,

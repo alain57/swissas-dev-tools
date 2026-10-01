@@ -1,2 +1,5 @@
-rootProject.name = 'swissas'
 
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+}
+rootProject.name = 'swissas'

@@ -41,8 +41,8 @@ class StringUtilsTest {
 	
 	@Test
 	void isLetterCodeWithNameAcceptEmptyAndRefuseNull() {
-		assertThat(StringUtils.getInstance().isLetterCode("")).isTrue();
-		assertThatIllegalArgumentException().isThrownBy(() -> StringUtils.getInstance().isLetterCode(null));
+		assertThat(StringUtils.getInstance().isLetterCodeWithName("")).isTrue();
+		assertThatIllegalArgumentException().isThrownBy(() -> StringUtils.getInstance().isLetterCodeWithName(null));
 	}
 	
 	@Test
@@ -84,6 +84,71 @@ class StringUtilsTest {
 		assertThat(StringUtils.getInstance().isGetter("isntGetter")).isFalse();
 		assertThat(StringUtils.getInstance().isGetter("hashCode")).isFalse();
 		
+	}
+	
+	@Test
+	void removeJavaEndingOnlyRemovesTheJavaExtension() {
+		assertThat(StringUtils.getInstance().removeJavaEnding("MyBO.java")).isEqualTo("MyBO");
+		assertThat(StringUtils.getInstance().removeJavaEnding("MyBO")).isEqualTo("MyBO");
+	}
+	
+	@Test
+	void removeJavaEndingDoesNotFailOnOtherExtensions() {
+		assertThat(StringUtils.getInstance().removeJavaEnding("Standard.properties")).isEqualTo("Standard.properties");
+		assertThat(StringUtils.getInstance().removeJavaEnding("My.java.bak")).isEqualTo("My.java.bak");
+	}
+	
+	@Test
+	void removeGetterPrefixLowersTheFirstLetterByDefault() {
+		assertThat(StringUtils.getInstance().removeGetterPrefix("getValue")).isEqualTo("value");
+		assertThat(StringUtils.getInstance().removeGetterPrefix("isActive")).isEqualTo("active");
+		assertThat(StringUtils.getInstance().removeGetterPrefix("hasChildren")).isEqualTo("children");
+		assertThat(StringUtils.getInstance().removeGetterPrefix("areValuesGood")).isEqualTo("valuesGood");
+	}
+	
+	@Test
+	void removeGetterPrefixCanKeepTheFirstLetter() {
+		assertThat(StringUtils.getInstance().removeGetterPrefix("getValue", false)).isEqualTo("Value");
+	}
+	
+	@Test
+	void removeGetterPrefixReturnsNullWhenItIsNotAGetter() {
+		assertThat(StringUtils.getInstance().removeGetterPrefix("hashCode")).isNull();
+	}
+	
+	@Test
+	void addSetOfGetterGeneratesTheDtoSetter() {
+		StringBuilder sb = new StringBuilder();
+		
+		StringUtils.getInstance().addSetOfGetter(sb, "getName", null, false);
+		
+		assertThat(sb).hasToString("\tdto.setName(bo.getName());\n");
+	}
+	
+	@Test
+	void addSetOfGetterGeneratesTheBoSetter() {
+		StringBuilder sb = new StringBuilder();
+		
+		StringUtils.getInstance().addSetOfGetter(sb, "getName", "getId", true);
+		
+		assertThat(sb).hasToString("\tbo.setName(dto.getName());\n");
+	}
+	
+	@Test
+	void addSetOfGetterProtectsThePrimaryKeyAgainstNull() {
+		StringBuilder sb = new StringBuilder();
+		
+		StringUtils.getInstance().addSetOfGetter(sb, "getId", "getId", false);
+		
+		assertThat(sb.toString()).startsWith("\tif(bo.getId() != null ) {\n")
+		                         .contains("dto.setId(bo.getId());")
+		                         .endsWith("\t}\n");
+	}
+	
+	@Test
+	void addSetOfGetterRefusesAnythingThatIsNotAGetter() {
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> StringUtils.getInstance().addSetOfGetter(new StringBuilder(), "hashCode", null, false));
 	}
 	
 }

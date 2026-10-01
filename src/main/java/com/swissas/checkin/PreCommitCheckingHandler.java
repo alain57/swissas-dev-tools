@@ -2,6 +2,7 @@ package com.swissas.checkin;
 
 
 import java.io.File;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -10,12 +11,16 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vcs.AbstractVcs;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
+import com.intellij.openapi.vcs.FilePath;
 import com.intellij.openapi.vcs.changes.CommitExecutor;
 import com.intellij.openapi.vcs.checkin.CheckinHandler;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PairConsumer;
+import com.intellij.vcsUtil.VcsUtil;
 import com.swissas.dialog.ConfirmationDialog;
 import com.swissas.dialog.ImportantPreCommits;
 import com.swissas.util.ProjectUtil;
@@ -40,14 +45,12 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			.getString("commit.without.message");
 	
 	private final Project             project;
-	private final boolean             isGit;
 	private final CheckinProjectPanel checkinProjectPanel;
 	
 	private TrafficLightPanel trafficLightPanel = null;
 	private ImportantPreCommits importantPreCommitsDialog;
 	
-	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel, boolean isGit) {
-		this.isGit = isGit;
+	PreCommitCheckingHandler(CheckinProjectPanel checkinProjectPanel) {
 		this.project = checkinProjectPanel.getProject();
 		this.checkinProjectPanel = checkinProjectPanel;
 		IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(this.project);
@@ -80,7 +83,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 			                    null);
 			return ReturnResult.CANCEL;
 		}
-		if(this.isGit) {
+		if(isGit()) {
 			return ReturnResult.COMMIT;
 		}
 		ReturnResult result;
@@ -95,6 +98,17 @@ class PreCommitCheckingHandler extends CheckinHandler {
 		}
 		
 		return result;
+	}
+	
+	private boolean isGit() {
+		VirtualFile file = this.checkinProjectPanel.getVirtualFiles().stream().findFirst().orElse(null);
+		if (file == null) {
+			return false;
+		}
+		FilePath filePath = VcsUtil.getFilePath(file);
+		String vcsName = Optional.ofNullable(VcsUtil.getVcsFor(this.project, filePath))
+		                         .map(AbstractVcs::getName).orElse("");
+		return "Git".equalsIgnoreCase(vcsName);
 	}
 	
 	private boolean warnIfIndexInProgress() {
@@ -129,7 +143,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 					.matcher(this.checkinProjectPanel.getCommitMessage());
 			if(matcher.find()){
 				String potentialReviewer = matcher.group(1);
-				result = !StringUtils.getInstance().isLetterCode(potentialReviewer);
+				result = !StringUtils.getInstance().isLetterCode(potentialReviewer.toUpperCase());
 			}else {
 				result = true;
 			}
@@ -141,7 +155,7 @@ class PreCommitCheckingHandler extends CheckinHandler {
 	private boolean displayPreCommitChecksIfNeeded() {
 		boolean result = true;
 		this.importantPreCommitsDialog = new ImportantPreCommits(this.checkinProjectPanel);
-		if (ProjectUtil.getInstance().isAmosProject(this.project)) {
+		if (ProjectUtil.getInstance(this.project).isAmosProject()) {
 		    boolean informOther = informOtherPeopleNeeded(); 
 			if(informOther || isCodeReviewRequired()) {
 				this.importantPreCommitsDialog.refreshContent(informOther);

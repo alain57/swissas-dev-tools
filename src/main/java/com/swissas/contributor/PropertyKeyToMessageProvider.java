@@ -33,6 +33,7 @@ public class PropertyKeyToMessageProvider extends PsiReferenceProvider {
             return Optional.ofNullable(key.getContainingFile())
 			                                .map(PsiFile::getContainingDirectory)
 			                                .map(dir -> dir.findFile(MESS))
+			                                .filter(PsiJavaFile.class::isInstance)
 			                                .map(PsiJavaFile.class::cast)
 			                                .stream()
 			                                .flatMap(file -> Stream.of(file.getClasses()))

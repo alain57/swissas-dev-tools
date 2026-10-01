@@ -1,5 +1,6 @@
 package com.swissas.action;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -12,36 +13,45 @@ import com.swissas.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Generate Dto From BO action menu that is visible on right click on a BO Editor
+ * Generate Dto From BO action menu that is visible on right-click on a BO Editor
  * @author Tavan Alain
  */
 public class GenerateDtoFromCurrentBo extends AnAction {
 
-    private PsiClass psiClass = null;
-    private PsiJavaFile javaFile = null;
+    private static final String BO_PARENT_CLASS = "amos.server.databaseAccess.bo.AbstractAmosBusinessObject";
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
+
+    /**
+     * The BO is read from the event each time: an action is shared by all the editors, it must not keep a PSI element.
+     */
+    private static PsiClass findBoClass(@NotNull AnActionEvent e) {
+        if (e.getData(CommonDataKeys.PSI_FILE) instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
+            PsiClass psiClass = javaFile.getClasses()[0];
+            return InheritanceUtil.isInheritor(psiClass, BO_PARENT_CLASS) ? psiClass : null;
+        }
+        return null;
+    }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-        if(psiFile instanceof PsiJavaFile){
-            this.javaFile = (PsiJavaFile)psiFile;
-            if(this.javaFile.getClasses().length > 0) {
-                this.psiClass = this.javaFile.getClasses()[0];
-                boolean isVisible = InheritanceUtil.isInheritor(this.psiClass,
-                                                        "amos.server.databaseAccess.bo.AbstractAmosBusinessObject");
-                Presentation presentation = e.getPresentation();
-                presentation.setText("Generate DTO for " 
-                                     + StringUtils.getInstance().removeJavaEnding(this.javaFile.getName()));
-                presentation.setVisible(isVisible);
-            }
+        PsiClass boClass = findBoClass(e);
+        Presentation presentation = e.getPresentation();
+        presentation.setVisible(boClass != null);
+        if (boClass != null) {
+            presentation.setText("Generate DTO for "
+                                 + StringUtils.getInstance().removeJavaEnding(boClass.getContainingFile().getName()));
         }
-        super.update(e);
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        if(this.psiClass != null) {
-            DtoGeneratorForm generatorForm = new DtoGeneratorForm(this.javaFile, PsiHelper.getInstance().getGettersForPsiClass(this.psiClass));
+        PsiClass boClass = findBoClass(e);
+        if(boClass != null && boClass.getContainingFile() instanceof PsiJavaFile javaFile) {
+            DtoGeneratorForm generatorForm = new DtoGeneratorForm(javaFile, PsiHelper.getInstance().getGettersForPsiClass(boClass));
             generatorForm.show();
         }
     }

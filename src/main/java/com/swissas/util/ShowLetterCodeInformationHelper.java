@@ -8,10 +8,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.swissas.beans.User;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A helper class for the display User Information logic.
@@ -21,20 +24,21 @@ import com.swissas.beans.User;
 
 public class ShowLetterCodeInformationHelper {
 	
+	private static final Logger LOGGER = Logger.getInstance("Swiss-as");
+	
 	private ShowLetterCodeInformationHelper() throws IllegalAccessException {
 		throw new IllegalAccessException("Helper class");
 	}
 	
-	public static void displayInformation(String authorString, String errorText){
+	public static void displayInformation(@Nullable Project project, String authorString, String errorMessage){
 		String userInfos = null;
-		String errorMessage = errorText;
-		User user = null;
+        User user = null;
 		JLabel lbl = new JLabel();
 		if(authorString != null){
 			if(authorString.startsWith("T_")) {
 				userInfos = "A mighty Anonymous from Team " + authorString.substring(authorString.indexOf("_") + 1);
 				user = new User();
-			}else if(ProjectUtil.getInstance().isGitProject()) {
+			}else if(project != null && ProjectUtil.getInstance(project).isGitProject()) {
 					Map<String, String> fullNameTo4LC = SwissAsStorage.getInstance().getFullNameTo4LcMap();
 					authorString = fullNameTo4LC.getOrDefault(authorString, authorString);
 			}
@@ -45,8 +49,9 @@ public class ShowLetterCodeInformationHelper {
 				user = userMap.get(authorString);
 				userInfos = user.getInfos();
 			} else {
-				errorMessage = "<html><b>Could not find \"" + authorString
-				               + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
+				userInfos = "<html><b>Could not find \"" + authorString
+				            + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
+				user = new User();
 			}
 			
 		}
@@ -102,7 +107,7 @@ public class ShowLetterCodeInformationHelper {
 				this.popup.getContent().repaint();
 				this.popup.pack(true, true);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.warn("Unable to display the user picture", e);
 			}
 		}
 	}

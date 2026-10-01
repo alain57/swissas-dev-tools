@@ -28,6 +28,7 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentValidator;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.JavaPsiFacade;
@@ -53,6 +54,7 @@ import com.swissas.util.SwissAsStorage;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 
 /**
@@ -78,6 +80,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private       String                    ddPkColumn;
 	private       Pair<PsiClass, PsiMethod> finder;
 	private String lastFileExistCheck;
+	private boolean lastFileExistResult;
 	
 	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JSplitPane splitPane;
@@ -164,7 +167,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 					getContentPanel().revalidate();
 					
 				}
-			});
+			}, getDisposable());
 		}else {
 			fillNameField();
 			this.boSourceFile.setVisible(false);
@@ -245,6 +248,10 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 	
 	private void refreshPreview() {
+		if (this.boFile == null || this.nameTextField.getText().isBlank()) {
+			setOKActionEnabled(false);
+			return;
+		}
 		enablePkGetterIfNeeded();
 		String classContent = "package " + this.boFile.getPackageName()
 		                                              .replace("server.bo.", "share.dto.") + ";\n\n"
@@ -268,6 +275,10 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                                           .createFileFromText(
 				                                           this.nameTextField.getText() + ".java",
 				                                           JavaLanguage.INSTANCE, classContent);
+		if (this.dtoFile.getClasses().length == 0) { //the typed name is not a valid class name
+			setOKActionEnabled(false);
+			return;
+		}
 		PsiClass dtoClass = this.dtoFile.getClasses()[0];
 		PsiClass boClass = this.boFile.getClasses()[0];
 		this.finder = PsiHelper.getInstance().getFinderClassAndLastFinder(
@@ -281,7 +292,9 @@ public class DtoGeneratorForm extends DialogWrapper {
 			this.rpcDir = this.selectedRpcInterfaceClass.getContainingFile().getContainingDirectory();
 			generateMapper();
 			this.mapperFile.importClass(boClass);
-			this.mapperFile.importClass(this.finder.getFirst());
+			if (this.finder.getFirst() != null) {
+				this.mapperFile.importClass(this.finder.getFirst());
+			}
 			cleanAndApplyFileToEditor(this.mapperFile, this.rpcEditor);
 		}
 		setOKActionEnabled(!this.selectedGetters.isEmpty() && !this.nameTextField.getText().isEmpty() && !checkDtoNameExists());
@@ -321,9 +334,9 @@ public class DtoGeneratorForm extends DialogWrapper {
 		              this.nameTextField.getText();
 		if(!name.equals(this.lastFileExistCheck)) {
 			this.lastFileExistCheck = name;
-			return javaPsiFacade.findClass(name, GlobalSearchScope.allScope(this.project)) != null;
+			this.lastFileExistResult = javaPsiFacade.findClass(name, GlobalSearchScope.allScope(this.project)) != null;
 		}
-		return false;
+		return this.lastFileExistResult;
 	}
 	
 	private void installValidator() {
@@ -340,24 +353,8 @@ public class DtoGeneratorForm extends DialogWrapper {
 		String dtoName = StringUtils.getInstance().removeJavaEnding(this.dtoFile.getName());
 		String ddColumnImport = this.ddPkColumn == null ? "" :
 		                        "import amos.server.databaseAccess.tables." + this.ddPkColumn.split("\\.")[0] + ";\n";
-		String boFinderClass = this.finder.getFirst() == null ? "" : "import " + this.finder.getFirst().getQualifiedName() + ";\n";
-		String mapperClassContent = this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
-		                            + "import amos.server.databaseAccess.api.AmosTransaction;\n"
-		                            + "import amos.server.databaseAccess.bo.DefaultBOList;\n"
-		                            + "import amos.share.util.ListUtils;\n"
-		                            + "\n"
-		                            + "import javax.validation.constraints.NotNull;\n"
-		                            + "import java.util.Collections;\n"
-		                            + "import java.util.List;\n"
-		                            + "import java.util.ArrayList;\n"
-		                            + "import java.util.Map;\n"
-		                            + "import java.util.function.Function;\n"
-		                            + "import java.util.stream.Collectors;\n"
-		                            + ddColumnImport
-		                            + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
-		                            + boFinderClass
-									+ "import static amos.server.sol.util.SolHelperFunctions.IN;\n";
-		
+		String mapperClassContent = getMapperClassContent(ddColumnImport);
+
 		this.mapperFile =
 				(PsiJavaFile) PsiFileFactory.getInstance(this.project)
 				                            .createFileFromText(dtoName + "Mapper.java", JavaLanguage.INSTANCE, mapperClassContent);
@@ -370,8 +367,28 @@ public class DtoGeneratorForm extends DialogWrapper {
 		                                         this.finder, boName, dtoName,
 		                                         this.entityTagCheckbox.isSelected());
 	}
-	
-	
+
+	private @NonNull String getMapperClassContent(String ddColumnImport) {
+		String boFinderClass = this.finder.getFirst() == null ? "" : "import " + this.finder.getFirst().getQualifiedName() + ";\n";
+        return this.selectedRpcInterfaceClass.getContainingFile().getFirstChild().getText() + "\n\n"
+                                    + "import amos.server.databaseAccess.api.AmosTransaction;\n"
+                                    + "import amos.server.databaseAccess.bo.DefaultBOList;\n"
+                                    + "import amos.share.util.ListUtils;\n"
+                                    + "\n"
+                                    + "import javax.validation.constraints.NotNull;\n"
+                                    + "import java.util.Collections;\n"
+                                    + "import java.util.List;\n"
+                                    + "import java.util.ArrayList;\n"
+                                    + "import java.util.Map;\n"
+                                    + "import java.util.function.Function;\n"
+                                    + "import java.util.stream.Collectors;\n"
+                                    + ddColumnImport
+                                    + "import " + this.dtoFile.getClasses()[0].getQualifiedName() + ";\n"
+                                    + boFinderClass
+                                    + "import static amos.server.sol.util.SolHelperFunctions.IN;\n";
+	}
+
+
 	private void addSelectedCheckboxesToDto(PsiClass dtoClass) {
 		if (this.entityTagCheckbox.isSelected()) {
 			PsiHelper.getInstance().addEntityTag(this.project, dtoClass);
@@ -413,7 +430,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 					DtoGeneratorForm.this.tabbedPane.setEnabledAt(1, false);
 				}
 			}
-		});
+		}, getDisposable());
 		this.getterSearchField = new JBTextField();
 		this.getterSearchField.getEmptyText().setText("getter search filter");
 	}
@@ -530,8 +547,12 @@ public class DtoGeneratorForm extends DialogWrapper {
 	public void saveFiles() {
 		String boName = StringUtils.getInstance().removeJavaEnding(this.boFile.getName());
 		PsiDirectory dtoDir = PsiHelper.getInstance()
-		                       .findOrCreateDirectoryInShared(this.project,	this.dtoFile.getPackageName());
-		if(this.pkGetter != null) {
+		                       .findOrCreateDirectoryInShared(this.project, this.dtoFile.getPackageName());
+		if(dtoDir == null) {
+			Messages.showErrorDialog(this.project, "Unable to find the share directory where the DTO should be created", "Error");
+			return;
+		}
+		if(this.pkGetter != null && this.ddPkColumn != null) {
 			PsiHelper.getInstance().generateFindByIdsIfNeeded(this.project, this.finder, boName,
 			                                                  this.pkGetter.getText(),
 			                                                  this.ddPkColumn);

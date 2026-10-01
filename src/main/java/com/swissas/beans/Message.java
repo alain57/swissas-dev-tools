@@ -22,11 +22,19 @@ public class Message extends AttributeChildrenBean{
 
     public Message(Node message){
         super(message, "severity");
-        setLine(Integer.valueOf(message.attr("line")));
+        setLine(parseLine(message.attr("line")));
         setDescription(message.attr("description"));
         setPriority(message.attr("priority"));
     }
     
+    private static Integer parseLine(String line) {
+        try {
+            return Integer.valueOf(line.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     @Override
     public String getText() {
         return getDescription() + ":" + getLine();
