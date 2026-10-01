@@ -3,20 +3,14 @@ package com.swissas.handler;
 import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.util.Optional;
-
 import javax.swing.ImageIcon;
 
-import com.intellij.diagnostic.PluginException;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.openapi.editor.actionSystem.EditorTextInsertHandler;
-import com.intellij.openapi.extensions.PluginDescriptor;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.util.Producer;
 import com.swissas.ui.DragDropTextPane;
@@ -60,9 +54,7 @@ public class PasteImageHandler extends EditorActionHandler implements EditorText
 			try {
 				this.originalActionHandler.execute(editor, caret, dataContext);
 			} catch (Throwable e) {
-				PluginId pluginId = Optional.ofNullable(PluginManager.getPluginByClass(this.originalActionHandler.getClass()))
-				                            .map(PluginDescriptor::getPluginId).orElse(null);
-				LOGGER.error(new PluginException("execute() delegated to original paste handler, " + e.getMessage(), e, pluginId));
+				LOGGER.error("execute() delegated to original paste handler failed: " + e.getMessage(), e);
 			}
 		}
 	}

@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -125,7 +124,7 @@ public class PsiHelper {
 				.search(abstractBoClass, GlobalSearchScope.projectScope(project), true);
 		return search.findAll()
 		             .stream()
-		             .filter(e -> !e.isInterface() && !e.hasModifier(JvmModifier.ABSTRACT) && e.getQualifiedName() != null)
+		             .filter(e -> !e.isInterface() && !e.hasModifierProperty(PsiModifier.ABSTRACT) && e.getQualifiedName() != null)
 		             .collect(Collectors.toList());
 	}
 	
@@ -459,13 +458,13 @@ public class PsiHelper {
 		PsiModifierList list = getter.getModifierList();
 		PsiAnnotation annotation = list
 				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
-		return annotation != null && annotation.hasAttribute("primaryKey");
+		return annotation != null && annotation.findAttribute("primaryKey") != null;
 	}
 	
 	private boolean isGetter(@NotNull PsiMethod psiMethod) {
 		boolean result = false;
-		if(psiMethod.hasModifier(JvmModifier.PUBLIC) &&
-		   !psiMethod.hasModifier(JvmModifier.STATIC) &&
+		if(psiMethod.hasModifierProperty(PsiModifier.PUBLIC) &&
+		   !psiMethod.hasModifierProperty(PsiModifier.STATIC) &&
 		   !PsiTypes.voidType().equals(psiMethod.getReturnType()) &&
 		   psiMethod.getParameterList().isEmpty()) {
 			result = StringUtils.getInstance().isGetter(psiMethod.getName());
@@ -481,7 +480,7 @@ public class PsiHelper {
 	public Pair<PsiClass, PsiMethod> getFinderClassAndLastFinder(@NotNull Project project, @NotNull PsiClass boClass) {
 		PsiClass result = boClass;
 		List<PsiMethod> staticMethods = Stream.of(boClass.getMethods())
-		                                      .filter(method -> method.hasModifier(JvmModifier.STATIC))
+		                                      .filter(method -> method.hasModifierProperty(PsiModifier.STATIC))
 		                                      .filter(method -> method.getName().toLowerCase().startsWith("findby"))
 		                                      .collect(Collectors.toList());
 		if(staticMethods.isEmpty()) {
@@ -492,7 +491,7 @@ public class PsiHelper {
 				return new Pair<>(null, null);
 			}
 			staticMethods = Stream.of(result.getMethods())
-			                      .filter(method -> method.hasModifier(JvmModifier.STATIC))
+			                      .filter(method -> method.hasModifierProperty(PsiModifier.STATIC))
 			                      .filter(method -> method.getName().toLowerCase().startsWith("findby"))
 			                      .toList();
 		}
