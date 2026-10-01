@@ -82,8 +82,7 @@ public class TranslationDocumentationProvider extends JavaDocumentationProvider 
 				elementToCheck = PsiTreeUtil.getParentOfType(elementToCheck, PsiReferenceExpression.class);
 			}
 			if(elementToCheck instanceof PsiReferenceExpressionImpl referenceExpression
-			   && referenceExpression.resolve() instanceof PsiField field
-			   && field.getType() != null) {
+			   && referenceExpression.resolve() instanceof PsiField field) {
 				result = MULTILANG_CLASSES.contains(field.getType().getPresentableText());
 			}
 		}

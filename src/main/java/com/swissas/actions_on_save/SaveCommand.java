@@ -1,5 +1,6 @@
 package com.swissas.actions_on_save;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -23,7 +24,7 @@ public abstract class SaveCommand {
 	protected SaveCommand(Project project, Set<PsiFile> psiFiles, InspectionAction inspectionAction,
 						  BiFunction<Project, PsiFile[], Runnable> command) {
 		this.project = project;
-		this.psiFiles = psiFiles;
+		this.psiFiles = new HashSet<>(psiFiles);
 		this.inspectionAction = inspectionAction;
 		this.command = command;
 	}

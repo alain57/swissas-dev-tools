@@ -67,7 +67,7 @@ import static com.swissas.util.Constants.YELLOW;
 public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, UISettingsListener {
 
     public static final String WIDGET_ID = "trafficLightPanel";
-    public static final String WIDGET_DISPLAY_NAME = "Swiss-AS Traffic Light";
+    public static final String WIDGET_DISPLAY_NAME = "Swiss-As Traffic Light";
 
     private static final Logger LOGGER = Logger.getInstance("Swiss-as");
 
@@ -357,7 +357,7 @@ public class TrafficLightPanel extends JPanel implements CustomStatusBarWidget, 
         Balloon balloon = JBPopupFactory.getInstance()
                 .createBalloonBuilder(pane)
                 .setCloseButtonEnabled(true)
-                .setTitle("Swiss-AS Traffic Light")
+                .setTitle("Swiss-as Traffic Light")
                 .setDisposable(this.project)
                 .setHideOnAction(true)
                 .setHideOnClickOutside(true)

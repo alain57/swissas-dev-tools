@@ -102,7 +102,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         properties.addProperty(propertyKey, propertyValue);
         PsiElement javaTranslation = JavaPsiFacade.getElementFactory(project).createFieldFromText("static final " + this.className + " " + propertyKey
                                                                                                   + " = new " + this.className + "(INSTANCE);\n", null);
-        PsiField latestField = PsiTreeUtil.collectElementsOfType(messageFile, PsiField.class).stream().reduce((a, b) -> b).get();
+        PsiField latestField = PsiTreeUtil.collectElementsOfType(messageFile, PsiField.class).stream().reduce((a, b) -> b).orElseThrow();
         
         latestField.getParent().addAfter(javaTranslation, latestField);
     }
@@ -134,7 +134,7 @@ public class TranslateQuickFix implements LocalQuickFix {
 
     @NonNls
     private PsiFile getOrCreateMessageFile(){
-        PsiDirectory containingDirectory = this.javaPsiPointer.getElement().getContainingDirectory();
+        PsiDirectory containingDirectory = Objects.requireNonNull(Objects.requireNonNull(this.javaPsiPointer.getElement()).getContainingDirectory());
         PsiFile messageFile = containingDirectory.findFile(MESSAGE_CLASS);
         if(messageFile == null){
             String classContent = "import amos.share.multiLanguage." + this.className + ";\n" +
@@ -159,8 +159,8 @@ public class TranslateQuickFix implements LocalQuickFix {
     }
 
     private PropertiesFile getOrCreateProperties(){
-        PsiDirectory currentDirectory = Objects.requireNonNull(this.javaPsiPointer.getElement())
-                                               .getContainingDirectory();
+        PsiDirectory currentDirectory = Objects.requireNonNull(Objects.requireNonNull(this.javaPsiPointer.getElement())
+                                                                .getContainingDirectory());
         PsiFile file = currentDirectory.findFile("Standard.properties");
         if(file == null){
             file = currentDirectory.createFile("Standard.properties");
@@ -188,6 +188,7 @@ public class TranslateQuickFix implements LocalQuickFix {
         }else {
             result = PsiLiteralUtil.getStringLiteralContent((PsiLiteralExpression)element);
         }
+        assert result != null;
         result = StringUtil.unescapeStringCharacters(result);
         return autoCorrectCommonMistakes(result);
     }

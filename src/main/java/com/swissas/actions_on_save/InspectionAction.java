@@ -38,7 +38,6 @@ public enum InspectionAction {
             case UNQUALIFIED_FIELD_ACCESS -> storage.isFixMissingThis();
             case SUPPRESS_ANNOTATION -> storage.isFixUnusedSuppressWarning();
             case USE_TEAM_AUTHOR -> storage.isConvertToTeam();
-            default -> throw new IllegalArgumentException("case not defined");
         };
 	}
 	

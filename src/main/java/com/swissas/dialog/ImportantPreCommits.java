@@ -60,7 +60,6 @@ public class ImportantPreCommits extends JDialog {
 	private       int                 exitCode;
 	private       boolean             shouldDispose;
 	
-	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JPanel contentPane;
 	private JCheckBox informCheckbox;
 	private JComboBox<String> reviewerComboBox;
@@ -68,7 +67,6 @@ public class ImportantPreCommits extends JDialog {
 	private DragDropTextPane messageContent;
 	private JButton buttonOK;
 	private JButton buttonCancel;
-	// JFormDesigner - End of variables declaration  //GEN-END:variables
 	
 	public ImportantPreCommits(CheckinProjectPanel checkinProjectPanel) {
 		initComponents();
@@ -190,7 +188,7 @@ public class ImportantPreCommits extends JDialog {
 				Message msg = generateMessage(properties, storage.getMyMail(), destinationMails);
 				Transport.send(msg);
 			} catch (Exception e) {
-				Messages.showMessageDialog(e.getMessage(), "Mail Could not Be Sent",
+				Messages.showMessageDialog(e.getMessage(), "Mail Could Not Be Sent",
 				                           Messages.getErrorIcon());
 				LOGGER.error(e);
 			}
@@ -289,7 +287,6 @@ public class ImportantPreCommits extends JDialog {
 	
 
 	private void initComponents() {
-		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
 		ResourceBundle bundle = ResourceBundle.getBundle("texts");
 		this.contentPane = new JPanel();
 		var panel1 = new JPanel();
@@ -386,7 +383,6 @@ public class ImportantPreCommits extends JDialog {
 				GridConstraints.SIZEPOLICY_CAN_SHRINK,
 				null, null, null));
 		}
-		// JFormDesigner - End of component initialization  //GEN-END:initComponents
 	}
 
 }

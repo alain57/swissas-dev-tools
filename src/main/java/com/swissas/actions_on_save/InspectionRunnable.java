@@ -1,6 +1,7 @@
 package com.swissas.actions_on_save;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -10,10 +11,16 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.QuickFix;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+
+import java.util.ArrayList;
 
 import static com.swissas.actions_on_save.SaveActionManager.LOGGER;
 
@@ -31,24 +38,21 @@ public class InspectionRunnable implements Runnable {
 	
 	InspectionRunnable(Project project, Set<PsiFile> psiFiles, LocalInspectionTool inspectionTool) {
 		this.project = project;
-		this.psiFiles = psiFiles;
+		this.psiFiles = new HashSet<>(psiFiles);
 		this.inspectionTool = inspectionTool;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		InspectionManager inspectionManager = InspectionManager.getInstance(this.project);
 		GlobalInspectionContext context = inspectionManager.createNewGlobalContext();
 		LocalInspectionToolWrapper toolWrapper = new LocalInspectionToolWrapper(this.inspectionTool);
+		List<ProblemDescriptor> allProblemDescriptors = new ArrayList<>();
 		for (PsiFile psiFile : this.psiFiles) {
-			List<ProblemDescriptor> problemDescriptors = getProblemDescriptors(context, toolWrapper, psiFile);
-			for (ProblemDescriptor problemDescriptor : problemDescriptors) {
-				QuickFix<ProblemDescriptor>[] fixes = problemDescriptor.getFixes();
-				if (fixes != null) {
-					writeQuickFixes(problemDescriptor, fixes);
-				}
-			}
+			allProblemDescriptors.addAll(getProblemDescriptors(context, toolWrapper, psiFile));
+		}
+		if (!allProblemDescriptors.isEmpty()) {
+			applyFixes(allProblemDescriptors);
 		}
 	}
 	
@@ -57,15 +61,28 @@ public class InspectionRunnable implements Runnable {
 														  PsiFile psiFile) {
 		List<ProblemDescriptor> problemDescriptors;
 		try {
-			problemDescriptors = InspectionEngine.runInspectionOnFile(psiFile, toolWrapper, context);
+			problemDescriptors = ReadAction.computeBlocking(
+					() -> InspectionEngine.runInspectionOnFile(psiFile, toolWrapper, context));
 		} catch (IndexNotReadyException exception) {
 			LOGGER.info("Cannot inspect files: index not ready (" + exception.getMessage() + ")");
 			return Collections.emptyList();
 		}
 		return problemDescriptors;
 	}
-	
-	private void writeQuickFixes(ProblemDescriptor problemDescriptor, QuickFix<ProblemDescriptor>[] fixes) {
+
+	private void applyFixes(List<ProblemDescriptor> problemDescriptors) {
+		ApplicationManager.getApplication().invokeAndWait(() ->
+				WriteCommandAction.writeCommandAction(this.project, this.psiFiles.toArray(new PsiFile[0]))
+						.run(() -> problemDescriptors.forEach(this::writeQuickFixes)),
+				ModalityState.nonModal());
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeQuickFixes(ProblemDescriptor problemDescriptor) {
+		QuickFix<ProblemDescriptor>[] fixes = problemDescriptor.getFixes();
+		if (fixes == null) {
+			return;
+		}
 		for (QuickFix<ProblemDescriptor> fix : fixes) {
 			if (fix != null) {
 				try {

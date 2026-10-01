@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.swissas.tala"
-version = "1.9.0"
+version = "1.9.1"
 
 repositories {
     mavenCentral()
@@ -53,7 +53,7 @@ intellijPlatform  {
     pluginConfiguration {
         id = "com.swissas.tala.swissas"
         name = "Swiss-AS Dev-Tools"
-        version = "1.9.0"
+        version = "1.9.1"
         ideaVersion {
             sinceBuild = "261"
         }
@@ -66,6 +66,9 @@ intellijPlatform  {
         }
         
         changeNotes = """
+<b>V1.9.1</b><pre>Prevent freezes during save by running inspections in the background
+fix all Qodana warnings
+</pre>
 <b>V1.9.0</b><pre>Fix the not possible to translate issue
 Fix some exceptions
 rebuild the plugin with latest gradle and intellij gradle plugin

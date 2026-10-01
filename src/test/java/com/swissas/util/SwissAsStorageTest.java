@@ -1,5 +1,6 @@
 package com.swissas.util;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -181,7 +182,7 @@ class SwissAsStorageTest {
 	
 	@Test
 	void ignoredValuesAreCopied() {
-		this.storage.setIgnoredValues(java.util.List.of("a", "b"));
+		this.storage.setIgnoredValues(List.of("a", "b"));
 		
 		assertThat(this.storage.getIgnoredValues()).containsExactly("a", "b");
 		assertThatThrownBy(() -> this.storage.getIgnoredValues().add("c")).isInstanceOf(UnsupportedOperationException.class);

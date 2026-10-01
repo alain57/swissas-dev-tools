@@ -59,10 +59,11 @@ class BeansTest {
 	
 	@Test
 	void fileIgnoresTheWhiteSpacesBetweenTheMessages() {
-		Element fileElement = xml("<file path=\"a/b/My.java\" responsible=\"ABC\">\n"
-		                          + "  <message severity=\"minor\" line=\"1\" description=\"first\" priority=\"p\"/>\n"
-		                          + "  <message severity=\"critical\" line=\"2\" description=\"second\" priority=\"p\"/>\n"
-		                          + "</file>");
+		Element fileElement = xml("""
+                <file path="a/b/My.java" responsible="ABC">
+                  <message severity="minor" line="1" description="first" priority="p"/>
+                  <message severity="critical" line="2" description="second" priority="p"/>
+                </file>""");
 		
 		File file = new File("My.java", fileElement);
 		

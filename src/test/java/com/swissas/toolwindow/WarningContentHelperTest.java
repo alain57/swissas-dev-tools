@@ -62,7 +62,7 @@ class WarningContentHelperTest {
 		while (e.hasMoreElements()) {
 			WarningContentTreeNode current = (WarningContentTreeNode) e.nextElement();
 			if (current != node) {
-				sb.append("  ".repeat(current.getLevel() - 1)).append(current.getUserObject()).append('\n');
+				sb.repeat("  ", current.getLevel() - 1).append(current.getUserObject()).append('\n');
 			}
 		}
 		return sb.toString();
