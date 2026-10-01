@@ -6,7 +6,6 @@ import java.util.Objects;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -40,7 +39,7 @@ class ShowClassOwnerAction extends LetterCodeAction {
 
 	@Override
 	protected void executeWriteAction(Editor editor, @Nullable Caret caret, DataContext dataContext){
-		VirtualFile virtualFile = ((EditorEx)editor).getVirtualFile();
+		VirtualFile virtualFile = editor.getVirtualFile();
 		PsiFile file = virtualFile == null ? null
 		                                   : PsiManager.getInstance(Objects.requireNonNull(editor.getProject())).findFile(virtualFile);
 		String errorText = null;

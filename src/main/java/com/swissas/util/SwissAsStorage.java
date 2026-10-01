@@ -319,12 +319,12 @@ public class SwissAsStorage implements PersistentStateComponent<SwissAsStorage> 
 	
 	public Map<Object, Object> getShareProperties() {
 		return Optional.ofNullable(this.shareProperties)
-						.map(p -> Collections.unmodifiableMap((Map<Object, Object>) p))
+						.map(p -> Collections.unmodifiableMap(p))
 						.orElse(Map.of());
 	}
 	
 	public void setShareProperties(Properties shareProperties) {
-		this.shareProperties = shareProperties;
+		this.shareProperties = shareProperties == null ? null : (Properties) shareProperties.clone();
 	}
 	
 	public boolean isNewTranslation() {

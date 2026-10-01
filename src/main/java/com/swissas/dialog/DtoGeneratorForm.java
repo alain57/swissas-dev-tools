@@ -82,7 +82,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private String lastFileExistCheck;
 	private boolean lastFileExistResult;
 	
-	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
 	private JSplitPane splitPane;
 	private EditorTextField boSourceFile;
 	private JCheckBox generateMappersCheckBox;
@@ -95,7 +94,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 	private JBTabbedPane tabbedPane;
 	private EditorTextField dtoEditor;
 	private EditorTextField rpcEditor;
-	// JFormDesigner - End of variables declaration  //GEN-END:variables
 	
 	public DtoGeneratorForm(Project project, Map<String, PsiClass> boMap) {
 		super(project, false);
@@ -118,7 +116,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 	}
 	
 	public void initUI() {
-		setTitle("Create Dto From Bo");
+		setTitle("Create DTO from BO");
 		setModal(false);
 		setSize(705, 435);
 		initComponents();
@@ -432,7 +430,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 			}
 		}, getDisposable());
 		this.getterSearchField = new JBTextField();
-		this.getterSearchField.getEmptyText().setText("getter search filter");
+		this.getterSearchField.getEmptyText().setText("Getter search filter");
 	}
 
 	private void generateMappersCheckBoxActionPerformed(ActionEvent e) {
@@ -448,10 +446,19 @@ public class DtoGeneratorForm extends DialogWrapper {
 	
 
 	private void initComponents() {
-		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
 		createUIComponents();
 
 		this.splitPane = new JSplitPane();
+		this.splitPane.setDividerLocation(154);
+		this.splitPane.setDividerSize(0);
+		this.splitPane.setMaximumSize(new Dimension(682, 364));
+		this.splitPane.setDoubleBuffered(true);
+		this.splitPane.setBorder(null);
+		this.splitPane.setLeftComponent(createLeftPanel());
+		this.splitPane.setRightComponent(createTabbedPane());
+	}
+	
+	private JPanel createLeftPanel() {
 		var panel1 = new JPanel();
 		this.generateMappersCheckBox = new JCheckBox();
 		this.entityTagCheckbox = new JCheckBox();
@@ -459,17 +466,6 @@ public class DtoGeneratorForm extends DialogWrapper {
 		var getterScrollPane = new JBScrollPane();
 		this.nameTextField = new JBTextField();
 		var label1 = new JLabel();
-		this.tabbedPane = new JBTabbedPane();
-		this.dtoEditor = new JavaEditorTextField(this.project);
-		this.dtoEditor.setOneLineMode(false);
-		this.rpcEditor = new JavaEditorTextField(this.project);
-		this.rpcEditor.setOneLineMode(false);
-
-		this.splitPane.setDividerLocation(154);
-		this.splitPane.setDividerSize(0);
-		this.splitPane.setMaximumSize(new Dimension(682, 364));
-		this.splitPane.setDoubleBuffered(true);
-		this.splitPane.setBorder(null);
 
 		panel1.setLayout(new MigLayout(
 			"insets 0,hidemode 3,gap 10 5",
@@ -515,7 +511,15 @@ public class DtoGeneratorForm extends DialogWrapper {
 		label1.setText("Getters");
 		panel1.add(label1, "cell 0 6,align left center,grow 0 0");
 		panel1.add(this.getterSearchField, "cell 0 7");
-		this.splitPane.setLeftComponent(panel1);
+		return panel1;
+	}
+	
+	private JBTabbedPane createTabbedPane() {
+		this.tabbedPane = new JBTabbedPane();
+		this.dtoEditor = new JavaEditorTextField(this.project);
+		this.dtoEditor.setOneLineMode(false);
+		this.rpcEditor = new JavaEditorTextField(this.project);
+		this.rpcEditor.setOneLineMode(false);
 
 		this.tabbedPane.setAutoscrolls(true);
 		this.tabbedPane.setTabComponentInsets(new Insets(0, 0, 0, 0));
@@ -533,8 +537,7 @@ public class DtoGeneratorForm extends DialogWrapper {
 		this.rpcEditor.setAutoscrolls(true);
 		this.rpcEditor.setBorder(null);
 		this.tabbedPane.addTab("mapper", this.rpcEditor);
-		this.splitPane.setRightComponent(this.tabbedPane);
-		// JFormDesigner - End of component initialization  //GEN-END:initComponents
+		return this.tabbedPane;
 	}
 	
 	

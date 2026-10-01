@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Executor;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -38,6 +39,7 @@ public final class SaveActionManager
 	
 	private final List<Processor> processors;
 	private final AtomicBoolean running = new AtomicBoolean(false);
+	private final Executor executor;
 
 
 	public static SaveActionManager getInstance() {
@@ -45,16 +47,22 @@ public final class SaveActionManager
 	}
 
 	public SaveActionManager() {
+		this(ApplicationManager.getApplication()::executeOnPooledThread, true);
+	}
 
+	SaveActionManager(Executor executor, boolean subscribe) {
 		this.processors = Processor.stream().toList();
+		this.executor = executor;
 
-		ApplicationManager.getApplication()
-				.getMessageBus()
-				.connect(this)
-				.subscribe(
-						FileDocumentManagerListener.TOPIC,
-						this
-				);
+		if (subscribe) {
+			ApplicationManager.getApplication()
+					.getMessageBus()
+					.connect(this)
+					.subscribe(
+							FileDocumentManagerListener.TOPIC,
+							this
+					);
+		}
 	}
 
 	@Override
@@ -92,6 +100,15 @@ public final class SaveActionManager
 			LOGGER.info("Plugin already running, stopping invocation");
 			return;
 		}
+		try {
+			this.executor.execute(() -> processPsiFiles(project, psiFiles));
+		} catch (RuntimeException exception) {
+			this.running.set(false);
+			throw exception;
+		}
+	}
+
+	private void processPsiFiles(Project project, Set<PsiFile> psiFiles) {
 		try {
 			Engine engine = new Engine(this.processors, project, psiFiles);
 			engine.processPsiFilesIfNecessary();

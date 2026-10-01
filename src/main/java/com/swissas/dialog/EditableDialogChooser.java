@@ -2,6 +2,7 @@ package com.swissas.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.swing.JComponent;
@@ -34,7 +35,7 @@ public class EditableDialogChooser extends DialogWrapper {
 		setTitle(title);
 		this.project = project;
 		this.message = message;
-		this.values = values;
+		this.values = new ArrayList<>(values);
 		init();
 	}
 	

@@ -2,6 +2,7 @@ package com.swissas.util;
 
 import java.awt.BorderLayout;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -38,25 +39,26 @@ public class ShowLetterCodeInformationHelper {
 			if(authorString.startsWith("T_")) {
 				userInfos = "A mighty Anonymous from Team " + authorString.substring(authorString.indexOf("_") + 1);
 				user = new User();
-			}else if(project != null && ProjectUtil.getInstance(project).isGitProject()) {
+			} else {
+				if(project != null && ProjectUtil.getInstance(project).isGitProject()) {
 					Map<String, String> fullNameTo4LC = SwissAsStorage.getInstance().getFullNameTo4LcMap();
 					authorString = fullNameTo4LC.getOrDefault(authorString, authorString);
+				}
+				
+				authorString = authorString.toUpperCase();
+				Map<String, User> userMap = SwissAsStorage.getInstance().getUserMap();
+				if (userMap.containsKey(authorString)) {
+					user = userMap.get(authorString);
+					userInfos = user.getInfos();
+				} else {
+					userInfos = "<html><b>Could not find \"" + authorString
+					            + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
+					user = new User();
+				}
 			}
-			
-			authorString = authorString.toUpperCase();
-			Map<String, User> userMap = SwissAsStorage.getInstance().getUserMap();
-			if (userMap.containsKey(authorString)) {
-				user = userMap.get(authorString);
-				userInfos = user.getInfos();
-			} else {
-				userInfos = "<html><b>Could not find \"" + authorString
-				            + "\" in the internal phone book</b><br>Is this person still working at Swiss-as ?";
-				user = new User();
-			}
-			
 		}
 		JPanel pane = new JPanel(new BorderLayout());
-		JLabel image = new JLabel(new ImageIcon(ShowLetterCodeInformationHelper.class.getResource("/images/loading.gif")));//add loading sign here, best option as big as pictures
+		JLabel image = new JLabel(new ImageIcon(Objects.requireNonNull(ShowLetterCodeInformationHelper.class.getResource("/images/loading.gif"))));//add loading sign here, best option as big as pictures
 		if(userInfos == null){
 			lbl.setText(errorMessage);
 			pane.add(lbl);
@@ -99,7 +101,7 @@ public class ShowLetterCodeInformationHelper {
 				if(this.user == null) {
 					return;
 				}
-				ImageIcon icon = this.user.getLc() == null ? new ImageIcon(PictureLoader.class.getResource("/images/anonymous.png")) : get(); 
+				ImageIcon icon = this.user.getLc() == null ? new ImageIcon(Objects.requireNonNull(PictureLoader.class.getResource("/images/anonymous.png"))) : get(); 
 				
 				this.label.setIcon(icon);
 				this.label.invalidate();

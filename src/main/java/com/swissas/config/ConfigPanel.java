@@ -34,15 +34,14 @@ import com.swissas.util.SwissAsStorage;
 
 class ConfigPanel {
 	
-	private final Project project;
+	private static final int FIXED       = GridConstraints.SIZEPOLICY_FIXED;
+	private static final int SHRINK_GROW = GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW;
+	private static final int GROW_WANT   = GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW;
 	
-	
-	// JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
     private JPanel mainPanel;
     private ComboBox<String> orientation;
     private EditorTextField fourLetterCode;
     private JBCheckBox chkAnnotation;
-    private JLabel label7;
     private JBTextField similarValue;
     private JBCheckBox chkFixAuthor;
     private JBCheckBox chkFixThis;
@@ -56,11 +55,9 @@ class ConfigPanel {
     private EditorTextField qualityLetterBox;
     private EditorTextField supportLetterBox;
     private EditorTextField documentationLetterBox;
-	// JFormDesigner - End of variables declaration  //GEN-END:variables
 	
 	public ConfigPanel(Project project) {
-		this.project = project;
-		initComponents();
+		initComponents(project);
 		this.preCommitInformOtherPersonCheckbox.addActionListener(e -> enableOrDisableOtherPersonFields());
 	}
 
@@ -138,7 +135,7 @@ class ConfigPanel {
 		return this.convertToTeamCheckbox;
 	}
 	
-	private void createUIComponents() {
+	private void createUIComponents(Project project) {
 		if(SwissAsStorage.getInstance().getUserMap().isEmpty()){
 			NetworkUtil.getInstance().refreshUserMap();
 		}
@@ -163,305 +160,174 @@ class ConfigPanel {
 		StringsCompletionProvider qualityUserProvider = new StringsCompletionProvider(qaUsersLcAndNames, null);
 		StringsCompletionProvider supportUserProvider = new StringsCompletionProvider(supportUsersLcAndNames, null);
 		StringsCompletionProvider documentationUserProvider = new StringsCompletionProvider(documentationUsersLcAndNames, null);
-		this.fourLetterCode = new TextFieldWithCompletion(this.project, allUserProvider, "", true, true, true,  true);
-		this.qualityLetterBox = new TextFieldWithCompletion(this.project, qualityUserProvider, "", true, true,  true, true);
-		this.supportLetterBox = new TextFieldWithCompletion(this.project, supportUserProvider, "", true, true,  true, true);
-		this.documentationLetterBox = new TextFieldWithCompletion(this.project, documentationUserProvider, "", true, true,  true, true);
+		this.fourLetterCode = new TextFieldWithCompletion(project, allUserProvider, "", true, true, true,  true);
+		this.qualityLetterBox = new TextFieldWithCompletion(project, qualityUserProvider, "", true, true,  true, true);
+		this.supportLetterBox = new TextFieldWithCompletion(project, supportUserProvider, "", true, true,  true, true);
+		this.documentationLetterBox = new TextFieldWithCompletion(project, documentationUserProvider, "", true, true,  true, true);
 	}
 
-	private void initComponents() {
-		// JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
-        createUIComponents();
-
-        ResourceBundle bundle = ResourceBundle.getBundle("texts");
-        this.mainPanel = new JPanel();
-        var panel1 = new JPanel();
-        var label1 = new JLabel();
-        var label2 = new JLabel();
-        this.orientation = new ComboBox<>();
-        this.chkAnnotation = new JBCheckBox();
-        this.label7 = new JLabel();
-        this.similarValue = new JBTextField();
-        var panel2 = new JPanel();
-        this.chkFixAuthor = new JBCheckBox();
-        this.chkFixThis = new JBCheckBox();
-        this.chkFixOverride = new JBCheckBox();
-        this.convertToTeamCheckbox = new JBCheckBox();
-        this.chkFixUnused = new JBCheckBox();
-        var vSpacer1 = new Spacer();
-        var panel3 = new JPanel();
-        this.chkTranslateOnlyModifiedLines = new JBCheckBox();
-        var hSpacer1 = new Spacer();
-        var label3 = new JLabel();
-        var panel4 = new JPanel();
-        this.preCommitCodeReviewCheckbox = new JBCheckBox();
-        var hSpacer2 = new Spacer();
-        this.preCommitInformOtherPersonCheckbox = new JBCheckBox();
-        var hSpacer3 = new Spacer();
-        var hSpacer4 = new Spacer();
-        var label4 = new JLabel();
-        var label5 = new JLabel();
-        var label6 = new JLabel();
-
-        //======== mainPanel ========
-        {
-            this.mainPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
-
-            //======== panel1 ========
-            {
-                panel1.setBorder(new TitledBorder(bundle.getString("general")));
-                panel1.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-
-                //---- label1 ----
-                label1.setText(bundle.getString("enter.your.4lc.here"));
-                panel1.add(label1, new GridConstraints(0, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- label2 ----
-                label2.setText(bundle.getString("choose.traffic.light.orientation"));
-                panel1.add(label2, new GridConstraints(1, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- orientation ----
-                this.orientation.setEditable(false);
-                this.orientation.setInheritsPopupMenu(false);
-                this.orientation.setModel(new DefaultComboBoxModel<>(new String[] {
-                    "Horizontal",
-                    "Vertical"
-                }));
-                panel1.add(this.orientation, new GridConstraints(1, 1, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- fourLetterCode ----
-                this.fourLetterCode.setBackground(null);
-                panel1.add(this.fourLetterCode, new GridConstraints(0, 1, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- chkAnnotation ----
-                this.chkAnnotation.setText(bundle.getString("ConfigPanel.chkAnnotation.text"));
-                panel1.add(this.chkAnnotation, new GridConstraints(2, 0, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    null, null, null));
-
-                //---- label7 ----
-                this.label7.setText(bundle.getString("ConfigPanel.label7.text"));
-                panel1.add(this.label7, new GridConstraints(3, 0, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    null, null, null));
-
-                //---- similarValue ----
-                this.similarValue.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-                this.similarValue.setText("0.8");
-                this.similarValue.setToolTipText("higher value = similar closer to identical");
-                panel1.add(this.similarValue, new GridConstraints(3, 1, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    null, null, null));
-            }
-            this.mainPanel.add(panel1, new GridConstraints(0, 0, 1, 1,
-                GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                GridConstraints.SIZEPOLICY_FIXED,
-                null, null, null));
-
-            //======== panel2 ========
-            {
-                panel2.setBorder(new TitledBorder(bundle.getString("jenkins.fixes")));
-                panel2.setLayout(new GridLayoutManager(6, 1, new Insets(0, 0, 0, 0), -1, -1));
-
-                //---- chkFixAuthor ----
-                this.chkFixAuthor.setText(bundle.getString("add.missing.author"));
-                panel2.add(this.chkFixAuthor, new GridConstraints(0, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- chkFixThis ----
-                this.chkFixThis.setText(bundle.getString("add.missing.this"));
-                panel2.add(this.chkFixThis, new GridConstraints(1, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- chkFixOverride ----
-                this.chkFixOverride.setText(bundle.getString("add.missing.override"));
-                panel2.add(this.chkFixOverride, new GridConstraints(2, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- convertToTeamCheckbox ----
-                this.convertToTeamCheckbox.setText(bundle.getString("ConfigPanel.convertToTeamCheckbox.text"));
-                this.convertToTeamCheckbox.setToolTipText("When modifying a class of your team, the author will be transferred to your team account");
-                panel2.add(this.convertToTeamCheckbox, new GridConstraints(3, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    null, null, null));
-
-                //---- chkFixUnused ----
-                this.chkFixUnused.setEnabled(false);
-                this.chkFixUnused.setSelected(false);
-                this.chkFixUnused.setText(bundle.getString("remove.unused.annotation"));
-                panel2.add(this.chkFixUnused, new GridConstraints(4, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel2.add(vSpacer1, new GridConstraints(5, 0, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    null, null, null));
-            }
-            this.mainPanel.add(panel2, new GridConstraints(2, 0, 1, 1,
-                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                null, null, null));
-
-            //======== panel3 ========
-            {
-                panel3.setBorder(new TitledBorder(bundle.getString("translations")));
-                panel3.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-
-                //---- chkTranslateOnlyModifiedLines ----
-                this.chkTranslateOnlyModifiedLines.setText(bundle.getString("only.line.change"));
-                panel3.add(this.chkTranslateOnlyModifiedLines, new GridConstraints(0, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel3.add(hSpacer1, new GridConstraints(0, 1, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                    null, null, null));
-
-                //---- label3 ----
-                label3.setText(bundle.getString("min.translation"));
-                panel3.add(label3, new GridConstraints(1, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- minTranslationSize ----
-                this.minTranslationSize.setBackground(null);
-                panel3.add(this.minTranslationSize, new GridConstraints(1, 1, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-            }
-            this.mainPanel.add(panel3, new GridConstraints(1, 0, 1, 1,
-                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                null, null, null));
-
-            //======== panel4 ========
-            {
-                panel4.setBorder(new TitledBorder(bundle.getString("precommit.setting")));
-                panel4.setLayout(new GridLayoutManager(3, 6, new Insets(0, 0, 0, 0), -1, -1));
-
-                //---- preCommitCodeReviewCheckbox ----
-                this.preCommitCodeReviewCheckbox.setText(bundle.getString("precommit.review_needed"));
-                panel4.add(this.preCommitCodeReviewCheckbox, new GridConstraints(0, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel4.add(hSpacer2, new GridConstraints(0, 1, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                    null, null, null));
-
-                //---- preCommitInformOtherPersonCheckbox ----
-                this.preCommitInformOtherPersonCheckbox.setText(bundle.getString("precommit.inform_other_needed"));
-                panel4.add(this.preCommitInformOtherPersonCheckbox, new GridConstraints(2, 0, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel4.add(this.qualityLetterBox, new GridConstraints(2, 1, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel4.add(this.supportLetterBox, new GridConstraints(2, 3, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel4.add(hSpacer3, new GridConstraints(2, 2, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                    null, null, null));
-                panel4.add(this.documentationLetterBox, new GridConstraints(2, 5, 1, 1,
-                    GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-                panel4.add(hSpacer4, new GridConstraints(2, 4, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                    GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                    GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                    null, null, null));
-
-                //---- label4 ----
-                label4.setHorizontalAlignment(SwingConstants.CENTER);
-                label4.setText("Quality");
-                panel4.add(label4, new GridConstraints(1, 1, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- label5 ----
-                label5.setText("Support");
-                panel4.add(label5, new GridConstraints(1, 3, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-
-                //---- label6 ----
-                label6.setText("Documentation");
-                panel4.add(label6, new GridConstraints(1, 5, 1, 1,
-                    GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    GridConstraints.SIZEPOLICY_FIXED,
-                    null, null, null));
-            }
-            this.mainPanel.add(panel4, new GridConstraints(3, 0, 1, 1,
-                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                null, null, null));
-        }
-		// JFormDesigner - End of component initialization  //GEN-END:initComponents
+	private void initComponents(Project project) {
+		createUIComponents(project);
+		
+		ResourceBundle bundle = ResourceBundle.getBundle("texts");
+		this.mainPanel = new JPanel(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+		this.mainPanel.add(createGeneralPanel(bundle), constraints(0, 0, GridConstraints.ANCHOR_NORTH,
+		                                                           GridConstraints.FILL_HORIZONTAL,
+		                                                           SHRINK_GROW, FIXED));
+		this.mainPanel.add(createJenkinsFixesPanel(bundle), constraints(2, 0, GridConstraints.ANCHOR_CENTER,
+		                                                                GridConstraints.FILL_BOTH,
+		                                                                SHRINK_GROW, SHRINK_GROW));
+		this.mainPanel.add(createTranslationsPanel(bundle), constraints(1, 0, GridConstraints.ANCHOR_CENTER,
+		                                                                GridConstraints.FILL_BOTH,
+		                                                                SHRINK_GROW, SHRINK_GROW));
+		this.mainPanel.add(createPreCommitPanel(bundle), constraints(3, 0, GridConstraints.ANCHOR_CENTER,
+		                                                             GridConstraints.FILL_BOTH,
+		                                                             SHRINK_GROW, SHRINK_GROW));
+	}
+	
+	private JPanel createGeneralPanel(ResourceBundle bundle) {
+		JPanel panel = createTitledPanel(bundle.getString("general"), 4, 2);
+		
+		panel.add(new JLabel(bundle.getString("enter.your.4lc.here")),
+		          constraints(0, 0, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, FIXED, FIXED));
+		panel.add(new JLabel(bundle.getString("choose.traffic.light.orientation")),
+		          constraints(1, 0, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, FIXED, FIXED));
+		
+		this.orientation = new ComboBox<>();
+		this.orientation.setEditable(false);
+		this.orientation.setInheritsPopupMenu(false);
+		this.orientation.setModel(new DefaultComboBoxModel<>(new String[] {"Horizontal", "Vertical"}));
+		panel.add(this.orientation, constraints(1, 1, GridConstraints.ANCHOR_WEST,
+		                                        GridConstraints.FILL_HORIZONTAL,
+		                                        GridConstraints.SIZEPOLICY_CAN_GROW, FIXED));
+		
+		this.fourLetterCode.setBackground(null);
+		panel.add(this.fourLetterCode, constraints(0, 1, GridConstraints.ANCHOR_WEST,
+		                                           GridConstraints.FILL_HORIZONTAL, GROW_WANT, FIXED));
+		
+		this.chkAnnotation = new JBCheckBox();
+		this.chkAnnotation.setText(bundle.getString("ConfigPanel.chkAnnotation.text"));
+		panel.add(this.chkAnnotation, constraints(2, 0, GridConstraints.ANCHOR_CENTER,
+		                                          GridConstraints.FILL_NONE, SHRINK_GROW, SHRINK_GROW));
+		
+		JLabel similarLabel = new JLabel(bundle.getString("ConfigPanel.label7.text"));
+		panel.add(similarLabel, constraints(3, 0, GridConstraints.ANCHOR_CENTER,
+		                                    GridConstraints.FILL_NONE, SHRINK_GROW, SHRINK_GROW));
+		
+		this.similarValue = new JBTextField();
+		this.similarValue.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+		this.similarValue.setText("0.8");
+		this.similarValue.setToolTipText("higher value = similar closer to identical");
+		panel.add(this.similarValue, constraints(3, 1, GridConstraints.ANCHOR_WEST,
+		                                         GridConstraints.FILL_HORIZONTAL, SHRINK_GROW, SHRINK_GROW));
+		return panel;
+	}
+	
+	private JPanel createJenkinsFixesPanel(ResourceBundle bundle) {
+		JPanel panel = createTitledPanel(bundle.getString("jenkins.fixes"), 6, 1);
+		
+		this.chkFixAuthor = new JBCheckBox();
+		this.chkFixAuthor.setText(bundle.getString("add.missing.author"));
+		panel.add(this.chkFixAuthor, constraints(0, 0, GridConstraints.ANCHOR_WEST,
+		                                         GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		
+		this.chkFixThis = new JBCheckBox();
+		this.chkFixThis.setText(bundle.getString("add.missing.this"));
+		panel.add(this.chkFixThis, constraints(1, 0, GridConstraints.ANCHOR_WEST,
+		                                       GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		
+		this.chkFixOverride = new JBCheckBox();
+		this.chkFixOverride.setText(bundle.getString("add.missing.override"));
+		panel.add(this.chkFixOverride, constraints(2, 0, GridConstraints.ANCHOR_WEST,
+		                                           GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		
+		this.convertToTeamCheckbox = new JBCheckBox();
+		this.convertToTeamCheckbox.setText(bundle.getString("ConfigPanel.convertToTeamCheckbox.text"));
+		this.convertToTeamCheckbox.setToolTipText("When modifying a class of your team, the author will be transferred to your team account");
+		panel.add(this.convertToTeamCheckbox, constraints(3, 0, GridConstraints.ANCHOR_WEST,
+		                                                  GridConstraints.FILL_NONE, SHRINK_GROW, SHRINK_GROW));
+		
+		this.chkFixUnused = new JBCheckBox();
+		this.chkFixUnused.setEnabled(false);
+		this.chkFixUnused.setSelected(false);
+		this.chkFixUnused.setText(bundle.getString("remove.unused.annotation"));
+		panel.add(this.chkFixUnused, constraints(4, 0, GridConstraints.ANCHOR_WEST,
+		                                         GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		
+		panel.add(new Spacer(), constraints(5, 0, GridConstraints.ANCHOR_CENTER,
+		                                    GridConstraints.FILL_VERTICAL,
+		                                    GridConstraints.SIZEPOLICY_CAN_SHRINK, GROW_WANT));
+		return panel;
+	}
+	
+	private JPanel createTranslationsPanel(ResourceBundle bundle) {
+		JPanel panel = createTitledPanel(bundle.getString("translations"), 2, 2);
+		
+		this.chkTranslateOnlyModifiedLines = new JBCheckBox();
+		this.chkTranslateOnlyModifiedLines.setText(bundle.getString("only.line.change"));
+		panel.add(this.chkTranslateOnlyModifiedLines, constraints(0, 0, GridConstraints.ANCHOR_WEST,
+		                                                          GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		panel.add(new Spacer(), horizontalSpacerConstraints(0, 1));
+		
+		panel.add(new JLabel(bundle.getString("min.translation")),
+		          constraints(1, 0, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, FIXED, FIXED));
+		
+		this.minTranslationSize.setBackground(null);
+		panel.add(this.minTranslationSize, constraints(1, 1, GridConstraints.ANCHOR_WEST,
+		                                               GridConstraints.FILL_HORIZONTAL, GROW_WANT, FIXED));
+		return panel;
+	}
+	
+	private JPanel createPreCommitPanel(ResourceBundle bundle) {
+		JPanel panel = createTitledPanel(bundle.getString("precommit.setting"), 3, 6);
+		
+		this.preCommitCodeReviewCheckbox = new JBCheckBox();
+		this.preCommitCodeReviewCheckbox.setText(bundle.getString("precommit.review_needed"));
+		panel.add(this.preCommitCodeReviewCheckbox, constraints(0, 0, GridConstraints.ANCHOR_WEST,
+		                                                        GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		panel.add(new Spacer(), horizontalSpacerConstraints(0, 1));
+		
+		this.preCommitInformOtherPersonCheckbox = new JBCheckBox();
+		this.preCommitInformOtherPersonCheckbox.setText(bundle.getString("precommit.inform_other_needed"));
+		panel.add(this.preCommitInformOtherPersonCheckbox, constraints(2, 0, GridConstraints.ANCHOR_WEST,
+		                                                               GridConstraints.FILL_NONE, SHRINK_GROW, FIXED));
+		panel.add(this.qualityLetterBox, letterBoxConstraints(1));
+		panel.add(this.supportLetterBox, letterBoxConstraints(3));
+		panel.add(new Spacer(), horizontalSpacerConstraints(2, 2));
+		panel.add(this.documentationLetterBox, letterBoxConstraints(5));
+		panel.add(new Spacer(), horizontalSpacerConstraints(2, 4));
+		
+		JLabel qualityLabel = new JLabel("Quality");
+		qualityLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(qualityLabel, labelConstraints(1));
+		panel.add(new JLabel("Support"), labelConstraints(3));
+		panel.add(new JLabel("Documentation"), labelConstraints(5));
+		return panel;
+	}
+	
+	private static JPanel createTitledPanel(String title, int rows, int columns) {
+		JPanel panel = new JPanel(new GridLayoutManager(rows, columns, new Insets(0, 0, 0, 0), -1, -1));
+		panel.setBorder(new TitledBorder(title));
+		return panel;
+	}
+	
+	private static GridConstraints horizontalSpacerConstraints(int row, int column) {
+		return constraints(row, column, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+		                   GROW_WANT, GridConstraints.SIZEPOLICY_CAN_SHRINK);
+	}
+	
+	private static GridConstraints letterBoxConstraints(int column) {
+		return constraints(2, column, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+		                   GROW_WANT, FIXED);
+	}
+	
+	private static GridConstraints labelConstraints(int column) {
+		return constraints(1, column, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, FIXED, FIXED);
+	}
+	
+	private static GridConstraints constraints(int row, int column, int anchor, int fill,
+	                                           int horizontalPolicy, int verticalPolicy) {
+		return new GridConstraints(row, column, 1, 1, anchor, fill, horizontalPolicy, verticalPolicy,
+		                           null, null, null);
 	}
 }

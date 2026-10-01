@@ -8,6 +8,8 @@ import com.intellij.psi.PsiFile;
 import com.swissas.util.ProjectUtil;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,9 +34,9 @@ class Engine {
 		   List<Processor> processors,
 		   Project project,
 		   Set<PsiFile> psiFiles) {
-		this.processors = processors;
+		this.processors = new ArrayList<>(processors);
 		this.project = project;
-		this.psiFiles = psiFiles;
+		this.psiFiles = new HashSet<>(psiFiles);
 	}
 	
 	void processPsiFilesIfNecessary() {

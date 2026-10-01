@@ -142,7 +142,7 @@ public class PsiHelper {
 	
 	public void addFieldGetterAndSetterFromPsiMethod(PsiMethod psiMethod, PsiClass destinationClass) {
 		String variable = StringUtils.getInstance().removeGetterPrefix(psiMethod.getName());
-		String objectType =  psiMethod.getReturnType().getCanonicalText();
+		String objectType =  Objects.requireNonNull(psiMethod.getReturnType()).getCanonicalText();
 		String getterName = psiMethod.getName();
 		boolean isBoReturned = isBoReturned(psiMethod);
 		PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
@@ -402,8 +402,9 @@ public class PsiHelper {
 		                    + " */\n";
 		
 		PsiClass mapperClass = elementFactory.createClass(dtoName + "Mapper");
-		mapperClass.getModifierList().setModifierProperty(PsiModifier.PACKAGE_LOCAL, true);
-		mapperClass.getModifierList().setModifierProperty(PsiModifier.FINAL, true);
+		PsiModifierList modifierList = Objects.requireNonNull(mapperClass.getModifierList());
+		modifierList.setModifierProperty(PsiModifier.PACKAGE_LOCAL, true);
+		modifierList.setModifierProperty(PsiModifier.FINAL, true);
 		PsiDocComment javadoc = elementFactory.createDocCommentFromText(javaDocTxt);
 		mapperClass.addBefore(javadoc, mapperClass.getFirstChild());
 		
@@ -413,7 +414,7 @@ public class PsiHelper {
 		                                       boName, dtoName, hasEntityTag));
 		mapperClass.add(generateListToDto(project, boName, dtoName));
 		mapperClass.add(generateDeleteDtos(project, boName, dtoName));
-		String finderName = finder.getFirst() == null ? boName : finder.getFirst().getName();
+		String finderName = finder.getFirst() == null ? boName : Objects.requireNonNullElse(finder.getFirst().getName(), boName);
 		mapperClass.add(generateSaveDtos(project, finderName, boName, dtoName, pkGetterName));
 		mapperClass.add(generateListToBo(project, boName, finderName, dtoName, pkGetterName));
 		mapperFile.add(mapperClass);
