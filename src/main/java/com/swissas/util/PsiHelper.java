@@ -458,7 +458,7 @@ public class PsiHelper {
 		PsiModifierList list = getter.getModifierList();
 		PsiAnnotation annotation = list
 				.findAnnotation("amos.share.databaseAccess.bo.AmosBeanInfo");
-		return annotation != null && annotation.findAttribute("primaryKey") != null;
+		return annotation != null && annotation.findDeclaredAttributeValue("primaryKey") != null;
 	}
 	
 	private boolean isGetter(@NotNull PsiMethod psiMethod) {
