@@ -196,7 +196,7 @@ public class ImportantPreCommits extends JDialog {
 		dispose();
 	}
 	
-	private Message generateMessage(Properties properties, String sender, List<String> destination) throws MessagingException, AddressException {
+	private Message generateMessage(Properties properties, String sender, List<String> destination) throws MessagingException {
 		Session session = Session.getDefaultInstance(properties, null);
 		Message msg = new MimeMessage(session);
 		msg.setFrom(new InternetAddress(sender));
