@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.swissas.tala"
-version = "1.8.7"
+version = "1.9.0"
 
 repositories {
     mavenCentral()
@@ -53,7 +53,7 @@ intellijPlatform  {
     pluginConfiguration {
         id = "com.swissas.tala.swissas"
         name = "Swiss-AS Dev-Tools"
-        version = "1.8.7"
+        version = "1.9.0"
         ideaVersion {
             sinceBuild = "261"
         }
@@ -66,7 +66,7 @@ intellijPlatform  {
         }
         
         changeNotes = """
-<b>V1.9</b><pre>Fix the not possible to translate issue
+<b>V1.9.0</b><pre>Fix the not possible to translate issue
 Fix some exceptions
 rebuild the plugin with latest gradle and intellij gradle plugin
 let AI have a look at the code and fix some small finding
