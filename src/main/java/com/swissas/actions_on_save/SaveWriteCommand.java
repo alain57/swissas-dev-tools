@@ -1,10 +1,10 @@
 package com.swissas.actions_on_save;
 
-import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 
 import static com.swissas.actions_on_save.Result.ResultCode;
 import static com.swissas.actions_on_save.Result.ResultCode.OK;
@@ -17,14 +17,12 @@ import static com.swissas.actions_on_save.Result.ResultCode.OK;
 
 public class SaveWriteCommand extends SaveCommand {
 	
-	public SaveWriteCommand(Project project, Set<PsiFile> psiFiles, InspectionAction inspectionAction,
-							BiFunction<Project, PsiFile[], Runnable> command) {
-		super(project, psiFiles, inspectionAction, command);
+	public SaveWriteCommand(Project project, InspectionAction inspectionAction, Supplier<InspectionRunnable> command) {
+		super(project, inspectionAction, command);
 	}
 	
 	@Override
-	public Result<ResultCode> execute() {
-		getCommand().apply(getProject(), getPsiFilesAsArray()).run();
-		return new Result<>(OK);
+	public void execute(Executor executor, Consumer<Result<ResultCode>> onComplete) {
+		getCommand().get().run(executor, () -> onComplete.accept(new Result<>(OK)));
 	}
 }

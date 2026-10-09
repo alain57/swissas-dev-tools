@@ -1,7 +1,6 @@
 package com.swissas.actions_on_save;
 
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -51,9 +50,9 @@ public enum Processor {
 	
 	
 	public SaveWriteCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
-		BiFunction<Project, PsiFile[], Runnable> command =
-				(p, f) -> new InspectionRunnable(project, psiFiles, getInspection());
-		return new SaveWriteCommand(project, psiFiles, getInspectionAction(), command);
+		Supplier<InspectionRunnable> command =
+				() -> new InspectionRunnable(project, psiFiles, this.inspectionSupplier);
+		return new SaveWriteCommand(project, getInspectionAction(), command);
 	}
 	
 	public LocalInspectionTool getInspection() {

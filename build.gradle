@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij.platform' version '2.18.1'
+    id 'org.jetbrains.intellij.platform' version '2.19.0'
 }
 
 group = "com.swissas.tala"
-version = "1.9.1"
+version = "1.9.2"
 
 repositories {
     mavenCentral()
@@ -53,7 +53,7 @@ intellijPlatform  {
     pluginConfiguration {
         id = "com.swissas.tala.swissas"
         name = "Swiss-AS Dev-Tools"
-        version = "1.9.1"
+        version = project.version.toString()
         ideaVersion {
             sinceBuild = "261"
         }
@@ -66,6 +66,9 @@ intellijPlatform  {
         }
         
         changeNotes = """
+<b>V1.9.2</b><pre>Fix one exception during save process
+upgrade gradle from 9.7.1 to 9.8.1
+upgrade platform plugin to 2.19.0</pre>
 <b>V1.9.1</b><pre>Prevent freezes during save by running inspections in the background
 fix all Qodana warnings
 </pre>

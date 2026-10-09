@@ -1,6 +1,10 @@
 package com.swissas.actions_on_save;
 
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -12,10 +16,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static com.swissas.actions_on_save.Result.ResultCode;
 
 /**
@@ -39,33 +43,94 @@ class Engine {
 		this.psiFiles = new HashSet<>(psiFiles);
 	}
 	
-	void processPsiFilesIfNecessary() {
-		LOGGER.info("Processing " + this.project + " files " + this.psiFiles);
-		Set<PsiFile> psiFilesEligible = this.psiFiles.stream()
-				.filter(psiFile -> isPsiFileEligible(this.project, psiFile))
-				.collect(toSet());
-		LOGGER.info("Valid files " + psiFilesEligible);
-		processPsiFiles(this.project, psiFilesEligible);
+	void processPsiFilesIfNecessary(Executor executor, Runnable onComplete) {
+		LOGGER.info("Processing " + this.project + " files (" + this.psiFiles.size() + ")");
+		AtomicBoolean completed = new AtomicBoolean();
+		Runnable completeOnce = () -> {
+			if (completed.compareAndSet(false, true)) {
+				onComplete.run();
+			}
+		};
+		try {
+			ReadAction.nonBlocking(this::findEligiblePsiFiles)
+					.expireWith(this.project)
+					.finishOnUiThread(ModalityState.nonModal(), psiFilesEligible -> {
+						try {
+							LOGGER.info("Valid files (" + psiFilesEligible.size() + ")");
+							if (psiFilesEligible.isEmpty()) {
+								completeOnce.run();
+								return;
+							}
+							List<SaveCommand> commands = this.processors.stream()
+									.<SaveCommand>map(processor -> processor.getSaveCommand(this.project, psiFilesEligible))
+									.filter(command -> command.getInspectionAction().isEnabled())
+									.toList();
+							LOGGER.info("Filtered processors " + commands);
+							processCommands(commands, 0, psiFilesEligible, executor, new ArrayList<>(), completeOnce);
+						} catch (RuntimeException exception) {
+							completeOnce.run();
+							throw exception;
+						}
+					})
+					.submit(executor)
+					.onError(exception -> {
+						if (exception instanceof ProcessCanceledException) {
+							LOGGER.info("Save action file filtering was canceled");
+						} else {
+							LOGGER.error("Unable to filter files for save actions", exception);
+						}
+						completeOnce.run();
+					});
+		} catch (RuntimeException exception) {
+			completeOnce.run();
+			throw exception;
+		}
 	}
-	
-	private void processPsiFiles(Project project, Set<PsiFile> psiFiles) {
-		if (psiFiles.isEmpty()) {
+
+	private Set<PsiFile> findEligiblePsiFiles() {
+		Set<PsiFile> psiFilesEligible = new HashSet<>();
+		for (PsiFile psiFile : this.psiFiles) {
+			ProgressManager.checkCanceled();
+			if (isPsiFileEligible(this.project, psiFile)) {
+				psiFilesEligible.add(psiFile);
+			}
+		}
+		return psiFilesEligible;
+	}
+
+	private void processCommands(List<SaveCommand> commands,
+	                            int commandIndex,
+	                            Set<PsiFile> psiFiles,
+	                            Executor executor,
+	                            List<SimpleEntry<InspectionAction, Result<ResultCode>>> results,
+	                            Runnable onComplete) {
+		if (this.project.isDisposed() || commandIndex >= commands.size()) {
+			LOGGER.info("Exit engine with results "
+					+ results.stream()
+					.map(entry -> entry.getKey() + ":" + entry.getValue())
+					.toList());
+			onComplete.run();
 			return;
 		}
-		LOGGER.info("Start processors (" + this.processors.size() + ")");
-		List<SaveCommand> processorsEligible = this.processors.stream()
-				.map(processor -> processor.getSaveCommand(project, psiFiles))
-				.filter(command -> command.getInspectionAction().isEnabled())
-				.collect(toList());
-		LOGGER.info("Filtered processors " + processorsEligible);
-		List<SimpleEntry<InspectionAction, Result<ResultCode>>> results = processorsEligible.stream()
-				.peek(command -> LOGGER.info("Execute command " + command + " on " + psiFiles.size() + " files"))
-				.map(command -> new SimpleEntry<>(command.getInspectionAction(), command.execute()))
-				.toList();
-		LOGGER.info("Exit engine with results "
-				+ results.stream()
-				.map(entry -> entry.getKey() + ":" + entry.getValue())
-				.toList());
+
+		SaveCommand command = commands.get(commandIndex);
+		LOGGER.info("Execute command " + command + " on " + psiFiles.size() + " files");
+		AtomicBoolean commandCompleted = new AtomicBoolean();
+		Consumer<Result<ResultCode>> commandFinished = result -> {
+			if (!commandCompleted.compareAndSet(false, true)) {
+				return;
+			}
+			results.add(new SimpleEntry<>(command.getInspectionAction(), result));
+			processCommands(commands, commandIndex + 1, psiFiles, executor, results, onComplete);
+		};
+		try {
+			command.execute(executor, commandFinished);
+		} catch (RuntimeException exception) {
+			if (commandCompleted.compareAndSet(false, true)) {
+				onComplete.run();
+			}
+			throw exception;
+		}
 	}
 	
 	private boolean isPsiFileEligible(Project project, PsiFile psiFile) {

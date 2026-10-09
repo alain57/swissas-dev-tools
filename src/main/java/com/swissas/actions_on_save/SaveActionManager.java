@@ -111,9 +111,10 @@ public final class SaveActionManager
 	private void processPsiFiles(Project project, Set<PsiFile> psiFiles) {
 		try {
 			Engine engine = new Engine(this.processors, project, psiFiles);
-			engine.processPsiFilesIfNecessary();
-		} finally {
+			engine.processPsiFilesIfNecessary(this.executor, () -> this.running.set(false));
+		} catch (RuntimeException exception) {
 			this.running.set(false);
+			throw exception;
 		}
 	}
 	
